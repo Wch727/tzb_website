@@ -108,9 +108,12 @@ with top_left:
 
 with top_right:
     st.markdown(f"## {explanation.get('feedback_title', explanation.get('node', {}).get('title', '节点展项'))}")
+    if explanation.get("summary"):
+        st.markdown("### 节点摘要")
+        st.write(explanation.get("summary", ""))
     st.markdown("### 节点背景说明")
     st.write((explanation.get("background", "") or "")[:220] or "暂无背景说明。")
-    st.markdown("### AI 讲解摘要")
+    st.markdown(f"### {('静态讲解摘要' if explanation.get('mode_label') == '静态展示模式' else 'AI讲解摘要')}")
     st.write(explanation.get("explanation", ""))
     audio_path = render_audio_player(
         text=explanation.get("explanation") or explanation.get("background", ""),
@@ -129,12 +132,19 @@ with top_right:
             audio_path=audio_path,
         )
 
-detail_tab1, detail_tab2, detail_tab3 = st.tabs(["事件经过", "历史意义", "本次讲解依据"])
+detail_tab1, detail_tab2, detail_tab3, detail_tab4 = st.tabs(["事件经过", "历史意义", "关键知识点", "本次讲解依据"])
 with detail_tab1:
     st.write(explanation.get("process", "暂无过程说明。"))
 with detail_tab2:
     st.write(explanation.get("significance", "暂无意义说明。"))
 with detail_tab3:
+    key_points = explanation.get("key_points", []) or []
+    if key_points:
+        for item in key_points:
+            st.markdown(f"- {item}")
+    else:
+        st.info("当前节点暂无额外知识点。")
+with detail_tab4:
     render_sources(explanation.get("sources", []), title="本节点讲解依据")
 
 st.markdown("---")
@@ -182,3 +192,13 @@ if last_result and selected_stage == st.session_state.get("game_state", {}).get(
                 st.session_state["game_last_result"] = None
                 st.session_state.pop(f"answer_{selected_stage}", None)
                 st.rerun()
+
+    related_nodes = explanation.get("related_nodes", []) or []
+    if related_nodes:
+        st.markdown("### 相关推荐节点")
+        related_cols = st.columns(min(3, len(related_nodes)))
+        for index, node in enumerate(related_nodes[:3]):
+            with related_cols[index % len(related_cols)]:
+                render_node_image(node, caption=node.get("place", ""))
+                st.markdown(f"**{node.get('title', '')}**")
+                st.write(node.get("summary", ""))

@@ -89,3 +89,6 @@ with tab3:
         render_runtime_notice(guide_result)
         st.write(guide_result.get("script", ""))
         render_sources(guide_result.get("sources", []), title="本次讲解稿依据")
+        st.markdown("#### 继续体验推荐")
+        for item in sample.get("featured_nodes", [])[:3]:
+            st.markdown(f"- {item.get('title', '')}：{item.get('summary', '')}")

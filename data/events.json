@@ -1,47 +1,98 @@
 [
   {
     "title": "中央红军从江西瑞金出发",
-    "type": "events",
+    "type": "event",
     "topic": "长征史",
-    "route_stage": "瑞金集结",
+    "route_stage": "瑞金出发",
     "place": "江西瑞金",
-    "summary": "1934年10月，中央红军主力从江西瑞金等地出发，开始战略转移，长征由此拉开序幕。",
-    "significance": "标志着中国革命进入保存力量、寻找新根据地的重要阶段。"
+    "summary": "1934年10月，中央红军从中央苏区出发，开始关系中国革命前途命运的伟大战略转移。",
+    "significance": "它标志着长征正式开始，也标志着革命进入保存骨干和重建战略空间的新阶段。",
+    "image": "",
+    "image_alt": "瑞金出发相关展项图",
+    "image_caption": "瑞金出发：长征主线的起点"
   },
   {
     "title": "湘江战役",
-    "type": "events",
+    "type": "event",
     "topic": "长征史",
-    "route_stage": "湘江血战",
-    "place": "广西全州、灌阳一带",
-    "summary": "湘江战役是长征初期最惨烈的战役之一，中央红军付出巨大代价突破封锁线。",
-    "significance": "严峻形势促使党和红军更加深刻地反思军事路线问题。"
+    "route_stage": "湘江战役",
+    "place": "广西全州、兴安、灌阳一带",
+    "summary": "湘江战役是长征初期最惨烈的战役之一，红军付出巨大牺牲才掩护主力冲出重围。",
+    "significance": "它迫使党和红军深刻反思此前军事路线问题，为后续战略转折创造了历史条件。",
+    "image": "assets/images/xiangjiang.jpg",
+    "image_alt": "湘江战役相关图片",
+    "image_caption": "湘江战役：长征初期的危局节点"
   },
   {
     "title": "遵义会议",
-    "type": "events",
+    "type": "event",
     "topic": "长征史",
-    "route_stage": "遵义转折",
+    "route_stage": "遵义会议",
     "place": "贵州遵义",
-    "summary": "1935年1月召开的遵义会议，确立了毛泽东在党中央和红军中的重要领导地位。",
-    "significance": "成为中国共产党历史上生死攸关的转折点。"
+    "summary": "遵义会议开始确立以毛泽东为代表的正确领导，成为党历史上生死攸关的转折点。",
+    "significance": "它体现了中国共产党独立自主解决自身重大问题的能力，深刻改变了长征走势。",
+    "image": "assets/images/zunyi.jpg",
+    "image_alt": "遵义会议旧址相关图片",
+    "image_caption": "遵义会议：长征中的历史转折点"
+  },
+  {
+    "title": "娄山关战斗",
+    "type": "event",
+    "topic": "长征史",
+    "route_stage": "娄山关战斗",
+    "place": "贵州遵义北部",
+    "summary": "娄山关战斗是遵义会议后的一场重要胜仗，增强了红军对新战略方向和新指挥格局的信心。",
+    "significance": "它让路线转折开始在实战中显出成效，是长征由危转安过程中的重要环节。",
+    "image": "",
+    "image_alt": "娄山关战斗相关展项图",
+    "image_caption": "娄山关战斗：转折后主动出击的重要战例"
+  },
+  {
+    "title": "四渡赤水",
+    "type": "event",
+    "topic": "长征史",
+    "route_stage": "四渡赤水",
+    "place": "贵州、四川、云南交界地区",
+    "summary": "红军通过高度灵活的机动作战摆脱敌军围追堵截，四渡赤水因此成为长征军事史上的经典战例。",
+    "significance": "它集中体现了以运动战争取主动的思想，也显示长征并非被动逃离，而是主动求生与求胜。",
+    "image": "",
+    "image_alt": "四渡赤水展项图",
+    "image_caption": "四渡赤水：长征中最具代表性的机动作战"
   },
   {
     "title": "巧渡金沙江",
-    "type": "events",
+    "type": "event",
     "topic": "长征史",
-    "route_stage": "金沙江脱险",
+    "route_stage": "巧渡金沙江",
     "place": "云南禄劝、四川会理一带",
-    "summary": "红军通过机动和隐蔽行动成功渡过金沙江，摆脱了敌军围追堵截。",
-    "significance": "为北上抗日战略创造了关键条件。"
+    "summary": "红军通过隐蔽、快速和周密组织顺利渡过金沙江，摆脱了西南地区的高压围堵。",
+    "significance": "这一步为北上川西北打开了现实通道，是长征中段战略突破的重要成果。",
+    "image": "",
+    "image_alt": "金沙江相关展项图",
+    "image_caption": "巧渡金沙江：北上脱险的重要节点"
   },
   {
     "title": "飞夺泸定桥",
-    "type": "events",
+    "type": "event",
     "topic": "长征史",
-    "route_stage": "泸定桥突进",
+    "route_stage": "飞夺泸定桥",
     "place": "四川泸定",
-    "summary": "红军突击队在极端艰险条件下抢占泸定桥，确保主力部队顺利通过大渡河。",
-    "significance": "集中体现了红军英勇顽强、敢于胜利的革命精神。"
+    "summary": "红军突击队在极险条件下夺取泸定桥，为主力北上赢得时间，也使这一场景成为长征精神的重要象征。",
+    "significance": "它兼具现实战略价值和鲜明精神象征，是长征叙事中最具代表性的英雄场景之一。",
+    "image": "assets/images/ludingqiao.jpg",
+    "image_alt": "泸定桥相关图片",
+    "image_caption": "飞夺泸定桥：长征精神的重要象征"
+  },
+  {
+    "title": "会宁会师",
+    "type": "event",
+    "topic": "长征史",
+    "route_stage": "会宁会师",
+    "place": "甘肃会宁",
+    "summary": "1936年10月，红军三大主力在甘肃会宁胜利会师，标志着长征从全局上取得伟大胜利。",
+    "significance": "它不仅结束了伟大战略转移，也让长征精神以更完整的历史形态留在中国革命史中。",
+    "image": "",
+    "image_alt": "会宁会师相关展项图",
+    "image_caption": "会宁会师：长征伟大胜利的重要标志"
   }
 ]

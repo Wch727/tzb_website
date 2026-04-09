@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import html
 from pathlib import Path
 from typing import Any, Dict
 
 import streamlit as st
 
+from content_store import load_image_map
 from tts import synthesize_text_to_audio
-from utils import AVATAR_DIR, BASE_DIR
+from utils import AVATAR_DIR, BASE_DIR, IMAGE_DIR
 
 
 def _resolve_asset_path(path_like: str) -> Path:
@@ -19,10 +21,66 @@ def _resolve_asset_path(path_like: str) -> Path:
     return (BASE_DIR / path).resolve()
 
 
-def generate_placeholder_svg(title: str, subtitle: str = "长征史展项") -> str:
+def _fallback_image_by_type(item_type: str) -> str:
+    """按类型返回默认占位图。"""
+    fallback_map = load_image_map().get("fallbacks", {})
+    normalized = str(item_type or "event").strip().lower()
+    return (
+        fallback_map.get(normalized)
+        or fallback_map.get("default")
+        or f"assets/images/fallback_{normalized}.svg"
+    )
+
+
+def resolve_image(item: Dict[str, Any]) -> Dict[str, Any]:
+    """统一解析图片来源，确保缺图时能优雅降级。"""
+    title = str(item.get("title", "长征史展项") or "长征史展项")
+    image_path = str(item.get("image", "") or "").strip()
+    if image_path:
+        resolved = _resolve_asset_path(image_path)
+        if resolved.exists():
+            return {
+                "mode": "local",
+                "path": str(resolved),
+                "alt": item.get("image_alt", title),
+                "caption": item.get("image_caption", "") or item.get("place", "") or title,
+            }
+
+    remote_image_url = str(item.get("remote_image_url", "") or "").strip()
+    if remote_image_url:
+        return {
+            "mode": "remote",
+            "path": remote_image_url,
+            "alt": item.get("image_alt", title),
+            "caption": item.get("image_caption", "") or item.get("place", "") or title,
+        }
+
+    fallback_path = _fallback_image_by_type(item.get("type", "event"))
+    if fallback_path:
+        resolved = _resolve_asset_path(fallback_path)
+        if resolved.exists():
+            return {
+                "mode": "fallback_asset",
+                "path": str(resolved),
+                "alt": item.get("image_alt", title),
+                "caption": item.get("image_caption", "") or item.get("place", "") or title,
+            }
+
+    subtitle = item.get("place", "") or item.get("summary", "")[:40] or "长征史展项"
+    return {
+        "mode": "generated",
+        "path": "",
+        "alt": item.get("image_alt", title),
+        "caption": item.get("image_caption", "") or item.get("place", "") or title,
+        "svg": generate_placeholder_svg(title, subtitle, item.get("type", "event")),
+    }
+
+
+def generate_placeholder_svg(title: str, subtitle: str = "长征史展项", item_type: str = "event") -> str:
     """生成节点占位图。"""
-    safe_title = title or "长征史"
-    safe_subtitle = subtitle or "比赛演示"
+    safe_title = html.escape(title or "长征史")
+    safe_subtitle = html.escape(subtitle or "长征史展项")
+    type_text = html.escape(str(item_type or "event"))
     return f"""
     <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
       <defs>
@@ -38,24 +96,33 @@ def generate_placeholder_svg(title: str, subtitle: str = "长征史展项") -> s
       <text x="80" y="220" font-size="34" fill="#fcefd6" font-family="Microsoft YaHei">长征史互动导览</text>
       <text x="80" y="360" font-size="76" fill="#fffaf0" font-family="Microsoft YaHei" font-weight="700">{safe_title}</text>
       <text x="80" y="430" font-size="32" fill="#fbe8cf" font-family="Microsoft YaHei">{safe_subtitle}</text>
-      <text x="80" y="610" font-size="26" fill="#fce8cf" font-family="Microsoft YaHei">本图为演示占位图，可替换为真实历史图片资源</text>
+      <text x="80" y="560" font-size="28" fill="#fce8cf" font-family="Microsoft YaHei">类型：{type_text}</text>
+      <text x="80" y="610" font-size="26" fill="#fce8cf" font-family="Microsoft YaHei">当前未检索到对应图片，系统已启用内置展项占位卡片</text>
     </svg>
     """.strip()
 
 
 def render_node_image(node: Dict[str, Any], caption: str = "") -> None:
     """展示节点图片，缺图时使用占位图。"""
-    image_path = str(node.get("image", "") or "").strip()
-    if image_path:
-        resolved = _resolve_asset_path(image_path)
-        if resolved.exists():
-            st.image(str(resolved), caption=caption or node.get("title", ""), use_container_width=True)
+    resolved = resolve_image(node)
+    final_caption = caption or resolved.get("caption", "") or node.get("title", "")
+    if resolved.get("mode") in ["local", "remote", "fallback_asset"] and resolved.get("path"):
+        try:
+            st.image(
+                resolved["path"],
+                caption=final_caption,
+                use_container_width=True,
+            )
             return
+        except Exception:
+            pass
 
-    subtitle = node.get("place", "") or "长征史节点"
-    st.image(generate_placeholder_svg(node.get("title", "长征史"), subtitle).encode("utf-8"), use_container_width=True)
-    if caption:
-        st.caption(caption)
+    st.image(
+        resolved.get("svg", generate_placeholder_svg(node.get("title", "长征史"), node.get("place", ""), node.get("type", "event"))).encode("utf-8"),
+        use_container_width=True,
+    )
+    if final_caption:
+        st.caption(final_caption)
 
 
 def render_audio_player(
@@ -98,7 +165,7 @@ def render_digital_human(section_text: str, avatar_path: str, audio_path: str = 
             """
             <div style="background:rgba(255,251,245,0.92);border:1px solid rgba(154,113,61,0.18);
             border-radius:22px;padding:1rem 1.1rem;line-height:1.9;">
-            数字讲解员已进入节点讲解模式，以下内容可用于比赛现场进行“图像 + 音频 + 文本”的沉浸式展示。
+            数字讲解员已进入节点讲解模式，当前区域将同步展示形象、音频与讲解文本。
             </div>
             """,
             unsafe_allow_html=True,

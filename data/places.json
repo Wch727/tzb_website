@@ -1,38 +1,82 @@
 [
   {
-    "title": "瑞金",
-    "type": "places",
+    "title": "江西瑞金",
+    "type": "place",
     "topic": "长征史",
-    "route_stage": "瑞金集结",
+    "route_stage": "瑞金出发",
     "place": "江西瑞金",
-    "summary": "瑞金是中央苏区的重要城市，也是中央红军长征出发的重要地点。",
-    "meaning": "被誉为共和国摇篮。"
+    "summary": "瑞金是中央苏区的重要中心城市，也是中央红军长征叙事中的历史起点。"
   },
   {
-    "title": "遵义",
-    "type": "places",
+    "title": "江西于都",
+    "type": "place",
     "topic": "长征史",
-    "route_stage": "遵义转折",
+    "route_stage": "于都河出发",
+    "place": "江西于都",
+    "summary": "于都是中央红军渡河出发的重要地点，军民同心支前的历史场景在此集中呈现。"
+  },
+  {
+    "title": "湘江",
+    "type": "place",
+    "topic": "长征史",
+    "route_stage": "湘江战役",
+    "place": "广西全州兴安灌阳一带",
+    "summary": "湘江是长征初期最惨烈血战的发生地，也是长征危局最突出的节点之一。"
+  },
+  {
+    "title": "湖南通道",
+    "type": "place",
+    "topic": "长征史",
+    "route_stage": "通道转兵",
+    "place": "湖南通道",
+    "summary": "通道是长征由既定高风险路线转向贵州方向的重要地点。"
+  },
+  {
+    "title": "贵州遵义",
+    "type": "place",
+    "topic": "长征史",
+    "route_stage": "遵义会议",
     "place": "贵州遵义",
-    "summary": "遵义见证了中国共产党独立自主解决中国革命问题的重要历史时刻。",
-    "meaning": "承载着遵义会议这一重大历史记忆。"
+    "summary": "遵义因遵义会议成为长征主线中最关键的历史转折地点之一。"
   },
   {
-    "title": "泸定桥",
-    "type": "places",
+    "title": "赤水河地区",
+    "type": "place",
     "topic": "长征史",
-    "route_stage": "泸定桥突进",
+    "route_stage": "四渡赤水",
+    "place": "贵州四川云南交界地区",
+    "summary": "赤水河地区见证了长征中最经典的机动作战行动。"
+  },
+  {
+    "title": "金沙江",
+    "type": "place",
+    "topic": "长征史",
+    "route_stage": "巧渡金沙江",
+    "place": "云南禄劝四川会理一带",
+    "summary": "金沙江是红军摆脱西南地区高压围堵的重要天然屏障。"
+  },
+  {
+    "title": "四川泸定桥",
+    "type": "place",
+    "topic": "长征史",
+    "route_stage": "飞夺泸定桥",
     "place": "四川泸定",
-    "summary": "泸定桥横跨大渡河，是红军北上的关键通道之一。",
-    "meaning": "成为长征精神的重要象征。"
+    "summary": "泸定桥是长征中最具象征意义的桥梁和战略通道之一。"
   },
   {
-    "title": "吴起镇",
-    "type": "places",
+    "title": "川西雪山草地",
+    "type": "place",
     "topic": "长征史",
-    "route_stage": "陕北落脚",
-    "place": "陕西吴起",
-    "summary": "吴起镇是中央红军长征胜利到达陕北的重要节点。",
-    "meaning": "为党中央立足西北、领导全国抗日斗争奠定基础。"
+    "route_stage": "翻越雪山",
+    "place": "川西高原和草地地区",
+    "summary": "雪山草地是长征后段最艰险的自然环境场景，也是艰苦奋斗精神的代表地点。"
+  },
+  {
+    "title": "甘肃会宁",
+    "type": "place",
+    "topic": "长征史",
+    "route_stage": "会宁会师",
+    "place": "甘肃会宁",
+    "summary": "会宁是红军三大主力胜利会师的重要地点，也是长征伟大胜利的标志性地点。"
   }
 ]

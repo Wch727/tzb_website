@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 import streamlit as st
 
+from content_store import build_static_sources_for_node, get_related_nodes
 from generator import generate_guide_script, generate_short_video_script
 from media import render_audio_player, render_digital_human, render_node_image
 from rag import retrieve_knowledge
@@ -48,10 +49,14 @@ def render_node_detail(
         }
         for item in retrieval.get("hits", [])
     ]
+    if not source_cards:
+        source_cards = build_static_sources_for_node(node)
+    else:
+        source_cards = build_static_sources_for_node(node)[:1] + source_cards
 
     left, right = st.columns([1.05, 1.35])
     with left:
-        render_node_image(node, caption=f"{node.get('title', '')} · {node.get('place', '')}")
+        render_node_image(node, caption=node.get("image_caption", "") or f"{node.get('title', '')} · {node.get('place', '')}")
         st.caption(f"时间：{node.get('date', '未标注')}")
         st.caption(f"地点：{node.get('place', '未标注')}")
         if node.get("figures"):
@@ -63,7 +68,7 @@ def render_node_detail(
             f"**节点定位：** {node.get('route_stage', '未标注')}  \n"
             f"**历史摘要：** {node.get('summary', '暂无摘要')}"
         )
-        tab1, tab2, tab3, tab4 = st.tabs(["历史背景", "事件经过", "历史意义", "互动操作"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["历史背景", "事件经过", "历史意义", "关键知识点", "互动操作"])
         with tab1:
             st.write(node.get("background", "暂无背景介绍。"))
         with tab2:
@@ -71,6 +76,13 @@ def render_node_detail(
         with tab3:
             st.write(node.get("significance", "暂无历史意义说明。"))
         with tab4:
+            key_points = node.get("key_points", []) or []
+            if key_points:
+                for item in key_points:
+                    st.markdown(f"- {item}")
+            else:
+                st.info("当前节点暂未配置额外知识点。")
+        with tab5:
             col1, col2, col3 = st.columns(3)
             with col1:
                 if st.button("进入互动答题", key=f"quiz::{node_id}", use_container_width=True):
@@ -129,5 +141,18 @@ def render_node_detail(
             avatar_path=node.get("avatar", "assets/avatar/guide.svg"),
             audio_path=audio_path,
         )
+
+    related_nodes = get_related_nodes(node, limit=3)
+    if related_nodes:
+        st.markdown("### 相关推荐节点")
+        cols = st.columns(min(3, len(related_nodes)))
+        for index, related in enumerate(related_nodes):
+            with cols[index % len(cols)]:
+                render_node_image(related, caption=related.get("place", ""))
+                st.markdown(f"**{related.get('title', '')}**")
+                st.write(related.get("summary", ""))
+                if st.button("查看该节点", key=f"related::{node_id}::{related.get('id', '')}", use_container_width=True):
+                    st.session_state["selected_node_id"] = related.get("id", "")
+                    st.rerun()
 
     render_sources(source_cards, title="本节点知识依据")

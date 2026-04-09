@@ -57,10 +57,13 @@ with left:
             st.markdown(message.get("content", ""))
             if message["role"] == "assistant":
                 if message.get("provider_used"):
-                    st.caption(
-                        f"回答模型：{message.get('provider_used')} / {message.get('model_used', '未标注')} | "
-                        f"识别意图：{message.get('intent', 'general')}"
-                    )
+                    if message.get("provider_used") == "static":
+                        st.caption(f"当前回答来源：静态知识模式 | 识别意图：{message.get('intent', 'general')}")
+                    else:
+                        st.caption(
+                            f"回答模型：{message.get('provider_used')} / {message.get('model_used', '未标注')} | "
+                            f"识别意图：{message.get('intent', 'general')}"
+                        )
                 if message.get("warning"):
                     st.warning(message["warning"])
                 render_sources(message.get("sources", []))
@@ -80,11 +83,14 @@ with left:
                 result = ask(question=question, provider_config=provider_config, filters=filters, top_k=4)
             render_runtime_notice(result)
             st.markdown(result.get("answer", ""))
-            st.caption(
-                f"回答模型：{result.get('provider_used', model_info.get('provider_name', 'mock'))} / "
-                f"{result.get('model_used', model_info.get('model', ''))} | "
-                f"识别意图：{result.get('intent', 'general')}"
-            )
+            if result.get("provider_used") == "static":
+                st.caption(f"当前回答来源：静态知识模式 | 识别意图：{result.get('intent', 'general')}")
+            else:
+                st.caption(
+                    f"回答模型：{result.get('provider_used', model_info.get('provider_name', 'mock'))} / "
+                    f"{result.get('model_used', model_info.get('model', ''))} | "
+                    f"识别意图：{result.get('intent', 'general')}"
+                )
             render_sources(result.get("sources", []))
 
         st.session_state["qa_messages"].append(
@@ -113,9 +119,12 @@ with right:
     )
     st.session_state["selected_node_id"] = selected_node_id
 
-    for item in sample.get("featured_nodes", [])[:3]:
+    for item in sample.get("featured_nodes", [])[:5]:
         st.markdown(f"**{item.get('title', '')}**")
         st.caption(item.get("summary", ""))
+    st.markdown("### 示例问题")
+    for item in sample.get("example_questions", [])[:4]:
+        st.markdown(f"- {item}")
 
 render_section("节点展项详情", "点击节点后，将以“展项”方式展示时间、地点、背景、经过、意义、人物、图片、语音与数字人讲解。")
 selected_node = get_route_node(st.session_state.get("selected_node_id", ""))

@@ -19,6 +19,11 @@ from utils import (
 
 APP_TITLE = "《长征史》交互式 AI 导览系统"
 ROLE_OPTIONS = ["大学生", "研学团成员", "普通参观者"]
+CONTENT_MODE_OPTIONS = [
+    ("auto", "自动判断"),
+    ("static", "静态展示模式"),
+    ("ai", "AI增强模式"),
+]
 TOPIC_FILTERS = [
     ("综合导览", {}),
     ("重大事件", {"type": "event"}),
@@ -206,6 +211,7 @@ def init_session_state() -> None:
         "admin_authenticated": False,
         "admin_profile": {},
         "admin_token": "",
+        "content_mode_preference": "auto",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -297,7 +303,22 @@ def build_current_provider_config() -> Dict[str, Any]:
     model_info = get_selected_model_info()
     provider_name = model_info.get("provider_name", "mock")
     runtime_key = get_runtime_api_key(provider_name) if model_info.get("allow_user_key") else ""
-    return resolve_provider_config(provider_name=provider_name, runtime_api_key=runtime_key)
+    config = resolve_provider_config(provider_name=provider_name, runtime_api_key=runtime_key)
+    preference = st.session_state.get("content_mode_preference", "auto")
+    has_real_key = config.get("provider_name") != "mock" and config.get("api_key_source") != "missing"
+    static_mode = preference == "static" or not has_real_key
+    if preference == "ai" and has_real_key:
+        static_mode = False
+    config["content_mode_preference"] = preference
+    config["static_mode"] = static_mode
+    config["mode_label"] = "静态展示模式" if static_mode else "AI增强模式"
+    if preference == "static":
+        config["mode_reason"] = "当前已手动切换为静态展示模式。"
+    elif static_mode and not has_real_key:
+        config["mode_reason"] = "当前未检测到可用平台密钥，系统将使用静态知识内容完成展示。"
+    else:
+        config["mode_reason"] = "当前优先调用模型，并由知识库检索结果进行增强。"
+    return config
 
 
 def bootstrap_repository_content() -> None:
@@ -424,9 +445,11 @@ def render_model_banner() -> None:
             <br/>
             <span class="small-muted">模型标识：{html.escape(model_info.get('model', '未配置'))}</span>
             <br/>
+            <span class="small-muted">当前内容模式：{html.escape(provider_config.get('mode_label', '静态展示模式'))}</span>
+            <br/>
             <span class="small-muted">开放策略：{html.escape(allow_key_text)}，普通用户只能看到管理员开放的模型。</span>
             <br/>
-            <span class="small-muted">{html.escape(readiness_text)}</span>
+            <span class="small-muted">{html.escape(provider_config.get('mode_reason', readiness_text))}</span>
             <br/>
             <span class="small-muted">{html.escape(description)}</span>
         </div>
@@ -438,6 +461,8 @@ def render_model_banner() -> None:
 
 def render_runtime_notice(result: Dict[str, Any]) -> None:
     """展示模型运行时提示。"""
+    if result.get("mode_label"):
+        st.info(f"当前输出模式：{result['mode_label']}")
     if result.get("warning"):
         st.warning(result["warning"])
 
@@ -484,6 +509,27 @@ def render_admin_badge() -> None:
 def get_topic_filter_options() -> List[str]:
     """返回主题过滤标签。"""
     return [item[0] for item in TOPIC_FILTERS]
+
+
+def get_content_mode_options() -> List[str]:
+    """返回内容模式标签。"""
+    return [item[1] for item in CONTENT_MODE_OPTIONS]
+
+
+def get_content_mode_label(value: str) -> str:
+    """把内容模式值转换成中文。"""
+    for key, label in CONTENT_MODE_OPTIONS:
+        if key == value:
+            return label
+    return "自动判断"
+
+
+def content_mode_key_from_label(label: str) -> str:
+    """把内容模式中文标签转回键值。"""
+    for key, item_label in CONTENT_MODE_OPTIONS:
+        if item_label == label:
+            return key
+    return "auto"
 
 
 def get_filters_by_label(label: str) -> Dict[str, Any]:

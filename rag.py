@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import json
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -17,11 +15,22 @@ except Exception as exc:  # pragma: no cover - 仅在依赖不兼容时触发
 else:
     CHROMA_IMPORT_ERROR = None
 
+from content_store import (
+    build_source_card,
+    build_static_sources_for_node,
+    load_events_data,
+    load_figures_data,
+    load_faq_items,
+    load_route_nodes_data,
+    load_spirit_topics,
+    match_faq,
+    match_route_node,
+)
 from chunking import attach_metadata
 from file_loader import load_file, persist_processed_text
 from llm import get_llm_client
 from prompts import LONG_MARCH_GUIDE_ROLE_PROMPT, build_rag_qa_prompt, format_context_blocks
-from utils import CHROMA_DIR, DATA_DIR, UPLOAD_DIR, get_settings, normalize_knowledge_type
+from utils import CHROMA_DIR, DATA_DIR, RUNTIME_DIR, UPLOAD_DIR, get_settings, normalize_knowledge_type, read_json, write_json
 
 
 class HashEmbeddingFunction:
@@ -84,6 +93,7 @@ INTENT_TYPES: Dict[str, List[str]] = {
     "timeline": ["route", "event"],
     "general": [],
 }
+REPOSITORY_MANIFEST_PATH = RUNTIME_DIR / "repository_content_manifest.json"
 
 
 def _ensure_chroma_ready() -> None:
@@ -102,6 +112,37 @@ def _client() -> chromadb.PersistentClient:
     """创建持久化 Chroma 客户端。"""
     _ensure_chroma_ready()
     return chromadb.PersistentClient(path=str(CHROMA_DIR))
+
+
+def _repository_signature() -> str:
+    """计算仓库内置内容签名，用于判断是否需要自动重建知识库。"""
+    tracked_files = [
+        path
+        for path in sorted(DATA_DIR.iterdir(), key=lambda item: item.name.lower())
+        if path.is_file() and path.suffix.lower() in [".json", ".csv", ".txt", ".md", ".pdf", ".docx"]
+    ]
+    digest = hashlib.sha256()
+    for path in tracked_files:
+        digest.update(path.name.encode("utf-8"))
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+
+def _write_repository_manifest() -> None:
+    """写入当前默认知识库签名。"""
+    write_json(
+        REPOSITORY_MANIFEST_PATH,
+        {
+            "signature": _repository_signature(),
+            "tracked_dir": str(DATA_DIR),
+        },
+    )
+
+
+def _repository_manifest_matches() -> bool:
+    """判断当前默认知识库签名是否匹配。"""
+    manifest = read_json(REPOSITORY_MANIFEST_PATH, {}) or {}
+    return manifest.get("signature") == _repository_signature()
 
 
 def _collection_name() -> str:
@@ -220,14 +261,18 @@ def _load_files(paths: List[Path], persist_processed: bool = False) -> List[Dict
 
 def ingest_default_data() -> Dict[str, Any]:
     """导入内置样例数据。"""
+    excluded_files = {"image_map.json", "sample_scripts.json", "routes.csv"}
     files = [
         path
         for path in sorted(DATA_DIR.iterdir(), key=lambda item: item.name.lower())
-        if path.is_file() and path.suffix.lower() in [".json", ".csv", ".txt", ".md", ".pdf", ".docx"]
+        if path.is_file()
+        and path.suffix.lower() in [".json", ".csv", ".txt", ".md", ".pdf", ".docx"]
+        and path.name not in excluded_files
     ]
     documents = _load_files(files, persist_processed=False)
     result = _upsert_documents(documents)
     result["mode"] = "default_data"
+    _write_repository_manifest()
     return result
 
 
@@ -279,6 +324,14 @@ def ensure_default_knowledge_base() -> Dict[str, Any]:
             "default_result": default_result,
             "status": get_rag_status(),
         }
+    if not _repository_manifest_matches():
+        rebuild_result = rebuild_knowledge_base()
+        return {
+            "message": "检测到仓库内置内容已更新，知识库已自动重建。",
+            "initialized": True,
+            "default_result": rebuild_result.get("default_result", {}),
+            "status": rebuild_result.get("status", {}),
+        }
     return {
         "message": "仓库内置知识库已就绪。",
         "initialized": False,
@@ -296,35 +349,6 @@ def delete_source_file_from_rag(filename: str) -> Dict[str, Any]:
         return {"message": f"向量清理时出现提示：{exc}"}
 
 
-@lru_cache(maxsize=1)
-def _load_route_nodes() -> List[Dict[str, str]]:
-    """读取路线节点，用于意图识别。"""
-    json_path = DATA_DIR / "route_nodes.json"
-    if json_path.exists():
-        content = json.loads(json_path.read_text(encoding="utf-8"))
-        if isinstance(content, list):
-            return [item for item in content if isinstance(item, dict)]
-
-    path = DATA_DIR / "routes.csv"
-    if not path.exists():
-        return []
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def _match_route_node(question: str) -> Dict[str, str]:
-    """匹配最相关的路线节点。"""
-    best_node: Dict[str, str] = {}
-    best_length = 0
-    for node in _load_route_nodes():
-        for candidate in [node.get("route_stage", ""), node.get("title", "")]:
-            if candidate and candidate in question and len(candidate) > best_length:
-                best_node = node
-                best_length = len(candidate)
-    return best_node
-
-
-@lru_cache(maxsize=1)
 def _load_json_titles(filename: str) -> List[str]:
     """读取默认 JSON 标题。"""
     path = DATA_DIR / filename
@@ -353,11 +377,11 @@ def detect_query_intent(question: str, filters: Optional[Dict[str, Any]] = None)
     text = (question or "").strip()
     lowered = text.lower()
 
-    route_nodes = _load_route_nodes()
+    route_nodes = load_route_nodes_data()
     place_terms = _load_json_titles("places.json") + [item.get("place", "") for item in route_nodes]
-    figure_terms = _load_json_titles("figures.json")
+    figure_terms = [item.get("title", "") for item in load_figures_data()]
 
-    matched_route_node = _match_route_node(text)
+    matched_route_node = match_route_node(text) or {}
     route_stage = matched_route_node.get("route_stage", "")
     place = _match_longest_term(text, place_terms)
     figure = _match_longest_term(text, figure_terms)
@@ -461,9 +485,8 @@ def retrieve_knowledge(
     top_k: Optional[int] = None,
 ) -> Dict[str, Any]:
     """执行带意图识别的知识检索。"""
+    ensure_default_knowledge_base()
     collection = get_collection()
-    if collection.count() == 0:
-        ingest_default_data()
 
     settings = get_settings()
     limit = top_k or int(settings.get("retrieval_top_k", 4))
@@ -519,6 +542,62 @@ def _format_source_cards(hits: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return cards
 
 
+def _static_context_summary(hits: List[Dict[str, Any]]) -> str:
+    """把检索命中整理为静态回答摘要。"""
+    lines: List[str] = []
+    for index, item in enumerate(hits[:4], start=1):
+        metadata = item.get("metadata", {}) or {}
+        text = str(item.get("text", "") or "").replace("\n", " ").strip()
+        lines.append(
+            f"{index}. {metadata.get('title', '未命名')}："
+            f"{text[:120]}{'...' if len(text) > 120 else ''}"
+        )
+    return "\n".join(lines)
+
+
+def fallback_answer(
+    question: str,
+    matched_node: Optional[Dict[str, Any]],
+    matched_faq: Optional[Dict[str, Any]],
+    retrieved_hits: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    """无 LLM 时输出完整、正式的静态答案。"""
+    node = matched_node or {}
+    faq = matched_faq or {}
+    hits = retrieved_hits or []
+    sections: List[str] = []
+
+    if faq.get("answer"):
+        sections.append(f"【直接回答】{faq.get('answer', '')}")
+
+    if node:
+        sections.append(f"【节点概览】{node.get('summary', '')}")
+        sections.append(f"【历史背景】{node.get('background', '')}")
+        sections.append(f"【事件经过】{node.get('process', '')}")
+        sections.append(f"【历史意义】{node.get('significance', '')}")
+        if node.get("figures"):
+            sections.append(f"【关键人物】{'、'.join(node.get('figures', []))}")
+        if node.get("key_points"):
+            sections.append(f"【关键要点】{'；'.join(node.get('key_points', [])[:5])}")
+    elif hits:
+        sections.append("【依据梳理】" + _static_context_summary(hits))
+    else:
+        spirit_topics = load_spirit_topics()
+        spirit_text = "；".join(item.get("title", "") for item in spirit_topics[:4])
+        sections.append(
+            "【说明】当前系统未调用外部大模型，已切换到静态知识模式。"
+            f"围绕你的问题“{question}”，可以结合长征主线、遵义会议、四渡赤水与长征精神等内容继续学习。"
+            f"{' 推荐进一步关注：' + spirit_text if spirit_text else ''}"
+        )
+
+    if faq.get("extended_note"):
+        sections.append(f"【延伸说明】{faq.get('extended_note', '')}")
+    elif hits:
+        sections.append("【延伸阅读】" + _static_context_summary(hits))
+
+    return "\n\n".join(section for section in sections if section.strip())
+
+
 def ask(
     question: str,
     provider_config: Dict[str, Any],
@@ -528,6 +607,8 @@ def ask(
     """长征史 RAG 问答入口。"""
     retrieval = retrieve_knowledge(question=question, filters=filters, top_k=top_k)
     hits = retrieval["hits"]
+    matched_node = match_route_node(question)
+    matched_faq = match_faq(question)
     context_blocks = [
         f"来源：{item['metadata'].get('source_file', '未知')} | "
         f"标题：{item['metadata'].get('title', '未命名')} | "
@@ -536,24 +617,46 @@ def ask(
         f"{item['text']}"
         for item in hits
     ]
-    prompt = build_rag_qa_prompt(question=question, context=format_context_blocks(context_blocks))
-    client = get_llm_client(provider_config)
-    result = client.chat(
-        messages=[
-            {"role": "system", "content": LONG_MARCH_GUIDE_ROLE_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.3,
-        stream=False,
-    )
-
     source_cards = _format_source_cards(hits)
+    if matched_node:
+        source_cards = build_static_sources_for_node(matched_node, [matched_faq] if matched_faq else [])[:1] + source_cards
+    elif matched_faq:
+        source_cards = [build_source_card(
+            {
+                "title": matched_faq.get("title", "长征史问答"),
+                "type": matched_faq.get("type", "faq"),
+                "source_file": "data/faq.csv",
+                "summary": matched_faq.get("answer", ""),
+            },
+            snippet=matched_faq.get("answer", ""),
+        )] + source_cards
+
+    prompt = build_rag_qa_prompt(question=question, context=format_context_blocks(context_blocks))
+    static_mode = bool(provider_config.get("static_mode"))
+    result: Dict[str, Any] = {}
+    if not static_mode:
+        client = get_llm_client(provider_config)
+        result = client.chat(
+            messages=[
+                {"role": "system", "content": LONG_MARCH_GUIDE_ROLE_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+            stream=False,
+        )
+    answer = result.get("content", "").strip()
+    use_static = static_mode or not answer or result.get("fallback_used", False) or result.get("provider") == "mock"
+    if use_static:
+        answer = fallback_answer(question=question, matched_node=matched_node, matched_faq=matched_faq, retrieved_hits=hits)
+    provider_used = "static" if use_static else result.get("provider", provider_config.get("provider_name", "mock"))
+    model_used = "builtin-longmarch-content" if use_static else result.get("model", provider_config.get("model", ""))
     return {
-        "answer": result.get("content", ""),
-        "provider_used": result.get("provider", provider_config.get("provider_name", "mock")),
-        "model_used": result.get("model", provider_config.get("model", "")),
+        "answer": answer,
+        "provider_used": provider_used,
+        "model_used": model_used,
         "warning": result.get("warning", ""),
-        "fallback_used": result.get("fallback_used", False),
+        "fallback_used": bool(use_static and not static_mode),
+        "mode_label": "静态展示模式" if use_static else "AI增强模式",
         "intent": retrieval.get("intent", "general"),
         "applied_filters": retrieval.get("applied_filters", {}),
         "retrieved_chunks": [item["text"] for item in hits],

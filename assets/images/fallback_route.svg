@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8a2e1b"/>
+      <stop offset="100%" stop-color="#c99a4d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="32" fill="url(#bg)"/>
+  <text x="80" y="170" font-size="34" fill="#fff1df" font-family="Microsoft YaHei">长征路线节点</text>
+  <text x="80" y="320" font-size="78" fill="#fffaf1" font-family="Microsoft YaHei" font-weight="700">路线展项</text>
+  <text x="80" y="410" font-size="30" fill="#ffe8c9" font-family="Microsoft YaHei">当前未配置专属图片，系统已启用路线类占位图</text>
+</svg>

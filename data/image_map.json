@@ -1,0 +1,177 @@
+{
+  "items": {
+    "瑞金": {
+      "image": "assets/images/node_ruijin.jpg",
+      "image_alt": "瑞金革命旧址相关图片",
+      "image_caption": "瑞金：中央红军长征的重要出发地"
+    },
+    "瑞金出发": {
+      "image": "assets/images/node_ruijin.jpg",
+      "image_alt": "瑞金出发相关图片",
+      "image_caption": "瑞金出发：长征由此拉开序幕"
+    },
+    "于都河": {
+      "image": "assets/images/yudu.jpg",
+      "image_alt": "于都河渡口相关图片",
+      "image_caption": "于都河：中央红军渡河出发的重要地点"
+    },
+    "于都河出发": {
+      "image": "assets/images/yudu.jpg",
+      "image_alt": "于都河出发展项图",
+      "image_caption": "于都河：军民同心支前的重要场景"
+    },
+    "湘江战役": {
+      "image": "assets/images/xiangjiang.jpg",
+      "image_alt": "湘江战役相关图片",
+      "image_caption": "湘江战役：长征初期最惨烈的战役之一"
+    },
+    "突破四道封锁线": {
+      "image": "assets/images/xiangjiang.jpg",
+      "image_alt": "突破四道封锁线相关图片",
+      "image_caption": "突破四道封锁线：长征初期突围作战的重要阶段"
+    },
+    "通道转兵": {
+      "image": "assets/images/node_tongdao.jpg",
+      "image_alt": "通道转兵相关图片",
+      "image_caption": "通道转兵：由被动走向主动的重要方向调整"
+    },
+    "黎平会议": {
+      "image": "assets/images/node_liping.jpg",
+      "image_alt": "黎平会议会址相关图片",
+      "image_caption": "黎平会议：长征转折形成过程中的重要会议"
+    },
+    "遵义会议": {
+      "image": "assets/images/zunyi.jpg",
+      "image_alt": "遵义会议旧址相关图片",
+      "image_caption": "遵义会议：长征中的历史转折点"
+    },
+    "猴场会议": {
+      "image": "assets/images/node_liping.jpg",
+      "image_alt": "猴场会议阶段相关图片",
+      "image_caption": "猴场会议：遵义会议前的重要思想准备节点"
+    },
+    "娄山关战斗": {
+      "image": "assets/images/node_loushanguan.jpg",
+      "image_alt": "娄山关红军战斗遗址相关图片",
+      "image_caption": "娄山关战斗：长征途中重要的军事胜利"
+    },
+    "四渡赤水": {
+      "image": "assets/images/node_chishui.jpg",
+      "image_alt": "四渡赤水纪念馆相关图片",
+      "image_caption": "四渡赤水：机动作战的经典战例"
+    },
+    "巧渡金沙江": {
+      "image": "assets/images/sichuan_memorial.jpg",
+      "image_alt": "金沙江相关展项图",
+      "image_caption": "巧渡金沙江：摆脱围追堵截的关键行动"
+    },
+    "金沙江": {
+      "image": "assets/images/sichuan_memorial.jpg",
+      "image_alt": "金沙江相关图片",
+      "image_caption": "金沙江：长征北上的关键转折水域"
+    },
+    "飞夺泸定桥": {
+      "image": "assets/images/ludingqiao.jpg",
+      "image_alt": "泸定桥相关图片",
+      "image_caption": "飞夺泸定桥：长征精神的代表性场景"
+    },
+    "强渡大渡河": {
+      "image": "assets/images/ludingqiao.jpg",
+      "image_alt": "大渡河相关展项图",
+      "image_caption": "强渡大渡河：为北上突进打开通道"
+    },
+    "翻越雪山": {
+      "image": "assets/images/snow_mountain.jpg",
+      "image_alt": "雪山行军相关图片",
+      "image_caption": "雪山行军：极端自然环境中的意志考验"
+    },
+    "翻雪山": {
+      "image": "assets/images/snow_mountain.jpg",
+      "image_alt": "雪山行军相关图片",
+      "image_caption": "翻雪山：长征艰苦历程的重要象征"
+    },
+    "穿越草地": {
+      "image": "assets/images/grassland.jpg",
+      "image_alt": "草地行军相关图片",
+      "image_caption": "过草地：长征艰险行军的重要阶段"
+    },
+    "过草地": {
+      "image": "assets/images/grassland.jpg",
+      "image_alt": "草地行军相关图片",
+      "image_caption": "过草地：在极端条件中坚持北上"
+    },
+    "榜罗镇会议": {
+      "image": "assets/images/node_bangluo.png",
+      "remote_image_url": "",
+      "image_alt": "榜罗镇会议相关地点图片",
+      "image_caption": "榜罗镇会议：北上陕甘的重要战略决策节点"
+    },
+    "吴起镇会师": {
+      "image": "assets/images/node_wuqi.png",
+      "remote_image_url": "",
+      "image_alt": "吴起镇相关图片",
+      "image_caption": "吴起镇会师：中央红军到达陕北的重要标志"
+    },
+    "直罗镇战役": {
+      "image": "assets/images/node_zhiluo.png",
+      "remote_image_url": "",
+      "image_alt": "陕北革命根据地相关图片",
+      "image_caption": "直罗镇战役：巩固陕北革命根据地的重要战斗"
+    },
+    "会宁会师": {
+      "image": "assets/images/node_huining.jpg",
+      "remote_image_url": "",
+      "image_alt": "会宁相关图片",
+      "image_caption": "会宁会师：长征胜利的重要标志"
+    },
+    "毛泽东": {
+      "image": "assets/images/leader_mao.jpg",
+      "image_alt": "毛泽东人物专题图片",
+      "image_caption": "毛泽东：长征转折中的重要领导者"
+    },
+    "周恩来": {
+      "image": "assets/images/leader_zhou.jpg",
+      "image_alt": "周恩来人物专题图片",
+      "image_caption": "周恩来：长征中的重要组织者与领导者"
+    },
+    "朱德": {
+      "image": "assets/images/leader_zhu.jpg",
+      "image_alt": "朱德人物专题图片",
+      "image_caption": "朱德：红军总司令与重要军事领导人"
+    },
+    "张闻天": {
+      "image": "assets/images/leader_zhang.jpg",
+      "image_alt": "张闻天人物专题图片",
+      "image_caption": "张闻天：遵义会议前后的重要领导者"
+    },
+    "王稼祥": {
+      "image": "assets/images/leader_wang.jpg",
+      "image_alt": "王稼祥人物专题图片",
+      "image_caption": "王稼祥：支持正确路线的重要领导人"
+    },
+    "刘伯承": {
+      "image": "assets/images/leader_liu.jpg",
+      "image_alt": "刘伯承人物专题图片",
+      "image_caption": "刘伯承：长征关键战斗中的重要军事指挥员"
+    },
+    "聂荣臻": {
+      "image": "assets/images/leader_nie.jpg",
+      "image_alt": "聂荣臻人物专题图片",
+      "image_caption": "聂荣臻：长征中重要的军事组织者"
+    },
+    "彭德怀": {
+      "image": "assets/images/leader_peng.png",
+      "image_alt": "彭德怀人物专题图片",
+      "image_caption": "彭德怀：长征中敢打硬仗的重要将领"
+    }
+  },
+  "fallbacks": {
+    "event": "assets/images/fallback_event.svg",
+    "place": "assets/images/fallback_place.svg",
+    "figure": "assets/images/fallback_figure.svg",
+    "route": "assets/images/fallback_route.svg",
+    "spirit": "assets/images/fallback_spirit.svg",
+    "faq": "assets/images/fallback_event.svg",
+    "default": "assets/images/fallback_event.svg"
+  }
+}

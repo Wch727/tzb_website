@@ -6,6 +6,9 @@ import streamlit as st
 
 from streamlit_ui import (
     admin_is_logged_in,
+    content_mode_key_from_label,
+    get_content_mode_label,
+    get_content_mode_options,
     get_selected_model_info,
     get_topic_filter_options,
     render_admin_badge,
@@ -71,6 +74,7 @@ with user_tab:
 
         current_model = get_selected_model_info()
         default_provider_name = get_default_provider_name()
+        current_mode_label = get_content_mode_label(st.session_state.get("content_mode_preference", "auto"))
         render_cards(
             [
                 {
@@ -80,6 +84,11 @@ with user_tab:
                         f"模型标识：{current_model.get('model', '未配置')}。"
                         f"{' 当前为系统默认模型。' if current_model.get('provider_name') == default_provider_name else ''}"
                     ),
+                },
+                {
+                    "label": "内容模式",
+                    "title": current_mode_label,
+                    "desc": "静态展示模式会优先使用仓库内置长文本内容；AI 增强模式会在有可用 Key 时调用模型。",
                 },
                 {
                     "label": "开放策略",
@@ -93,6 +102,15 @@ with user_tab:
                 },
             ]
         )
+
+        mode_label = st.selectbox(
+            "内容模式",
+            get_content_mode_options(),
+            index=get_content_mode_options().index(current_mode_label)
+            if current_mode_label in get_content_mode_options()
+            else 0,
+        )
+        st.session_state["content_mode_preference"] = content_mode_key_from_label(mode_label)
 
         if current_model.get("allow_user_key"):
             api_key = st.text_input(
