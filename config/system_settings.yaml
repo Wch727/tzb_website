@@ -1,0 +1,18 @@
+app_name: "长征史交互式 AI 导览与闯关学习系统"
+collection_name: "long_march_history"
+chunk_size: 420
+chunk_overlap: 80
+retrieval_top_k: 4
+max_preview_chars: 180
+default_topic: "长征史"
+default_provider: "moonshot"
+default_model: "kimi-k2.5"
+allow_mock_provider: true
+repository_content_notice: "正式展示内容以仓库内置 data/ 与 assets/ 为准，后台上传仅用于临时演示或补充导入。"
+supported_extensions:
+  - ".txt"
+  - ".md"
+  - ".pdf"
+  - ".docx"
+  - ".json"
+  - ".csv"

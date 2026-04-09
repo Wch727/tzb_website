@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#7a2a20"/>
+      <stop offset="100%" stop-color="#d19a55"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="960" rx="40" fill="url(#bg)"/>
+  <circle cx="360" cy="260" r="130" fill="#fff4df" opacity="0.96"/>
+  <rect x="170" y="430" width="380" height="330" rx="190" fill="#fff4df" opacity="0.96"/>
+  <circle cx="315" cy="245" r="14" fill="#6b2218"/>
+  <circle cx="405" cy="245" r="14" fill="#6b2218"/>
+  <path d="M305 315 Q360 355 415 315" stroke="#6b2218" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <text x="360" y="845" text-anchor="middle" font-size="38" fill="#fff6e8" font-family="Microsoft YaHei" font-weight="700">数字讲解员</text>
+  <text x="360" y="895" text-anchor="middle" font-size="24" fill="#fde8cf" font-family="Microsoft YaHei">长征史互动导览演示形象</text>
+</svg>

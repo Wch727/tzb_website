@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#6a2119"/>
+      <stop offset="100%" stop-color="#d0a15c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="40" fill="url(#bg)"/>
+  <path d="M150 560 C280 480 410 500 540 430 C680 355 780 380 930 300" stroke="#fff0d4" stroke-width="12" fill="none" stroke-dasharray="18 12"/>
+  <circle cx="150" cy="560" r="18" fill="#fff0d4"/>
+  <circle cx="540" cy="430" r="18" fill="#fff0d4"/>
+  <circle cx="930" cy="300" r="18" fill="#fff0d4"/>
+  <text x="90" y="170" font-size="72" fill="#fff7ea" font-family="Microsoft YaHei" font-weight="700">长征路线展项</text>
+  <text x="90" y="245" font-size="30" fill="#fce8cf" font-family="Microsoft YaHei">如未放入真实图片资源，系统将使用此类占位图进行展示</text>
+  <text x="90" y="635" font-size="28" fill="#fce8cf" font-family="Microsoft YaHei">建议后续替换为纪念馆旧址、历史遗址、路线图等比赛展示素材</text>
+</svg>

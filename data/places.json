@@ -1,0 +1,38 @@
+[
+  {
+    "title": "瑞金",
+    "type": "places",
+    "topic": "长征史",
+    "route_stage": "瑞金集结",
+    "place": "江西瑞金",
+    "summary": "瑞金是中央苏区的重要城市，也是中央红军长征出发的重要地点。",
+    "meaning": "被誉为共和国摇篮。"
+  },
+  {
+    "title": "遵义",
+    "type": "places",
+    "topic": "长征史",
+    "route_stage": "遵义转折",
+    "place": "贵州遵义",
+    "summary": "遵义见证了中国共产党独立自主解决中国革命问题的重要历史时刻。",
+    "meaning": "承载着遵义会议这一重大历史记忆。"
+  },
+  {
+    "title": "泸定桥",
+    "type": "places",
+    "topic": "长征史",
+    "route_stage": "泸定桥突进",
+    "place": "四川泸定",
+    "summary": "泸定桥横跨大渡河，是红军北上的关键通道之一。",
+    "meaning": "成为长征精神的重要象征。"
+  },
+  {
+    "title": "吴起镇",
+    "type": "places",
+    "topic": "长征史",
+    "route_stage": "陕北落脚",
+    "place": "陕西吴起",
+    "summary": "吴起镇是中央红军长征胜利到达陕北的重要节点。",
+    "meaning": "为党中央立足西北、领导全国抗日斗争奠定基础。"
+  }
+]

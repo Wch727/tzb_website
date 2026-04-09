@@ -1,0 +1,61 @@
+providers:
+  mock:
+    provider_name: mock
+    display_name: 本地演示模型
+    provider: mock
+    base_url: ''
+    api_key: ''
+    api_key_secret_name: ''
+    model: mock-longmarch-v1
+    enabled: true
+    visible_to_users: true
+    allow_user_key: false
+    description: 无 API Key 时自动启用的本地演示模型。
+  moonshot:
+    provider_name: moonshot
+    display_name: Kimi / Moonshot
+    provider: moonshot
+    base_url: https://api.moonshot.cn/v1
+    api_key: ''
+    api_key_secret_name: MOONSHOT_API_KEY
+    model: kimi-k2.5
+    enabled: true
+    visible_to_users: true
+    allow_user_key: false
+    description: 优先读取 Streamlit Secrets 或环境变量中的 Moonshot / Kimi 密钥，未配置时自动回退本地演示模式。
+  qwen:
+    provider_name: qwen
+    display_name: Qwen / DashScope
+    provider: qwen
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    api_key: ''
+    api_key_secret_name: DASHSCOPE_API_KEY
+    model: qwen-plus
+    enabled: false
+    visible_to_users: false
+    allow_user_key: true
+    description: 使用阿里云 DashScope 兼容接口，建议在 Secrets 中配置 DASHSCOPE_API_KEY。
+  minimax:
+    provider_name: minimax
+    display_name: MiniMax
+    provider: minimax
+    base_url: https://api.minimax.chat/v1
+    api_key: ''
+    api_key_secret_name: MINIMAX_API_KEY
+    model: MiniMax-Text-01
+    enabled: false
+    visible_to_users: false
+    allow_user_key: true
+    description: 使用 MiniMax 兼容接口，建议在 Secrets 中配置 MINIMAX_API_KEY。
+  deepseek:
+    provider_name: deepseek
+    display_name: DeepSeek
+    provider: deepseek
+    base_url: https://api.deepseek.com/v1
+    api_key: ''
+    api_key_secret_name: DEEPSEEK_API_KEY
+    model: deepseek-chat
+    enabled: false
+    visible_to_users: false
+    allow_user_key: true
+    description: 使用 DeepSeek 兼容接口，建议在 Secrets 中配置 DEEPSEEK_API_KEY。

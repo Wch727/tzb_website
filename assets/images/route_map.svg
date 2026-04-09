@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="920" viewBox="0 0 1400 920">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f1e7"/>
+      <stop offset="100%" stop-color="#ead8bc"/>
+    </linearGradient>
+    <linearGradient id="route" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7e231d"/>
+      <stop offset="100%" stop-color="#c87d3f"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#8b5b2c" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="920" rx="36" fill="url(#bg)"/>
+  <rect x="48" y="42" width="1304" height="836" rx="30" fill="#fffaf3" stroke="#d9bb8a" stroke-width="2"/>
+
+  <text x="88" y="112" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="42" font-weight="700" fill="#642018">
+    中国工农红军长征路线示意图
+  </text>
+  <text x="88" y="154" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="20" fill="#7d6752">
+    从中央苏区出发，经湘江、遵义、赤水、金沙江、大渡河、雪山草地，最终实现胜利会师
+  </text>
+
+  <rect x="88" y="196" width="228" height="112" rx="20" fill="#fff4e8" stroke="#e0c398"/>
+  <text x="112" y="236" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="22" font-weight="700" fill="#7a281f">路线说明</text>
+  <text x="112" y="270" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="18" fill="#6a5747">红色主线：中央红军主力长征关键节点</text>
+  <text x="112" y="298" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="18" fill="#6a5747">可结合节点详情、讲解稿与音频内容进行联动导览</text>
+
+  <path d="M220 700
+           C300 650, 350 610, 390 570
+           S470 505, 520 480
+           S600 440, 660 410
+           S730 370, 770 335
+           S860 290, 930 280
+           S1030 300, 1070 350
+           S1140 455, 1180 520
+           S1230 610, 1260 700" 
+        fill="none" stroke="url(#route)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)"/>
+
+  <circle cx="220" cy="700" r="12" fill="#8d2018"/>
+  <circle cx="310" cy="630" r="11" fill="#8d2018"/>
+  <circle cx="390" cy="570" r="11" fill="#8d2018"/>
+  <circle cx="470" cy="505" r="11" fill="#8d2018"/>
+  <circle cx="550" cy="450" r="11" fill="#8d2018"/>
+  <circle cx="640" cy="420" r="11" fill="#8d2018"/>
+  <circle cx="720" cy="380" r="11" fill="#8d2018"/>
+  <circle cx="805" cy="320" r="11" fill="#8d2018"/>
+  <circle cx="890" cy="285" r="11" fill="#8d2018"/>
+  <circle cx="980" cy="290" r="11" fill="#8d2018"/>
+  <circle cx="1060" cy="340" r="11" fill="#8d2018"/>
+  <circle cx="1130" cy="430" r="11" fill="#8d2018"/>
+  <circle cx="1185" cy="520" r="11" fill="#8d2018"/>
+  <circle cx="1230" cy="612" r="11" fill="#8d2018"/>
+  <circle cx="1260" cy="700" r="12" fill="#8d2018"/>
+
+  <g font-family="Microsoft YaHei, SimHei, sans-serif" font-size="21" fill="#4e241c">
+    <text x="158" y="742">瑞金出发</text>
+    <text x="246" y="616">于都河出发</text>
+    <text x="322" y="552">突破封锁线</text>
+    <text x="407" y="490">湘江战役</text>
+    <text x="490" y="432">通道转兵</text>
+    <text x="583" y="402">黎平会议</text>
+    <text x="660" y="360">猴场会议</text>
+    <text x="744" y="301">遵义会议</text>
+    <text x="826" y="265">四渡赤水</text>
+    <text x="920" y="268">巧渡金沙江</text>
+    <text x="1018" y="323">强渡大渡河</text>
+    <text x="1080" y="414">飞夺泸定桥</text>
+    <text x="1140" y="505">懋功会师</text>
+    <text x="1180" y="594">翻雪山</text>
+    <text x="1204" y="742">过草地 · 吴起镇 · 会宁会师</text>
+  </g>
+
+  <rect x="962" y="112" width="300" height="144" rx="20" fill="#fff4e8" stroke="#e0c398"/>
+  <text x="986" y="154" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="22" font-weight="700" fill="#7a281f">历史提示</text>
+  <text x="986" y="188" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="18" fill="#6a5747">1934 年 10 月从中央苏区出发</text>
+  <text x="986" y="216" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="18" fill="#6a5747">1935 年 1 月遵义会议实现历史转折</text>
+  <text x="986" y="244" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="18" fill="#6a5747">1936 年 10 月三大主力会师胜利结束</text>
+
+  <rect x="948" y="768" width="314" height="72" rx="18" fill="#fff4e8" stroke="#e0c398"/>
+  <text x="972" y="812" font-family="Microsoft YaHei, SimHei, sans-serif" font-size="18" fill="#6a5747">
+    注：本图为中文展演示意图，突出路线脉络与关键节点
+  </text>
+</svg>
