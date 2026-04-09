@@ -304,10 +304,17 @@ def bootstrap_repository_content() -> None:
     """确保应用启动时完成默认知识库初始化。"""
     if st.session_state.get("_repository_content_ready"):
         return
-    from rag import ensure_default_knowledge_base
+    try:
+        from rag import ensure_default_knowledge_base
 
-    with st.spinner("正在加载仓库内置内容..."):
-        st.session_state["_repository_content_status"] = ensure_default_knowledge_base()
+        with st.spinner("正在加载仓库内置内容..."):
+            st.session_state["_repository_content_status"] = ensure_default_knowledge_base()
+    except Exception as exc:
+        st.session_state["_repository_content_status"] = {
+            "message": "仓库内置知识库初始化失败，请检查云端依赖版本后重新部署。",
+            "error": str(exc),
+            "initialized": False,
+        }
     st.session_state["_repository_content_ready"] = True
 
 

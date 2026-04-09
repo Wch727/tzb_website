@@ -9,7 +9,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import chromadb
+try:
+    import chromadb
+except Exception as exc:  # pragma: no cover - 仅在依赖不兼容时触发
+    chromadb = None
+    CHROMA_IMPORT_ERROR = exc
+else:
+    CHROMA_IMPORT_ERROR = None
 
 from chunking import attach_metadata
 from file_loader import load_file, persist_processed_text
@@ -80,8 +86,21 @@ INTENT_TYPES: Dict[str, List[str]] = {
 }
 
 
+def _ensure_chroma_ready() -> None:
+    """确保 Chroma 依赖可用，避免在云端依赖异常时直接整页崩溃。"""
+    if chromadb is not None:
+        return
+    detail = str(CHROMA_IMPORT_ERROR) if CHROMA_IMPORT_ERROR else "未知依赖错误"
+    raise RuntimeError(
+        "Chroma 依赖加载失败，请检查 requirements.txt 中 "
+        "chromadb / protobuf / opentelemetry 版本是否兼容。"
+        f"当前错误：{detail}"
+    )
+
+
 def _client() -> chromadb.PersistentClient:
     """创建持久化 Chroma 客户端。"""
+    _ensure_chroma_ready()
     return chromadb.PersistentClient(path=str(CHROMA_DIR))
 
 
@@ -250,6 +269,7 @@ def incremental_ingest() -> Dict[str, Any]:
 
 def ensure_default_knowledge_base() -> Dict[str, Any]:
     """确保仓库内置知识内容已经初始化到向量库。"""
+    _ensure_chroma_ready()
     collection = get_collection()
     if collection.count() == 0:
         default_result = ingest_default_data()
@@ -572,6 +592,7 @@ def test_retrieval(
 
 def get_rag_status() -> Dict[str, Any]:
     """查看知识库状态。"""
+    _ensure_chroma_ready()
     collection = get_collection()
     chunk_count = collection.count()
     sample = collection.get(limit=8, include=["metadatas", "documents"])

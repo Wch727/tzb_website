@@ -257,6 +257,22 @@ uvicorn api:app --reload
 - Branch：例如 `main`
 - Main file path：`app.py`
 
+如果你使用的是 **Paste GitHub URL** 模式，请填写具体的 Python 文件地址，例如：
+
+```text
+https://github.com/你的用户名/你的仓库/blob/main/app.py
+```
+
+### 3.1 Python 版本建议
+
+Community Cloud 部署时，建议在高级设置中选择 **Python 3.12**。
+
+原因：
+
+- 本项目已经固定了一组适合 Community Cloud 的依赖版本
+- 某些 `chromadb / protobuf / opentelemetry` 组合在更新的 Python 运行时下更容易出现兼容问题
+- 选择 3.12 通常更稳，更适合比赛演示环境
+
 ### 4. 配置自定义子域名
 
 部署时可以在 Streamlit Community Cloud 的域名设置中申请或修改固定的 `streamlit.app` 子域名。
@@ -377,6 +393,26 @@ app.py
 
 - 刷新页面，系统会再次检查默认知识库
 - 本地可执行 `python ingest.py --rebuild`
+
+### 3.1 启动时出现 chromadb / protobuf / opentelemetry 相关 TypeError
+
+常见表现：
+
+- 日志里出现 `google/protobuf/descriptor.py`
+- 或 `opentelemetry.proto.common.v1.common_pb2`
+- 或 `TypeError`、`_CheckCalledFromGeneratedFile`
+
+原因：
+
+- 云端安装到了彼此不兼容的 `chromadb`、`protobuf`、`opentelemetry` 版本组合
+- 或部署时使用了过新的 Python 运行时
+
+处理：
+
+- 确认仓库里的 `requirements.txt` 已包含固定版本
+- 在 Community Cloud 中重新部署
+- 优先选择 **Python 3.12**
+- 若应用已创建且 Python 版本不可改，删除应用后按 3.12 重新创建
 
 ### 4. 上传文件后重启应用就没了
 
