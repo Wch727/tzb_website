@@ -25,7 +25,7 @@ RUNTIME_DIR = STORAGE_DIR / "runtime_sessions"
 DATA_DIR = BASE_DIR / "data"
 
 DEFAULT_SETTINGS: Dict[str, Any] = {
-    "app_name": "《长征史》交互式 AI 导览与闯关学习系统",
+    "app_name": "《长征精神·沉浸式云端答题互动平台》",
     "collection_name": "long_march_history",
     "chunk_size": 420,
     "chunk_overlap": 80,
@@ -35,6 +35,8 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "default_provider": "mock",
     "default_model": "mock-longmarch-v1",
     "allow_mock_provider": True,
+    "public_base_url": "",
+    "repository_content_notice": "正式展示内容以仓库内置内容为准，后台上传与活动配置用于补充演示。",
     "supported_extensions": [".txt", ".md", ".pdf", ".docx", ".json", ".csv"],
 }
 

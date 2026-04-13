@@ -140,7 +140,7 @@ with admin_tab:
 
     if not admin_is_logged_in():
         st.info("请先前往“管理员后台”页面登录管理员账号，再返回此处进行配置。")
-        st.page_link("pages/6_管理员后台.py", label="前往管理员后台登录", use_container_width=True)
+        st.page_link("pages/9_管理员后台.py", label="前往管理员后台登录", use_container_width=True)
         st.stop()
 
     provider_configs = list_provider_configs(include_disabled=True)

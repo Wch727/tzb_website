@@ -53,7 +53,7 @@ from utils import (
     upsert_provider_config,
 )
 
-app = FastAPI(title="《长征史》交互式 AI 导览与闯关学习系统 API", version="0.2.0")
+app = FastAPI(title="《长征精神·沉浸式云端答题互动平台》API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,

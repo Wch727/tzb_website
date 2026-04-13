@@ -154,6 +154,21 @@ def load_faq_items() -> List[Dict[str, Any]]:
     return items
 
 
+@lru_cache(maxsize=1)
+def load_places_data() -> List[Dict[str, Any]]:
+    """读取地点数据。"""
+    rows = _load_json_list(DATA_DIR / "places.json")
+    places: List[Dict[str, Any]] = []
+    for row in rows:
+        item = _merge_image_fields(row, _image_mapping_for_item(row))
+        item["type"] = normalize_knowledge_type(item.get("type", "place"))
+        item.setdefault("summary", "")
+        item.setdefault("background", item.get("summary", ""))
+        item.setdefault("significance", "")
+        places.append(item)
+    return places
+
+
 def get_route_node_data(node_id: str) -> Optional[Dict[str, Any]]:
     """按 id、标题或路线阶段获取节点。"""
     for node in load_route_nodes_data():
@@ -253,3 +268,26 @@ def build_static_sources_for_node(node: Dict[str, Any], extra_items: Optional[Li
         if item:
             sources.append(build_source_card(item, snippet=item.get("answer", "") or item.get("summary", "")))
     return sources
+
+
+def load_all_knowledge_items() -> List[Dict[str, Any]]:
+    """汇总全部知识卡片。"""
+    items: List[Dict[str, Any]] = []
+    items.extend(load_route_nodes_data())
+    items.extend(load_events_data())
+    items.extend(load_figures_data())
+    items.extend(load_places_data())
+    items.extend(load_spirit_topics())
+    items.extend(load_faq_items())
+    return items
+
+
+def clear_content_caches() -> None:
+    """清理内容缓存，便于后台修改后即时生效。"""
+    load_image_map.cache_clear()
+    load_route_nodes_data.cache_clear()
+    load_figures_data.cache_clear()
+    load_events_data.cache_clear()
+    load_places_data.cache_clear()
+    load_spirit_topics.cache_clear()
+    load_faq_items.cache_clear()

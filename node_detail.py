@@ -86,8 +86,9 @@ def render_node_detail(
             col1, col2, col3 = st.columns(3)
             with col1:
                 if st.button("进入互动答题", key=f"quiz::{node_id}", use_container_width=True):
-                    st.session_state["preferred_game_node"] = node_id
-                    st.switch_page("pages/4_长征闯关.py")
+                    st.session_state["story_state"] = {}
+                    st.session_state["selected_node_id"] = node_id
+                    st.switch_page("pages/4_剧情答题.py")
             with col2:
                 if st.button("生成该节点讲解稿", key=f"guide::{node_id}", use_container_width=True):
                     result = generate_guide_script(

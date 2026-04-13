@@ -17,7 +17,7 @@ from utils import (
     resolve_provider_config,
 )
 
-APP_TITLE = "《长征史》交互式 AI 导览系统"
+APP_TITLE = "《长征精神·沉浸式云端答题互动平台》"
 ROLE_OPTIONS = ["大学生", "研学团成员", "普通参观者"]
 CONTENT_MODE_OPTIONS = [
     ("auto", "自动判断"),
@@ -212,11 +212,27 @@ def init_session_state() -> None:
         "admin_profile": {},
         "admin_token": "",
         "content_mode_preference": "auto",
+        "selected_role_id": "scout",
+        "selected_role_name": "侦察兵",
+        "current_activity_id": "knowledge-contest",
+        "story_state": {},
+        "progress_snapshot": {},
+        "user_name": "红色学习者",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
     ensure_user_model_selection()
+
+
+def sync_activity_from_query() -> None:
+    """从查询参数中同步活动选择。"""
+    try:
+        activity_id = str(st.query_params.get("activity_id", "") or "").strip()
+    except Exception:
+        activity_id = ""
+    if activity_id:
+        st.session_state["current_activity_id"] = activity_id
 
 
 def setup_page(page_title: str, icon: str = "🏔️") -> None:
@@ -230,6 +246,7 @@ def setup_page(page_title: str, icon: str = "🏔️") -> None:
     inject_custom_css()
     init_session_state()
     bootstrap_repository_content()
+    sync_activity_from_query()
     render_minimal_sidebar()
 
 
@@ -240,15 +257,20 @@ def render_minimal_sidebar() -> None:
         st.markdown("### 页面导航")
         st.page_link("app.py", label="应用入口")
         st.page_link("pages/1_首页.py", label="首页")
-        st.page_link("pages/2_智能导览.py", label="智能导览")
-        st.page_link("pages/3_讲解生成.py", label="讲解生成")
-        st.page_link("pages/4_长征闯关.py", label="长征闯关")
-        st.page_link("pages/5_配置页.py", label="配置页")
-        st.page_link("pages/7_测试体验.py", label="测试体验")
-        st.page_link("pages/6_管理员后台.py", label="管理员后台")
+        st.page_link("pages/2_角色选择.py", label="角色选择")
+        st.page_link("pages/3_长征路线.py", label="长征路线")
+        st.page_link("pages/4_剧情答题.py", label="剧情答题")
+        st.page_link("pages/5_知识库.py", label="知识库")
+        st.page_link("pages/6_活动中心.py", label="活动中心")
+        st.page_link("pages/7_排行榜.py", label="排行榜")
+        st.page_link("pages/8_配置页.py", label="配置页")
+        st.page_link("pages/9_管理员后台.py", label="管理员后台")
+        st.page_link("pages/10_测试体验.py", label="测试体验")
+        st.page_link("pages/11_讲解生成.py", label="讲解工坊")
         st.markdown("<div class='nav-caption'>这里只保留导航与状态，不承载复杂配置。</div>", unsafe_allow_html=True)
         st.divider()
-        st.caption(f"当前身份：{st.session_state.get('user_role', '大学生')}")
+        st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
+        st.caption(f"当前活动：{st.session_state.get('current_activity_id', 'knowledge-contest')}")
         if current_model:
             st.caption(f"当前模型：{current_model.get('display_name', '未选择')}")
         st.caption(f"更新时间：{now_text()}")
@@ -341,22 +363,28 @@ def bootstrap_repository_content() -> None:
 
 def render_top_nav(current_page: str) -> None:
     """渲染页内顶部导航。"""
-    row1 = st.columns(4)
+    row1 = st.columns(5)
     with row1[0]:
         st.page_link("pages/1_首页.py", label="首页", use_container_width=True)
     with row1[1]:
-        st.page_link("pages/2_智能导览.py", label="智能导览", use_container_width=True)
+        st.page_link("pages/2_角色选择.py", label="角色选择", use_container_width=True)
     with row1[2]:
-        st.page_link("pages/3_讲解生成.py", label="讲解生成", use_container_width=True)
+        st.page_link("pages/3_长征路线.py", label="长征路线", use_container_width=True)
     with row1[3]:
-        st.page_link("pages/4_长征闯关.py", label="长征闯关", use_container_width=True)
-    row2 = st.columns(3)
+        st.page_link("pages/4_剧情答题.py", label="剧情答题", use_container_width=True)
+    with row1[4]:
+        st.page_link("pages/5_知识库.py", label="知识库", use_container_width=True)
+    row2 = st.columns(5)
     with row2[0]:
-        st.page_link("pages/5_配置页.py", label="配置页", use_container_width=True)
+        st.page_link("pages/6_活动中心.py", label="活动中心", use_container_width=True)
     with row2[1]:
-        st.page_link("pages/7_测试体验.py", label="测试体验", use_container_width=True)
+        st.page_link("pages/7_排行榜.py", label="排行榜", use_container_width=True)
     with row2[2]:
-        st.page_link("pages/6_管理员后台.py", label="管理员后台", use_container_width=True)
+        st.page_link("pages/8_配置页.py", label="配置页", use_container_width=True)
+    with row2[3]:
+        st.page_link("pages/9_管理员后台.py", label="管理员后台", use_container_width=True)
+    with row2[4]:
+        st.page_link("pages/10_测试体验.py", label="测试体验", use_container_width=True)
     st.caption(f"当前页面：{current_page}")
 
 

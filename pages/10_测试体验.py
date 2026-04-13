@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from activity_manager import get_activity
 from game import get_route_node, load_route_nodes
 from generator import generate_guide_script
 from node_detail import render_node_detail
@@ -22,17 +23,21 @@ from streamlit_ui import (
 
 setup_page("测试体验", icon="🧪")
 render_top_nav("测试体验")
-render_section("测试体验", "这一页适合直接发给组员试用：可以一键提问、快速查看节点，并生成一段示例讲解稿。")
+render_section("测试体验", "这一页适合直接发给组员试用：既能快速提问，也能预览节点、活动与讲解生成效果。")
 render_model_banner()
 
 provider_config = build_current_provider_config()
 sample = load_home_sample_content()
 route_nodes = load_route_nodes()
+current_activity = get_activity(st.session_state.get("current_activity_id", ""))
+
+if current_activity:
+    st.info(f"当前活动：{current_activity.get('name', '')} · {current_activity.get('mode', '')}")
 
 tab1, tab2, tab3 = st.tabs(["一键提问", "节点速览", "一键生成讲解稿"])
 
 with tab1:
-    render_section("试用问题", "点击下方按钮即可快速体验问答效果。")
+    render_section("试用问题", "点击下方按钮即可快速体验知识问答和依据展示。")
     quick_questions = sample.get("quick_try_questions") or sample.get("example_questions", [])[:3]
     cols = st.columns(3)
     for index, question in enumerate(quick_questions[:3]):
@@ -50,7 +55,7 @@ with tab1:
         render_sources(result.get("sources", []), title="本次回答依据")
 
 with tab2:
-    render_section("节点速览", "选择一个节点，快速查看图文、人物与互动入口。")
+    render_section("节点速览", "选择一个节点，快速查看图文、人物、讲解与互动入口。")
     selected_node_id = st.selectbox(
         "选择节点",
         [node["id"] for node in route_nodes],
@@ -61,9 +66,12 @@ with tab2:
         render_node_detail(
             node=selected_node,
             provider_config=provider_config,
-            audience=st.session_state.get("user_role", "大学生"),
+            audience=st.session_state.get("selected_role_name", "侦察兵"),
             key_prefix="test-page-node",
         )
+        if st.button("从该节点进入剧情答题", use_container_width=True, key="jump_story_from_test"):
+            st.session_state["selected_node_id"] = selected_node_id
+            st.switch_page("pages/4_剧情答题.py")
 
 with tab3:
     render_section("一键生成讲解稿", "适合快速验证讲解生成是否可用。")
