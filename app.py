@@ -12,9 +12,9 @@ def main() -> None:
     setup_page("启动入口", icon="🧭")
     render_top_nav("启动入口")
     render_hero(
-        title="《长征精神·沉浸式云端答题互动平台》",
-        subtitle="应用已完成启动，可直接在 Streamlit 中运行，无需额外启动后端服务。若页面未自动跳转，可使用下方入口继续访问。",
-        badges=["主线关卡", "角色扮演", "活动中心", "排行榜"],
+        title="《长征史》交互式导览与闯关学习系统",
+        subtitle="这里是整站的统一入口。你可以从主展首页、角色选择、活动中心或内容运营页面进入不同使用场景。",
+        badges=["主线导览", "角色任务", "活动组织", "学习榜单"],
     )
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -24,7 +24,7 @@ def main() -> None:
     with col3:
         st.page_link("pages/6_活动中心.py", label="活动中心", use_container_width=True)
     with col4:
-        st.page_link("pages/9_管理员后台.py", label="进入管理员后台", use_container_width=True)
+        st.page_link("pages/9_管理员后台.py", label="进入内容运营", use_container_width=True)
 
     st.switch_page("pages/1_首页.py")
 

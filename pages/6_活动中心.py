@@ -43,8 +43,8 @@ setup_page("活动中心", icon="🎯")
 render_top_nav("活动中心")
 render_hero(
     title="活动中心",
-    subtitle="活动中心承载知识竞赛、党史学习日、研学任务等组织化场景，支持活动链接、二维码、红军小队协作、支部 PK 与实时战绩分享。",
-    badges=["活动模板", "红军小队", "支部PK", "实时战绩"],
+    subtitle="活动中心承载知识竞赛、党史学习日、研学任务等组织化场景，支持活动链接、二维码、红军小队协作、支部对抗与实时战绩播报。",
+    badges=["活动模板", "红军小队", "支部对抗", "实时战绩"],
 )
 
 activities = list_activities()
@@ -63,7 +63,7 @@ render_cards(
                 f"{item.get('description', '')} "
                 f"时长：{item.get('time_range', '')}，"
                 f"小队模式：{'开启' if item.get('support_team_mode') else '关闭'}，"
-                f"支部PK：{'开启' if item.get('support_branch_pk') else '关闭'}。"
+                f"支部对抗：{'开启' if item.get('support_branch_pk') else '关闭'}。"
             ),
         }
         for item in activities
@@ -90,7 +90,7 @@ with left:
     st.caption(f"活动状态：{activity.get('status', '')}")
     st.caption(f"覆盖节点：{len(activity.get('node_scope', []))} 个")
     st.caption(f"支持红军小队：{'是' if activity.get('support_team_mode') else '否'}")
-    st.caption(f"支持支部PK：{'是' if activity.get('support_branch_pk') else '否'}")
+    st.caption(f"支持支部对抗：{'是' if activity.get('support_branch_pk') else '否'}")
     st.caption(f"当前参与身份：{st.session_state.get('user_name', '红色学习者')} | {st.session_state.get('unit_name', '体验组')}")
     if current_team:
         st.success(
@@ -119,9 +119,9 @@ with right:
     if qr_bytes:
         st.image(qr_bytes, caption="活动二维码", width=220)
     else:
-        st.info("当前环境未安装二维码依赖，已保留活动分享链接。")
+        st.info("当前已保留活动分享链接，可继续通过链接组织访问。")
 
-info_tab, team_tab, pk_tab, share_tab = st.tabs(["活动范围", "红军小队", "支部PK", "战绩分享"])
+info_tab, team_tab, pk_tab, share_tab = st.tabs(["活动范围", "红军小队", "支部对抗", "战绩分享"])
 
 with info_tab:
     render_section("活动节点范围", "活动不是空壳链接，而是明确绑定了一组主线节点与题目范围。")
@@ -152,7 +152,7 @@ with info_tab:
 with team_tab:
     render_section("红军小队协作", "支持创建红军小队、加入协作队伍，并把个人答题贡献自动汇总到小队总分。")
     if not activity.get("support_team_mode", True):
-        st.warning("当前活动未开启红军小队模式，可在管理员后台开启后使用。")
+        st.warning("当前活动未开启红军小队协作，可在内容运营页面开启后使用。")
     else:
         current_team = _sync_current_team(current_activity_id)
         if current_team:
@@ -238,9 +238,9 @@ with team_tab:
             st.info("当前活动还没有小队战绩。")
 
 with pk_tab:
-    render_section("支部PK对抗赛", "系统按支部/单位汇总各小队成绩，形成最小可演示版支部 PK 榜。")
+    render_section("支部对抗赛", "系统按支部或单位汇总各小队成绩，形成组织化学习对抗榜单。")
     if not activity.get("support_branch_pk", True):
-        st.warning("当前活动未开启支部PK模式，可在管理员后台开启后使用。")
+        st.warning("当前活动未开启支部对抗模式，可在内容运营页面开启后使用。")
     else:
         pk_rows = get_branch_pk_board(current_activity_id, limit=12)
         if pk_rows:
@@ -306,4 +306,3 @@ with share_tab:
         st.dataframe(pd.DataFrame(live_rows), use_container_width=True, hide_index=True)
     else:
         st.info("当前还没有可展示的实时战绩播报。")
-

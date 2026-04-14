@@ -98,21 +98,20 @@ def _save_json_rows(path: Path, rows: list[dict]) -> None:
     clear_content_caches()
 
 
-setup_page("管理员后台", icon="🛡️")
-render_top_nav("管理员后台")
+setup_page("内容运营", icon="🛡️")
+render_top_nav("内容运营")
 render_hero(
-    title="管理员后台",
-    subtitle="后台用于演示最小 SaaS 管理能力：资料上传、RAG 导入、活动配置、题库内容维护、统计导出和模型开放策略。",
-    badges=["文件管理", "活动管理", "题库维护", "数据导出"],
+    title="内容运营",
+    subtitle="这里用于维护史料内容、活动范围、知识检索、题目配置、数据统计与开放策略，支撑整站持续更新。",
+    badges=["资料管理", "活动管理", "内容维护", "数据导出"],
 )
 
 if not st.session_state.get("admin_authenticated"):
-    render_section("管理员登录", "只有管理员可以访问后台维护能力与全局配置。")
-    st.caption("提示：云端部署时请在 Streamlit Secrets 中配置 ADMIN_PASSWORD。")
+    render_section("运营登录", "只有运营人员可以访问内容维护能力与全局开放策略。")
     with st.form("admin_login_form"):
         username = st.text_input("管理员账号", value="admin")
         password = st.text_input("管理员密码", type="password")
-        submitted = st.form_submit_button("登录后台", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("登录运营后台", use_container_width=True, type="primary")
     if submitted:
         try:
             result = admin_login(username=username, password=password)
@@ -125,14 +124,14 @@ if not st.session_state.get("admin_authenticated"):
                 "display_name": result.get("display_name", username),
             }
             st.session_state["admin_token"] = result.get("access_token", "")
-            st.success("管理员登录成功。")
+            st.success("运营身份验证成功。")
             st.rerun()
     st.stop()
 
 profile = st.session_state.get("admin_profile", {})
 top_left, top_right = st.columns([3, 1])
 with top_left:
-    st.success(f"当前管理员：{profile.get('display_name', profile.get('username', 'admin'))}")
+    st.success(f"当前运营账号：{profile.get('display_name', profile.get('username', 'admin'))}")
 with top_right:
     if st.button("退出登录", use_container_width=True):
         st.session_state["admin_authenticated"] = False
@@ -152,11 +151,11 @@ metrics.extend(
 render_metrics(metrics)
 
 file_tab, rag_tab, activity_tab, content_tab, data_tab, status_tab = st.tabs(
-    ["文件管理", "RAG 导入", "活动管理", "题库/内容管理", "数据统计与导出", "系统状态"]
+    ["资料管理", "知识库更新", "活动管理", "内容管理", "数据统计与导出", "系统状态"]
 )
 
 with file_tab:
-    render_section("上传与文件列表", "支持 txt、md、pdf、docx、json、csv 上传。仓库内置 data/ 与 assets/ 是正式展示主内容源，后台上传主要用于临时补充演示。")
+    render_section("资料上传与文件列表", "支持 txt、md、pdf、docx、json、csv 上传。站点以内置史料为主，这里可继续补充导览资料与学习内容。")
     st.info(get_settings().get("repository_content_notice", "正式展示内容以仓库内置内容为准。"))
     uploaded_files = st.file_uploader(
         "上传知识文件",
@@ -197,7 +196,7 @@ with file_tab:
         st.info("当前还没有上传文件。")
 
 with rag_tab:
-    render_section("RAG 导入与检索调试", "管理员可以增量导入、重建索引，并现场演示检索命中效果。")
+    render_section("知识库更新与检索调试", "可在这里执行增量导入、重建索引，并检查知识卡与资料片段的命中情况。")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("执行增量导入", use_container_width=True, type="primary"):
@@ -270,7 +269,7 @@ with activity_tab:
         description = st.text_area("活动说明", placeholder="说明活动对象、规则和使用场景")
         time_range = st.text_input("活动时长", value="60分钟")
         support_team_mode = st.toggle("开启红军小队协作", value=True)
-        support_branch_pk = st.toggle("开启支部PK对抗", value=True)
+        support_branch_pk = st.toggle("开启支部对抗", value=True)
         max_team_size = st.slider("小队人数上限", min_value=2, max_value=12, value=6)
         node_scope = st.multiselect(
             "活动节点范围",
@@ -318,7 +317,7 @@ with activity_tab:
             st.caption(f"状态：{selected_activity.get('status', '')}")
             st.caption(f"节点数：{len(selected_activity.get('node_scope', []))}")
             st.caption(f"红军小队：{'开启' if selected_activity.get('support_team_mode', True) else '关闭'}")
-            st.caption(f"支部PK：{'开启' if selected_activity.get('support_branch_pk', True) else '关闭'}")
+            st.caption(f"支部对抗：{'开启' if selected_activity.get('support_branch_pk', True) else '关闭'}")
             st.caption(f"小队人数上限：{selected_activity.get('max_team_size', 6)}")
         with right:
             share_link = build_activity_share_link(selected_activity)
@@ -334,7 +333,7 @@ with activity_tab:
             new_time_range = st.text_input("修改活动时长", value=selected_activity.get("time_range", ""))
             new_status = st.selectbox("活动状态", ["进行中", "已完成", "待开始"], index=["进行中", "已完成", "待开始"].index(selected_activity.get("status", "进行中")) if selected_activity.get("status", "进行中") in ["进行中", "已完成", "待开始"] else 0)
             new_support_team = st.toggle("开启红军小队协作", value=selected_activity.get("support_team_mode", True))
-            new_support_pk = st.toggle("开启支部PK对抗", value=selected_activity.get("support_branch_pk", True))
+            new_support_pk = st.toggle("开启支部对抗", value=selected_activity.get("support_branch_pk", True))
             new_max_team_size = st.slider("小队人数上限", min_value=2, max_value=12, value=int(selected_activity.get("max_team_size", 6) or 6))
             new_scope = st.multiselect(
                 "修改活动节点范围",
@@ -377,11 +376,11 @@ with activity_tab:
             st.info("当前活动尚无红军小队战绩。")
 
         branch_rows = get_branch_pk_board(selected_activity_id, limit=10)
-        st.markdown("#### 支部PK预览")
+        st.markdown("#### 支部对抗预览")
         if branch_rows:
             st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
         else:
-            st.info("当前活动尚无支部PK数据。")
+            st.info("当前活动尚无支部对抗数据。")
 
         team_list_rows = list_teams(selected_activity_id)
         st.markdown("#### 当前活动小队列表")
@@ -391,7 +390,7 @@ with activity_tab:
             st.info("当前活动还没有创建小队。")
 
 with content_tab:
-    render_section("题库与内容管理", "当前版本支持直接维护主线节点、FAQ、人物专题和长征精神专题，使后台更接近内容运营工具。")
+    render_section("题库与内容管理", "当前支持直接维护主线节点、常见问答、人物专题和长征精神专题，便于持续补充展陈内容。")
     route_subtab, faq_subtab, figure_subtab, spirit_subtab = st.tabs(["主线节点题库", "FAQ 问答维护", "人物专题维护", "长征精神维护"])
 
     with route_subtab:
@@ -644,7 +643,7 @@ with content_tab:
             )
 
 with data_tab:
-    render_section("数据统计与导出", "至少能够演示活动统计、排行榜查看与结果导出，支撑计划书中的后台运营表述。")
+    render_section("数据统计与导出", "集中查看活动统计、排行榜结果与导出数据，用于教学组织、活动复盘与内容运营。")
     global_rows = get_global_leaderboard(limit=100)
     activity_rows = get_activity_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
     unit_rows = get_unit_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
@@ -736,17 +735,17 @@ with data_tab:
         st.info("当前活动暂无小队排行数据。")
 
     if branch_rows:
-        st.markdown("#### 当前活动支部PK榜")
+        st.markdown("#### 当前活动支部对抗榜")
         st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
         st.download_button(
-            "导出当前活动支部PK CSV",
+            "导出当前活动支部对抗 CSV",
             data=export_rows_to_csv(export_branch_rows(st.session_state.get("current_activity_id", ""))),
             file_name="branch_pk_board.csv",
             mime="text/csv",
             use_container_width=True,
         )
     else:
-        st.info("当前活动暂无支部PK数据。")
+        st.info("当前活动暂无支部对抗数据。")
 
     route_rows = _load_route_node_rows()
     st.download_button(

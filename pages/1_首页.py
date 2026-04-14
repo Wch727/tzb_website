@@ -43,7 +43,7 @@ with hero_right:
     if st.button("进入互动闯关", use_container_width=True):
         st.switch_page("pages/4_剧情答题.py")
 with hero_more:
-    if st.button("测试体验入口", use_container_width=True):
+    if st.button("进入导览速览", use_container_width=True):
         st.switch_page("pages/10_测试体验.py")
 
 render_metrics(
@@ -115,7 +115,7 @@ for index, item in enumerate(sample.get("spirit_topics", [])[:6]):
         st.write(item.get("summary", ""))
 
 render_section("推荐学习内容", "首页不仅是入口页，也承担导学作用，帮助用户快速进入问答、讲解与学习延伸。")
-tab1, tab2, tab3, tab4 = st.tabs(["推荐问题", "示例讲解稿", "推荐学习路线", "测试体验"])
+tab1, tab2, tab3, tab4 = st.tabs(["推荐问题", "示范讲解", "推荐学习路线", "导览速览"])
 with tab1:
     for question in sample.get("example_questions", [])[:8]:
         st.markdown(f"- {question}")
@@ -128,6 +128,6 @@ with tab3:
         for node in item.get("nodes", [])[:3]:
             st.markdown(f"- {node.get('title', '')}")
 with tab4:
-    st.write("适合快速演示问答、展项浏览、讲解生成与互动闯关的组合体验。")
-    if st.button("进入测试体验页", key="home_try_page", use_container_width=True):
+    st.write("适合第一次进入站点时快速浏览问答、展项、讲解与互动学习的完整路径。")
+    if st.button("进入导览速览页", key="home_try_page", use_container_width=True):
         st.switch_page("pages/10_测试体验.py")

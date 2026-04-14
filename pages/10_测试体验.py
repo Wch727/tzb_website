@@ -1,4 +1,4 @@
-"""给组员快速试用的测试体验页。"""
+"""导览速览页。"""
 
 from __future__ import annotations
 
@@ -22,9 +22,9 @@ from streamlit_ui import (
 )
 
 
-setup_page("测试体验", icon="🧭")
-render_top_nav("测试体验")
-render_section("测试体验", "适合快速预览问答、展项详情与讲解生成，让第一次访问也能在几分钟内看到完整效果。")
+setup_page("导览速览", icon="🧭")
+render_top_nav("导览速览")
+render_section("导览速览", "适合第一次进入站点时快速浏览问答、展项详情与讲解生成，在几分钟内建立对整站内容的整体印象。")
 render_model_banner()
 
 provider_config = build_current_provider_config()

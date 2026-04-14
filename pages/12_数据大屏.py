@@ -43,7 +43,7 @@ def _render_dashboard_body(hours: int) -> None:
 
     middle_left, middle_right = st.columns(2)
     with middle_left:
-        render_section("全服实时排行榜", "展示平台近期的高分用户，适合答辩现场和活动现场投屏。")
+        render_section("全服实时排行榜", "展示近期表现突出的用户与队伍，适合课堂、展陈和活动现场投屏。")
         realtime_rows = payload.get("realtime_leaderboard", [])
         if realtime_rows:
             st.dataframe(pd.DataFrame(realtime_rows), use_container_width=True, hide_index=True)
@@ -59,12 +59,12 @@ def _render_dashboard_body(hours: int) -> None:
 
     pk_left, pk_right = st.columns(2)
     with pk_left:
-        render_section("支部PK榜", "按支部/单位汇总队伍成绩，适合活动现场进行组织化对抗展示。")
+        render_section("支部对抗榜", "按支部或单位汇总队伍成绩，适合组织化学习活动中的集体展示。")
         branch_rows = payload.get("branch_pk", [])
         if branch_rows:
             st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
         else:
-            st.info("当前暂无支部PK成绩。")
+            st.info("当前暂无支部对抗成绩。")
     with pk_right:
         render_section("班级/单位排行预览", "用于课堂、班级、支部等组织化学习场景。")
         unit_rows = payload.get("unit_leaderboard", [])
@@ -108,8 +108,8 @@ setup_page("数据大屏", icon="📳")
 render_top_nav("数据大屏")
 render_hero(
     title="数据大屏",
-    subtitle="该页面用于大屏投屏展示，已预留答题热度、参与人数、全服实时榜、红军小队榜、支部PK榜、班级/单位排名和实时战绩流等数据接口。",
-    badges=["全服实时榜", "红军小队榜", "支部PK榜", "实时战绩流"],
+    subtitle="该页面用于大屏投屏展示，集中呈现答题热度、参与人数、全服实时榜、红军小队榜、支部对抗榜、班级或单位排名和实时战绩流。",
+    badges=["全服实时榜", "红军小队榜", "支部对抗榜", "实时战绩流"],
 )
 
 hours = st.selectbox("统计时间窗口", [6, 12, 24, 48], index=2, format_func=lambda item: f"最近 {item} 小时")
@@ -134,4 +134,3 @@ if auto_refresh and hasattr(st, "fragment"):
     _dashboard_fragment()
 else:
     _render_dashboard_body(hours)
-

@@ -17,12 +17,12 @@ from utils import (
     resolve_provider_config,
 )
 
-APP_TITLE = "《长征精神·沉浸式云端答题互动平台》"
+APP_TITLE = "《长征史》交互式导览与闯关学习系统"
 ROLE_OPTIONS = ["大学生", "研学团成员", "普通参观者"]
 CONTENT_MODE_OPTIONS = [
     ("auto", "自动判断"),
-    ("static", "静态展示模式"),
-    ("ai", "AI增强模式"),
+    ("static", "知识导览模式"),
+    ("ai", "智能讲解增强"),
 ]
 TOPIC_FILTERS = [
     ("综合导览", {}),
@@ -263,15 +263,15 @@ def render_minimal_sidebar() -> None:
         st.page_link("pages/2_角色选择.py", label="角色选择")
         st.page_link("pages/3_长征路线.py", label="长征路线")
         st.page_link("pages/4_剧情答题.py", label="剧情答题")
-        st.page_link("pages/5_知识库.py", label="知识库")
+        st.page_link("pages/5_知识库.py", label="知识百问")
         st.page_link("pages/6_活动中心.py", label="活动中心")
         st.page_link("pages/7_排行榜.py", label="排行榜")
-        st.page_link("pages/8_配置页.py", label="配置页")
-        st.page_link("pages/9_管理员后台.py", label="管理员后台")
-        st.page_link("pages/10_测试体验.py", label="测试体验")
+        st.page_link("pages/8_配置页.py", label="使用设置")
+        st.page_link("pages/9_管理员后台.py", label="内容运营")
+        st.page_link("pages/10_测试体验.py", label="导览速览")
         st.page_link("pages/11_讲解生成.py", label="讲解工坊")
         st.page_link("pages/12_数据大屏.py", label="数据大屏")
-        st.markdown("<div class='nav-caption'>这里只保留导航与状态，不承载复杂配置。</div>", unsafe_allow_html=True)
+        st.markdown("<div class='nav-caption'>侧栏仅保留导航与当前状态，主要内容均在页面主体中展开。</div>", unsafe_allow_html=True)
         st.divider()
         st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
         st.caption(f"当前活动：{st.session_state.get('current_activity_id', 'knowledge-contest')}")
@@ -341,13 +341,13 @@ def build_current_provider_config() -> Dict[str, Any]:
         static_mode = False
     config["content_mode_preference"] = preference
     config["static_mode"] = static_mode
-    config["mode_label"] = "静态展示模式" if static_mode else "AI增强模式"
+    config["mode_label"] = "知识导览模式" if static_mode else "智能讲解增强"
     if preference == "static":
-        config["mode_reason"] = "当前已手动切换为静态展示模式。"
+        config["mode_reason"] = "当前已切换为知识导览模式，系统将优先依据内置史料与知识卡组织内容。"
     elif static_mode and not has_real_key:
-        config["mode_reason"] = "当前未检测到可用平台密钥，系统将使用静态知识内容完成展示。"
+        config["mode_reason"] = "当前未检测到可用模型密钥，系统将依据内置史料与知识卡完成导览与讲解。"
     else:
-        config["mode_reason"] = "当前优先调用模型，并由知识库检索结果进行增强。"
+        config["mode_reason"] = "当前将结合知识检索结果进行智能讲解与生成。"
     return config
 
 
@@ -362,7 +362,7 @@ def bootstrap_repository_content() -> None:
             st.session_state["_repository_content_status"] = ensure_default_knowledge_base()
     except Exception as exc:
         st.session_state["_repository_content_status"] = {
-            "message": "仓库内置知识库初始化失败，请检查云端依赖版本后重新部署。",
+            "message": "站点内置知识内容加载失败，请稍后刷新页面或联系维护人员检查环境配置。",
             "error": str(exc),
             "initialized": False,
         }
@@ -381,18 +381,18 @@ def render_top_nav(current_page: str) -> None:
     with row1[3]:
         st.page_link("pages/4_剧情答题.py", label="剧情答题", use_container_width=True)
     with row1[4]:
-        st.page_link("pages/5_知识库.py", label="知识库", use_container_width=True)
+        st.page_link("pages/5_知识库.py", label="知识百问", use_container_width=True)
     row2 = st.columns(6)
     with row2[0]:
         st.page_link("pages/6_活动中心.py", label="活动中心", use_container_width=True)
     with row2[1]:
         st.page_link("pages/7_排行榜.py", label="排行榜", use_container_width=True)
     with row2[2]:
-        st.page_link("pages/8_配置页.py", label="配置页", use_container_width=True)
+        st.page_link("pages/8_配置页.py", label="使用设置", use_container_width=True)
     with row2[3]:
-        st.page_link("pages/9_管理员后台.py", label="管理员后台", use_container_width=True)
+        st.page_link("pages/9_管理员后台.py", label="内容运营", use_container_width=True)
     with row2[4]:
-        st.page_link("pages/10_测试体验.py", label="测试体验", use_container_width=True)
+        st.page_link("pages/10_测试体验.py", label="导览速览", use_container_width=True)
     with row2[5]:
         st.page_link("pages/12_数据大屏.py", label="数据大屏", use_container_width=True)
     st.caption(f"当前页面：{current_page}")
@@ -464,28 +464,28 @@ def render_model_banner() -> None:
     """渲染当前模型说明。"""
     model_info = get_selected_model_info()
     provider_config = build_current_provider_config()
-    description = model_info.get("description") or "当前模型由管理员开放给普通用户使用。"
+    description = model_info.get("description") or "当前模型由平台统一开放，用于导览问答、讲解生成与学习辅助。"
     allow_key_text = "允许输入个人 API Key" if model_info.get("allow_user_key") else "使用管理员统一配置"
-    readiness_text = "当前模型可直接调用。"
+    readiness_text = "当前模型可用于智能讲解与内容生成。"
     if provider_config.get("provider_name") != "mock" and provider_config.get("api_key_source") == "missing":
-        readiness_text = "当前环境未检测到平台密钥，系统会自动回退到本地演示模式。"
+        readiness_text = "当前未检测到可用模型密钥，系统将自动切换到知识导览模式。"
     elif provider_config.get("api_key_source") == "streamlit_secrets":
-        readiness_text = "当前优先使用 Streamlit Secrets 中的密钥。"
+        readiness_text = "当前已接入平台统一配置的模型密钥。"
     elif provider_config.get("api_key_source") == "environment":
-        readiness_text = "当前优先使用环境变量中的密钥。"
+        readiness_text = "当前已接入可用模型密钥。"
     elif provider_config.get("api_key_source") == "session":
-        readiness_text = "当前正在使用你在本次会话中输入的个人 API Key。"
+        readiness_text = "当前正在使用你在本次访问中输入的个人密钥。"
     st.markdown(
         _clean_html(
             f"""
         <div class="notice-card">
-            <strong>当前模型：</strong>{html.escape(model_info.get('display_name', '本地演示模型'))}
+            <strong>当前模型：</strong>{html.escape(model_info.get('display_name', '知识导览模式'))}
             <br/>
             <span class="small-muted">模型标识：{html.escape(model_info.get('model', '未配置'))}</span>
             <br/>
-            <span class="small-muted">当前内容模式：{html.escape(provider_config.get('mode_label', '静态展示模式'))}</span>
+            <span class="small-muted">当前内容模式：{html.escape(provider_config.get('mode_label', '知识导览模式'))}</span>
             <br/>
-            <span class="small-muted">开放策略：{html.escape(allow_key_text)}，普通用户只能看到管理员开放的模型。</span>
+            <span class="small-muted">使用策略：{html.escape(allow_key_text)}，你当前看到的是平台已开放的模型范围。</span>
             <br/>
             <span class="small-muted">{html.escape(provider_config.get('mode_reason', readiness_text))}</span>
             <br/>
@@ -500,7 +500,7 @@ def render_model_banner() -> None:
 def render_runtime_notice(result: Dict[str, Any]) -> None:
     """展示模型运行时提示。"""
     if result.get("mode_label"):
-        st.info(f"当前输出模式：{result['mode_label']}")
+        st.info(f"当前讲解模式：{result['mode_label']}")
     if result.get("warning"):
         st.warning(result["warning"])
 

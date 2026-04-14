@@ -122,7 +122,7 @@ with tab2:
             cache_key=f"video-page-{st.session_state.get('video_page_topic', 'topic')}",
             button_label="播放脚本文案语音",
         )
-        if st.button("数字人脚本演示", key="video_digital", use_container_width=True):
+        if st.button("切换数字讲解员模式", key="video_digital", use_container_width=True):
             st.session_state["video_digital_mode"] = not st.session_state.get("video_digital_mode", False)
         if st.session_state.get("video_digital_mode", False):
             render_digital_human(

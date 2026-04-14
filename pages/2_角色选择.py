@@ -50,7 +50,7 @@ with identity_right:
     st.session_state["unit_name"] = st.text_input(
         "班级 / 单位 / 小组",
         value=st.session_state.get("unit_name", "体验组"),
-        help="用于活动排行、支部PK和班级/单位展示。",
+        help="用于活动排行、支部对抗和班级或单位展示。",
     )
 
 selected_role_id = st.session_state.get("selected_role_id", "scout")
@@ -108,4 +108,3 @@ with btn2:
 with btn3:
     if st.button("前往活动中心", use_container_width=True):
         st.switch_page("pages/6_活动中心.py")
-

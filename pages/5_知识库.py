@@ -24,8 +24,8 @@ from streamlit_ui import (
 )
 
 
-setup_page("知识库", icon="📚")
-render_top_nav("知识库")
+setup_page("知识百问", icon="📚")
+render_top_nav("知识百问")
 
 provider_config = build_current_provider_config()
 model_info = get_selected_model_info()
@@ -35,7 +35,7 @@ sample = load_home_sample_content()
 render_section("长征百问", "把推荐问题、节点相关问题、问答依据和延伸阅读放在同一页中，形成更强的学习闭环。")
 render_model_banner()
 
-tab1, tab2, tab3 = st.tabs(["智能导览问答", "图文知识卡片", "错题复盘"])
+tab1, tab2, tab3 = st.tabs(["智能导览问答", "图文知识卡片", "学习复盘"])
 
 with tab1:
     topic_options = get_topic_filter_options()
@@ -107,7 +107,7 @@ with tab1:
         st.rerun()
 
 with tab2:
-    render_section("图文知识卡片", "内置人物、事件、地点、精神专题和 FAQ 内容，即使没有模型也能完成完整浏览。")
+    render_section("图文知识卡片", "内置人物、事件、地点、精神专题和常见问答内容，即使不启用模型也能完成完整学习。")
     category = st.selectbox("知识分类", ["全部", "路线节点", "重大事件", "重要人物", "重要地点", "长征精神", "常见问答"])
     keyword = st.text_input("关键词搜索", placeholder="例如：遵义、泸定桥、毛泽东")
     cards = get_knowledge_cards(category=category, keyword=keyword)
@@ -134,7 +134,7 @@ with tab2:
         )
 
 with tab3:
-    render_section("错题复盘", "把答题中的薄弱点重新拉回到知识理解上，而不是只留下对错结果。")
+    render_section("学习复盘", "把作答中的薄弱点重新拉回到知识理解上，而不是只留下对错结果。")
     wrong_book = st.session_state.get("story_state", {}).get("progress", {}).get("wrong_book", [])
     if wrong_book:
         for item in wrong_book:

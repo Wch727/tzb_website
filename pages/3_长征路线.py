@@ -95,5 +95,5 @@ if selected_node:
             st.session_state["story_state"] = set_story_checkpoint(story_state, selected_node_id)
             st.switch_page("pages/4_剧情答题.py")
     with action_right:
-        if st.button("前往知识百问", use_container_width=True):
+        if st.button("进入知识百问", use_container_width=True):
             st.switch_page("pages/5_知识库.py")

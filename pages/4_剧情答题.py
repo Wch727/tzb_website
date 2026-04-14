@@ -56,8 +56,8 @@ setup_page("剧情答题", icon="🎮")
 render_top_nav("剧情答题")
 render_hero(
     title="剧情答题",
-    subtitle="围绕长征时间线逐关推进。每一关都包含历史导入、角色任务、多媒体题型、答案反馈、历史小课堂和成长激励，同时支持将个人贡献同步到红军小队与支部PK战场。",
-    badges=["主线关卡", "多媒体题型", "红军小队", "支部PK"],
+    subtitle="围绕长征时间线逐关推进。每一关都包含历史导入、角色任务、多媒体题型、答案反馈、历史小课堂和成长激励，同时支持将个人贡献同步到红军小队与支部对抗榜单。",
+    badges=["主线关卡", "多媒体题型", "红军小队", "支部对抗"],
 )
 
 if not st.session_state.get("selected_role_id"):
@@ -399,4 +399,3 @@ if knowledge_bundle:
             st.write(item.get("summary", item.get("answer", "")))
 else:
     st.info("当前节点暂无额外知识卡片。")
-

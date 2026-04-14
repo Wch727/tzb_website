@@ -184,7 +184,7 @@ def generate_node_explanation(
         "explanation": explanation_text,
         "warning": result.get("warning", ""),
         "fallback_used": bool(use_static and not static_mode),
-        "mode_label": "静态展示模式" if use_static else "AI增强模式",
+        "mode_label": "知识导览模式" if use_static else "智能讲解增强",
         "question": quiz.get("question", ""),
         "expected_answer": quiz.get("answer", ""),
         "options": build_question_options(node),

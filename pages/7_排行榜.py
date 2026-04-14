@@ -26,16 +26,16 @@ def _render_rank_board(current_activity_id: str) -> None:
             {"label": "全服实时榜单", "value": len(get_live_leaderboard(limit=100, hours=72))},
             {"label": "当前活动个人榜", "value": len(get_activity_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
             {"label": "红军小队数", "value": len(get_team_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
-            {"label": "支部PK条目", "value": len(get_branch_pk_board(current_activity_id, limit=100)) if current_activity_id else 0},
+            {"label": "支部对抗条目", "value": len(get_branch_pk_board(current_activity_id, limit=100)) if current_activity_id else 0},
         ]
     )
 
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-        ["全服实时榜", "活动个人榜", "红军小队榜", "支部PK榜", "班级/单位榜", "实时战绩流"]
+        ["全服实时榜", "活动个人榜", "红军小队榜", "支部对抗榜", "班级/单位榜", "实时战绩流"]
     )
 
     with tab1:
-        render_section("全服实时排行榜", "展示平台近阶段的最佳战绩，适合答辩现场和活动现场直接投屏。")
+        render_section("全服实时排行榜", "展示近期学习表现最突出的用户与队伍，适合课堂、活动和集中展示场景。")
         rows = get_live_leaderboard(activity_id="", limit=20, hours=72)
         if rows:
             st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
@@ -61,12 +61,12 @@ def _render_rank_board(current_activity_id: str) -> None:
             st.info("当前活动还没有小队战绩。")
 
     with tab4:
-        render_section("支部PK榜", "以支部或单位为聚合维度，展示支部PK对抗赛的最小可演示版结果。")
+        render_section("支部对抗榜", "以支部或单位为聚合维度，展示组织化学习对抗的阶段结果。")
         rows = get_branch_pk_board(current_activity_id, limit=20) if current_activity_id else []
         if rows:
             st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
         else:
-            st.info("当前活动还没有支部PK成绩。")
+            st.info("当前活动还没有支部对抗成绩。")
 
     with tab5:
         render_section("班级/单位榜", "把个人战绩按班级、单位或学习小组聚合，更贴近真实组织化活动的展示方式。")
@@ -107,8 +107,8 @@ setup_page("排行榜", icon="🏆")
 render_top_nav("排行榜")
 render_hero(
     title="排行榜",
-    subtitle="当前版本已提供全服实时榜、活动个人榜、红军小队榜、支部PK榜、班级/单位榜以及实时战绩流，便于老师直接看到协作答题和组织化对抗确实存在。",
-    badges=["全服实时榜", "红军小队榜", "支部PK榜", "战绩分享"],
+    subtitle="排行榜汇集全服实时榜、活动个人榜、红军小队榜、支部对抗榜、班级或单位榜以及实时战绩流，用于集中呈现学习成果与协作表现。",
+    badges=["全服实时榜", "红军小队榜", "支部对抗榜", "战绩分享"],
 )
 
 activities = list_activities()
