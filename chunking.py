@@ -152,6 +152,10 @@ def attach_metadata(
             chunk_metadata = metadata.copy()
             chunk_metadata["chunk_index"] = index
             chunk_metadata["chunk_length"] = len(piece)
-            chunk_metadata["chunk_id"] = f"{source_file}::{title}::{source_page or 'no-page'}::{index}"
+            existing_chunk_id = str(chunk_metadata.get("chunk_id", "") or "").strip()
+            if chunk_metadata.get("pre_chunked") and existing_chunk_id:
+                chunk_metadata["chunk_id"] = existing_chunk_id
+            else:
+                chunk_metadata["chunk_id"] = f"{source_file}::{title}::{source_page or 'no-page'}::{index}"
             prepared.append({"text": piece, "metadata": chunk_metadata})
     return prepared

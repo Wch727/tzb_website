@@ -108,6 +108,31 @@ def _source_files_from_docs(documents: List[Dict[str, Any]]) -> List[str]:
     return sorted(names)
 
 
+def _dedupe_ids(texts: List[str], metadatas: List[Dict[str, Any]]) -> List[str]:
+    """为入库批次生成稳定且唯一的 id。"""
+    seen: Dict[str, int] = {}
+    resolved_ids: List[str] = []
+    for index, (text, metadata) in enumerate(zip(texts, metadatas)):
+        base_id = str(metadata.get("chunk_id", "") or f"chunk-{index}").strip() or f"chunk-{index}"
+        payload = "|".join(
+            [
+                base_id,
+                str(metadata.get("source_file", "") or ""),
+                str(metadata.get("title", "") or ""),
+                str(metadata.get("source_page", "") or ""),
+                text[:240],
+            ]
+        )
+        digest = hashlib.sha1(payload.encode("utf-8")).hexdigest()[:12]
+        candidate = f"{base_id}::{digest}"
+        seen[candidate] = seen.get(candidate, 0) + 1
+        if seen[candidate] > 1:
+            candidate = f"{candidate}::{seen[candidate]}"
+        metadata["chunk_id"] = candidate
+        resolved_ids.append(candidate)
+    return resolved_ids
+
+
 def _upsert_documents(documents: List[Dict[str, Any]]) -> Dict[str, Any]:
     settings = get_settings()
     collection = get_collection()
@@ -125,7 +150,7 @@ def _upsert_documents(documents: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     texts = [item["text"] for item in chunked_docs]
     metadatas = [item["metadata"] for item in chunked_docs]
-    ids = [metadata.get("chunk_id", f"chunk-{index}") for index, metadata in enumerate(metadatas)]
+    ids = _dedupe_ids(texts, metadatas)
     embeddings = embedder().embed_documents(texts)
     collection.add(ids=ids, documents=texts, metadatas=metadatas, embeddings=embeddings)
 
