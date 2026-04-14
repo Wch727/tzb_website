@@ -59,6 +59,8 @@ with left:
         st.switch_page("pages/2_角色选择.py")
     if st.button("查看该活动排行榜", use_container_width=True):
         st.switch_page("pages/7_排行榜.py")
+    if st.button("打开数据大屏", use_container_width=True):
+        st.switch_page("pages/12_数据大屏.py")
 
 with right:
     share_link = build_activity_share_link(activity)

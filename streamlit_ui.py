@@ -267,6 +267,7 @@ def render_minimal_sidebar() -> None:
         st.page_link("pages/9_管理员后台.py", label="管理员后台")
         st.page_link("pages/10_测试体验.py", label="测试体验")
         st.page_link("pages/11_讲解生成.py", label="讲解工坊")
+        st.page_link("pages/12_数据大屏.py", label="数据大屏")
         st.markdown("<div class='nav-caption'>这里只保留导航与状态，不承载复杂配置。</div>", unsafe_allow_html=True)
         st.divider()
         st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
@@ -374,7 +375,7 @@ def render_top_nav(current_page: str) -> None:
         st.page_link("pages/4_剧情答题.py", label="剧情答题", use_container_width=True)
     with row1[4]:
         st.page_link("pages/5_知识库.py", label="知识库", use_container_width=True)
-    row2 = st.columns(5)
+    row2 = st.columns(6)
     with row2[0]:
         st.page_link("pages/6_活动中心.py", label="活动中心", use_container_width=True)
     with row2[1]:
@@ -385,6 +386,8 @@ def render_top_nav(current_page: str) -> None:
         st.page_link("pages/9_管理员后台.py", label="管理员后台", use_container_width=True)
     with row2[4]:
         st.page_link("pages/10_测试体验.py", label="测试体验", use_container_width=True)
+    with row2[5]:
+        st.page_link("pages/12_数据大屏.py", label="数据大屏", use_container_width=True)
     st.caption(f"当前页面：{current_page}")
 
 

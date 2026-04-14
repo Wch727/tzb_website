@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -17,7 +18,8 @@ from activity_manager import (
 )
 from admin_dashboard import build_admin_metrics, export_leaderboard_csv, export_rows_to_csv
 from auth import admin_login
-from content_store import clear_content_caches, load_faq_items, load_route_nodes_data
+from content_store import clear_content_caches, load_faq_items, load_figures_data, load_route_nodes_data, load_spirit_topics
+from dashboard_data import build_dashboard_payload, build_dashboard_summary
 from file_loader import load_file, persist_processed_text
 from leaderboard import get_activity_leaderboard, get_global_leaderboard, get_unit_leaderboard
 from rag import get_rag_status, incremental_ingest, rebuild_knowledge_base
@@ -44,6 +46,8 @@ from utils import (
 
 ROUTE_NODE_PATH = DATA_DIR / "route_nodes.json"
 FAQ_PATH = DATA_DIR / "faq.csv"
+FIGURE_PATH = DATA_DIR / "figures.json"
+SPIRIT_PATH = DATA_DIR / "spirit.json"
 
 
 def _load_route_node_rows() -> list[dict]:
@@ -78,6 +82,18 @@ def _save_faq_rows(rows: list[dict]) -> None:
     """保存 FAQ 原始数据。"""
     frame = pd.DataFrame(rows)
     frame.to_csv(FAQ_PATH, index=False, encoding="utf-8-sig")
+    clear_content_caches()
+
+
+def _load_json_rows(path: Path) -> list[dict]:
+    """读取 JSON 列表文件。"""
+    rows = read_json(path, []) or []
+    return [item for item in rows if isinstance(item, dict)]
+
+
+def _save_json_rows(path: Path, rows: list[dict]) -> None:
+    """保存 JSON 列表文件。"""
+    write_json(path, rows)
     clear_content_caches()
 
 
@@ -132,7 +148,7 @@ metrics.extend(
         {"label": "开放模型数", "value": len(get_visible_user_models())},
     ]
 )
-render_metrics(metrics[:6])
+render_metrics(metrics)
 
 file_tab, rag_tab, activity_tab, content_tab, data_tab, status_tab = st.tabs(
     ["文件管理", "RAG 导入", "活动管理", "题库/内容管理", "数据统计与导出", "系统状态"]
@@ -316,8 +332,8 @@ with activity_tab:
             st.info("当前活动尚无成绩记录。")
 
 with content_tab:
-    render_section("题库与内容管理", "当前版本支持直接编辑主线节点题库和 FAQ，用于最小可演示的内容运营。")
-    route_subtab, faq_subtab = st.tabs(["主线节点题库", "FAQ 问答维护"])
+    render_section("题库与内容管理", "当前版本支持直接维护主线节点、FAQ、人物专题和长征精神专题，使后台更接近内容运营工具。")
+    route_subtab, faq_subtab, figure_subtab, spirit_subtab = st.tabs(["主线节点题库", "FAQ 问答维护", "人物专题维护", "长征精神维护"])
 
     with route_subtab:
         raw_rows = _load_route_node_rows()
@@ -424,21 +440,187 @@ with content_tab:
             st.markdown("#### FAQ 预览")
             st.write(selected_faq.get("answer", ""))
 
+    with figure_subtab:
+        figure_rows = _load_json_rows(FIGURE_PATH)
+        st.caption(f"当前人物条目数：{len(figure_rows)}")
+        create_figure = st.toggle("创建新人物条目", value=not bool(figure_rows), key="create_figure_toggle")
+        if create_figure or not figure_rows:
+            selected_figure_index = None
+            figure_seed = {
+                "title": "",
+                "type": "figure",
+                "topic": "长征史",
+                "route_stage": "",
+                "place": "",
+                "role": "",
+                "summary": "",
+                "background": "",
+                "significance": "",
+                "image": "",
+                "image_alt": "",
+                "image_caption": "",
+                "remote_image_url": "",
+            }
+        else:
+            selected_figure_index = st.selectbox(
+                "选择人物条目",
+                list(range(len(figure_rows))),
+                format_func=lambda idx: figure_rows[idx].get("title", f"人物 {idx + 1}"),
+            )
+            figure_seed = figure_rows[selected_figure_index]
+
+        with st.form("edit_figure_form"):
+            figure_title = st.text_input("人物名称", value=figure_seed.get("title", ""))
+            figure_role = st.text_input("人物身份", value=figure_seed.get("role", ""))
+            figure_place = st.text_input("活动地点", value=figure_seed.get("place", ""))
+            figure_stage = st.text_input("关联路线阶段", value=figure_seed.get("route_stage", ""))
+            figure_summary = st.text_area("人物摘要", value=figure_seed.get("summary", ""), height=120)
+            figure_background = st.text_area("背景介绍", value=figure_seed.get("background", ""), height=180)
+            figure_significance = st.text_area("历史作用", value=figure_seed.get("significance", ""), height=160)
+            figure_image = st.text_input("本地图片路径", value=figure_seed.get("image", ""))
+            figure_alt = st.text_input("图片替代文本", value=figure_seed.get("image_alt", ""))
+            figure_caption = st.text_input("图片说明", value=figure_seed.get("image_caption", ""))
+            figure_remote = st.text_input("远程图片 URL", value=figure_seed.get("remote_image_url", ""))
+            save_figure = st.form_submit_button("保存人物专题", use_container_width=True, type="primary")
+        if save_figure and figure_title.strip():
+            row = {
+                **figure_seed,
+                "title": figure_title.strip(),
+                "type": "figure",
+                "topic": "长征史",
+                "role": figure_role.strip(),
+                "place": figure_place.strip(),
+                "route_stage": figure_stage.strip(),
+                "summary": figure_summary.strip(),
+                "background": figure_background.strip(),
+                "significance": figure_significance.strip(),
+                "image": figure_image.strip(),
+                "image_alt": figure_alt.strip(),
+                "image_caption": figure_caption.strip(),
+                "remote_image_url": figure_remote.strip(),
+            }
+            if create_figure:
+                figure_rows.append(row)
+            else:
+                figure_rows[selected_figure_index] = row
+            _save_json_rows(FIGURE_PATH, figure_rows)
+            st.success("人物专题已保存。")
+            st.rerun()
+        st.markdown("#### 人物预览")
+        preview_figures = load_figures_data()[:8]
+        if preview_figures:
+            st.dataframe(
+                pd.DataFrame(preview_figures)[["title", "role", "route_stage", "summary"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    with spirit_subtab:
+        spirit_rows = _load_json_rows(SPIRIT_PATH)
+        st.caption(f"当前专题条目数：{len(spirit_rows)}")
+        create_spirit = st.toggle("创建新精神专题", value=not bool(spirit_rows), key="create_spirit_toggle")
+        if create_spirit or not spirit_rows:
+            selected_spirit_index = None
+            spirit_seed = {
+                "title": "",
+                "type": "spirit",
+                "topic": "长征精神",
+                "route_stage": "",
+                "place": "",
+                "summary": "",
+                "detail": "",
+                "image": "",
+                "image_alt": "",
+                "image_caption": "",
+                "remote_image_url": "",
+            }
+        else:
+            selected_spirit_index = st.selectbox(
+                "选择精神专题",
+                list(range(len(spirit_rows))),
+                format_func=lambda idx: spirit_rows[idx].get("title", f"专题 {idx + 1}"),
+            )
+            spirit_seed = spirit_rows[selected_spirit_index]
+
+        with st.form("edit_spirit_form"):
+            spirit_title = st.text_input("专题标题", value=spirit_seed.get("title", ""))
+            spirit_place = st.text_input("关联地点", value=spirit_seed.get("place", ""))
+            spirit_stage = st.text_input("关联路线阶段", value=spirit_seed.get("route_stage", ""))
+            spirit_summary = st.text_area("专题摘要", value=spirit_seed.get("summary", ""), height=120)
+            spirit_detail = st.text_area("专题详解", value=spirit_seed.get("detail", ""), height=220)
+            spirit_image = st.text_input("本地图片路径", value=spirit_seed.get("image", ""))
+            spirit_alt = st.text_input("图片替代文本", value=spirit_seed.get("image_alt", ""))
+            spirit_caption = st.text_input("图片说明", value=spirit_seed.get("image_caption", ""))
+            spirit_remote = st.text_input("远程图片 URL", value=spirit_seed.get("remote_image_url", ""))
+            save_spirit = st.form_submit_button("保存精神专题", use_container_width=True, type="primary")
+        if save_spirit and spirit_title.strip():
+            row = {
+                **spirit_seed,
+                "title": spirit_title.strip(),
+                "type": "spirit",
+                "topic": "长征精神",
+                "place": spirit_place.strip(),
+                "route_stage": spirit_stage.strip(),
+                "summary": spirit_summary.strip(),
+                "detail": spirit_detail.strip(),
+                "image": spirit_image.strip(),
+                "image_alt": spirit_alt.strip(),
+                "image_caption": spirit_caption.strip(),
+                "remote_image_url": spirit_remote.strip(),
+            }
+            if create_spirit:
+                spirit_rows.append(row)
+            else:
+                spirit_rows[selected_spirit_index] = row
+            _save_json_rows(SPIRIT_PATH, spirit_rows)
+            st.success("长征精神专题已保存。")
+            st.rerun()
+        st.markdown("#### 精神专题预览")
+        preview_spirits = load_spirit_topics()[:8]
+        if preview_spirits:
+            st.dataframe(
+                pd.DataFrame(preview_spirits)[["title", "route_stage", "summary"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+
 with data_tab:
     render_section("数据统计与导出", "至少能够演示活动统计、排行榜查看与结果导出，支撑计划书中的后台运营表述。")
     global_rows = get_global_leaderboard(limit=100)
     activity_rows = get_activity_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
     unit_rows = get_unit_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
+    dashboard_summary = build_dashboard_summary(hours=24)
+    dashboard_payload = build_dashboard_payload(hours=24)
 
     stat_cols = st.columns(4)
     with stat_cols[0]:
         st.metric("活动数", len(list_activities()))
     with stat_cols[1]:
-        st.metric("参与记录数", len(global_rows))
+        st.metric("近24小时参与人数", dashboard_summary.get("recent_participant_count", 0))
     with stat_cols[2]:
-        st.metric("主线节点数", len(load_route_nodes_data()))
+        st.metric("近24小时答题数", dashboard_summary.get("recent_answer_count", 0))
     with stat_cols[3]:
-        st.metric("FAQ 数量", len(load_faq_items()))
+        st.metric("近24小时正确率", f"{dashboard_summary.get('correct_rate', 0)}%")
+
+    bigscreen_left, bigscreen_right = st.columns([1.1, 1])
+    with bigscreen_left:
+        st.markdown("#### 大屏热度趋势预览")
+        answer_heat = dashboard_payload.get("answer_heat", [])
+        if answer_heat:
+            answer_heat_df = pd.DataFrame(answer_heat).set_index("time_label")
+            st.line_chart(answer_heat_df)
+        else:
+            st.info("当前暂无答题热度数据。")
+    with bigscreen_right:
+        st.markdown("#### 大屏节点热度预览")
+        node_heat = dashboard_payload.get("node_heat", [])
+        if node_heat:
+            node_heat_df = pd.DataFrame(node_heat).set_index("node_title")
+            st.bar_chart(node_heat_df[["answer_count"]])
+        else:
+            st.info("当前暂无节点热度数据。")
+
+    st.page_link("pages/12_数据大屏.py", label="打开数据大屏页", use_container_width=True)
 
     if global_rows:
         st.markdown("#### 全局排行榜数据")
@@ -481,7 +663,7 @@ with data_tab:
 
     route_rows = _load_route_node_rows()
     st.download_button(
-        "导出主线题库 JSON",
+        "导出主线题库 CSV",
         data=export_rows_to_csv(
             [
                 {
@@ -498,6 +680,13 @@ with data_tab:
         ),
         file_name="route_question_bank.csv",
         mime="text/csv",
+        use_container_width=True,
+    )
+    st.download_button(
+        "导出大屏数据 JSON",
+        data=json.dumps(dashboard_payload, ensure_ascii=False, indent=2),
+        file_name="dashboard_payload.json",
+        mime="application/json",
         use_container_width=True,
     )
 

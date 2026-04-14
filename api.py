@@ -12,6 +12,7 @@ from auth import admin_login, get_current_admin
 from file_loader import load_file, persist_processed_text
 from game import start_game, submit_choice
 from generator import generate_guide_script, generate_short_video_script
+from dashboard_data import build_dashboard_payload, build_dashboard_summary
 from models import (
     AdminLoginRequest,
     AskRequest,
@@ -110,6 +111,18 @@ def health() -> Dict[str, Any]:
         "service": "long-march-mvp",
         "rag": get_rag_status(),
     }
+
+
+@app.get("/dashboard/summary")
+def dashboard_summary_api(hours: int = 24) -> Dict[str, Any]:
+    """获取大屏摘要数据。"""
+    return build_dashboard_summary(hours=max(1, min(hours, 168)))
+
+
+@app.get("/dashboard/live")
+def dashboard_live_api(hours: int = 24) -> Dict[str, Any]:
+    """获取大屏完整数据载荷。"""
+    return build_dashboard_payload(hours=max(1, min(hours, 168)))
 
 
 @app.post("/admin/login")

@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from certificate import generate_certificate_svg
+from dashboard_data import record_answer_event, record_participation_event
 from game import get_route_node
 from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import record_leaderboard_entry
@@ -22,6 +23,16 @@ def _ensure_story_state() -> dict:
     activity_id = st.session_state.get("current_activity_id", "knowledge-contest")
     story_state = create_story_state(role_id=role_id, activity_id=activity_id)
     st.session_state["story_state"] = story_state
+    enter_key = f"dashboard_participation::{story_state.get('activity_id', 'global')}::{st.session_state.get('user_name', '红色学习者')}"
+    if not st.session_state.get(enter_key):
+        record_participation_event(
+            user_name=st.session_state.get("user_name", "红色学习者"),
+            unit_name=st.session_state.get("unit_name", "体验组"),
+            role_name=story_state.get("role_name", "侦察兵"),
+            activity_id=story_state.get("activity_id", "global"),
+            activity_name=story_state.get("activity_name", "长征主线闯关"),
+        )
+        st.session_state[enter_key] = True
     return story_state
 
 
@@ -194,6 +205,20 @@ answer = st.radio("请选择你的答案", stage.get("options", []), index=None,
 
 if st.button("提交答案", use_container_width=True, type="primary", disabled=not answer):
     result = submit_stage_answer(story_state, answer or "")
+    answer_detail = result.get("answer_detail", {})
+    answered_node = result.get("answered_node", {}) or {}
+    record_answer_event(
+        user_name=st.session_state.get("user_name", "红色学习者"),
+        unit_name=st.session_state.get("unit_name", "体验组"),
+        role_name=story_state.get("role_name", "侦察兵"),
+        activity_id=story_state.get("activity_id", "global"),
+        activity_name=story_state.get("activity_name", "长征主线闯关"),
+        node_id=answered_node.get("id", ""),
+        node_title=answered_node.get("title", ""),
+        question_type=answer_detail.get("question_type", stage.get("question_type", "情境选择题")),
+        correct=result.get("correct", False),
+        mode_label="剧情答题",
+    )
     st.session_state["story_state"] = result.get("state", story_state)
     st.session_state["story_last_result"] = result
     st.rerun()

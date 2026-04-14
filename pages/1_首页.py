@@ -41,7 +41,7 @@ render_hero(
     badges=["主线关卡", "角色扮演", "多媒体答题", "活动中心", "排行榜"],
 )
 
-hero_col1, hero_col2, hero_col3, hero_col4 = st.columns([1.15, 1.15, 1, 1])
+hero_col1, hero_col2, hero_col3, hero_col4, hero_col5 = st.columns([1.1, 1.1, 1, 1, 1])
 with hero_col1:
     if st.button("选择角色并开始", use_container_width=True, type="primary"):
         st.switch_page("pages/2_角色选择.py")
@@ -54,6 +54,9 @@ with hero_col3:
 with hero_col4:
     if st.button("查看实时排行", use_container_width=True):
         st.switch_page("pages/7_排行榜.py")
+with hero_col5:
+    if st.button("打开数据大屏", use_container_width=True):
+        st.switch_page("pages/12_数据大屏.py")
 
 render_metrics(
     [
