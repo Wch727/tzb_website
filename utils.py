@@ -36,6 +36,7 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "default_model": "mock-longmarch-v1",
     "allow_mock_provider": True,
     "public_base_url": "",
+    "debug_image_resolver": False,
     "repository_content_notice": "正式展示内容以仓库内置内容为准，后台上传与活动配置用于补充演示。",
     "supported_extensions": [".txt", ".md", ".pdf", ".docx", ".json", ".csv"],
 }

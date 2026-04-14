@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from content_store import load_events_data, load_figures_data, load_route_nodes_data, load_spirit_topics
+from content_store import (
+    get_featured_route_nodes,
+    get_recommended_questions,
+    get_route_chapters,
+    load_events_data,
+    load_figures_data,
+    load_route_nodes_data,
+    load_spirit_topics,
+)
 from utils import DATA_DIR, read_json
 
 
@@ -20,21 +28,31 @@ def load_home_sample_content() -> Dict[str, Any]:
     events = load_events_data()
     spirit = load_spirit_topics()
     nodes = load_route_showcase_nodes(limit=20)
+    chapters = get_route_chapters()
     sample_scripts = read_json(DATA_DIR / "sample_scripts.json", [])
     script_block = sample_scripts[0] if sample_scripts else {}
 
     return {
-        "featured_nodes": nodes[:8],
+        "featured_nodes": get_featured_route_nodes(limit=6),
         "timeline_nodes": nodes,
+        "chapter_sections": chapters,
         "hero_route_map": "assets/images/changzheng_route_map.jpg",
         "recommended_route": script_block.get("recommended_routes", []),
         "spirit_topics": spirit[:6],
-        "example_questions": script_block.get("example_questions", []),
+        "example_questions": get_recommended_questions(limit=8),
         "example_guide_script": script_block.get("example_guide_script", ""),
         "example_video_script": script_block.get("example_video_script", ""),
         "quick_try_questions": script_block.get("quick_try_questions", []),
-        "figure_cards": figures[:8],
+        "figure_cards": figures[:6],
         "event_cards": events[:8],
         "recommended_learning_paths": script_block.get("recommended_learning_paths", []),
         "featured_faqs": script_block.get("featured_faqs", []),
+        "recommended_nodes_by_stage": [
+            {
+                "title": chapter.get("title", ""),
+                "subtitle": chapter.get("subtitle", ""),
+                "nodes": chapter.get("nodes", [])[:3],
+            }
+            for chapter in chapters
+        ],
     }

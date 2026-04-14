@@ -10,7 +10,7 @@ import streamlit as st
 
 from content_store import load_image_map
 from tts import synthesize_text_to_audio
-from utils import AVATAR_DIR, BASE_DIR, IMAGE_DIR
+from utils import AVATAR_DIR, BASE_DIR, IMAGE_DIR, get_settings
 
 
 def _resolve_asset_path(path_like: str) -> Path:
@@ -25,11 +25,71 @@ def _fallback_image_by_type(item_type: str) -> str:
     """按类型返回默认占位图。"""
     fallback_map = load_image_map().get("fallbacks", {})
     normalized = str(item_type or "event").strip().lower()
-    return (
+    configured = (
         fallback_map.get(normalized)
         or fallback_map.get("default")
         or f"assets/images/fallback_{normalized}.svg"
     )
+    candidates = [
+        configured,
+        f"assets/images/placeholders/placeholder_{normalized}.png",
+        f"assets/images/placeholders/placeholder_{normalized}.jpg",
+        f"assets/images/placeholders/placeholder_{normalized}.svg",
+        "assets/images/placeholders/default.png",
+        "assets/images/placeholders/default.svg",
+        f"assets/images/fallback_{normalized}.svg",
+        "assets/images/route_placeholder.svg",
+    ]
+    for candidate in candidates:
+        resolved = _resolve_asset_path(candidate)
+        if resolved.exists():
+            return candidate
+    return configured
+
+
+def _slugify_filename(text: str) -> str:
+    """将标题转换为适合查找图片的文件名。"""
+    safe = "".join(char if char.isalnum() or char in ["_", "-"] else "_" for char in str(text or "").strip().lower())
+    while "__" in safe:
+        safe = safe.replace("__", "_")
+    return safe.strip("_")
+
+
+def _candidate_local_images(item: Dict[str, Any]) -> list[Path]:
+    """构造候选本地图路径列表。"""
+    image_key = str(item.get("image_key", "") or "").strip()
+    candidates = []
+    for candidate in [
+        image_key,
+        item.get("id", ""),
+        item.get("title", ""),
+        item.get("route_stage", ""),
+        item.get("place", ""),
+    ]:
+        candidate_text = str(candidate or "").strip()
+        if not candidate_text:
+            continue
+        candidates.append(candidate_text)
+        candidates.append(_slugify_filename(candidate_text))
+
+    seen = set()
+    resolved_paths: list[Path] = []
+    search_dirs = [
+        IMAGE_DIR / "nodes",
+        IMAGE_DIR / "figures",
+        IMAGE_DIR / "topics",
+        IMAGE_DIR,
+    ]
+    suffixes = [".png", ".jpg", ".jpeg", ".webp", ".svg"]
+    for candidate in candidates:
+        if not candidate or candidate in seen:
+            continue
+        seen.add(candidate)
+        for folder in search_dirs:
+            for suffix in suffixes:
+                path = folder / f"{candidate}{suffix}"
+                resolved_paths.append(path)
+    return resolved_paths
 
 
 def resolve_image(item: Dict[str, Any]) -> Dict[str, Any]:
@@ -46,6 +106,16 @@ def resolve_image(item: Dict[str, Any]) -> Dict[str, Any]:
                 "caption": item.get("image_caption", "") or item.get("place", "") or title,
             }
 
+    for candidate in _candidate_local_images(item):
+        if candidate.exists():
+            return {
+                "mode": "local",
+                "path": str(candidate),
+                "alt": item.get("image_alt", title),
+                "caption": item.get("image_caption", "") or item.get("place", "") or title,
+                "expected_filename": candidate.name,
+            }
+
     remote_image_url = str(item.get("remote_image_url", "") or "").strip()
     if remote_image_url:
         return {
@@ -53,6 +123,7 @@ def resolve_image(item: Dict[str, Any]) -> Dict[str, Any]:
             "path": remote_image_url,
             "alt": item.get("image_alt", title),
             "caption": item.get("image_caption", "") or item.get("place", "") or title,
+            "expected_filename": _candidate_local_images(item)[0].name if _candidate_local_images(item) else "",
         }
 
     fallback_path = _fallback_image_by_type(item.get("type", "event"))
@@ -64,6 +135,7 @@ def resolve_image(item: Dict[str, Any]) -> Dict[str, Any]:
                 "path": str(resolved),
                 "alt": item.get("image_alt", title),
                 "caption": item.get("image_caption", "") or item.get("place", "") or title,
+                "expected_filename": _candidate_local_images(item)[0].name if _candidate_local_images(item) else "",
             }
 
     subtitle = item.get("place", "") or item.get("summary", "")[:40] or "长征史展项"
@@ -73,6 +145,7 @@ def resolve_image(item: Dict[str, Any]) -> Dict[str, Any]:
         "alt": item.get("image_alt", title),
         "caption": item.get("image_caption", "") or item.get("place", "") or title,
         "svg": generate_placeholder_svg(title, subtitle, item.get("type", "event")),
+        "expected_filename": _candidate_local_images(item)[0].name if _candidate_local_images(item) else "",
     }
 
 
@@ -97,7 +170,7 @@ def generate_placeholder_svg(title: str, subtitle: str = "长征史展项", item
       <text x="80" y="360" font-size="76" fill="#fffaf0" font-family="Microsoft YaHei" font-weight="700">{safe_title}</text>
       <text x="80" y="430" font-size="32" fill="#fbe8cf" font-family="Microsoft YaHei">{safe_subtitle}</text>
       <text x="80" y="560" font-size="28" fill="#fce8cf" font-family="Microsoft YaHei">类型：{type_text}</text>
-      <text x="80" y="610" font-size="26" fill="#fce8cf" font-family="Microsoft YaHei">当前未检索到对应图片，系统已启用内置展项占位卡片</text>
+      <text x="80" y="610" font-size="26" fill="#fce8cf" font-family="Microsoft YaHei">沿着长征主线继续浏览，进入这一节点的历史场景与精神世界</text>
     </svg>
     """.strip()
 
@@ -123,6 +196,8 @@ def render_node_image(node: Dict[str, Any], caption: str = "") -> None:
     )
     if final_caption:
         st.caption(final_caption)
+    if get_settings().get("debug_image_resolver") and resolved.get("expected_filename"):
+        st.caption(f"图片调试：期待文件名 {resolved['expected_filename']} | 当前模式 {resolved.get('mode', 'generated')}")
 
 
 def render_audio_player(
@@ -142,8 +217,6 @@ def render_audio_player(
     audio_path = st.session_state.get(state_key, "")
     if audio_path and Path(audio_path).exists():
         st.audio(audio_path)
-        if st.session_state.get(mode_key) == "mock_audio":
-            st.caption("当前为占位音频演示。安装并启用 edge-tts 后可生成真实中文播报。")
     return audio_path
 
 
@@ -165,7 +238,7 @@ def render_digital_human(section_text: str, avatar_path: str, audio_path: str = 
             """
             <div style="background:rgba(255,251,245,0.92);border:1px solid rgba(154,113,61,0.18);
             border-radius:22px;padding:1rem 1.1rem;line-height:1.9;">
-            数字讲解员已进入节点讲解模式，当前区域将同步展示形象、音频与讲解文本。
+            数字讲解员已进入当前展项讲解状态，形象、语音与讲解文本将同步呈现。
             </div>
             """,
             unsafe_allow_html=True,

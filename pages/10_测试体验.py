@@ -5,7 +5,8 @@ from __future__ import annotations
 import streamlit as st
 
 from activity_manager import get_activity
-from game import get_route_node, load_route_nodes
+from content_store import get_featured_route_nodes, get_recommended_questions
+from game import get_route_node
 from generator import generate_guide_script
 from node_detail import render_node_detail
 from rag import ask
@@ -21,27 +22,26 @@ from streamlit_ui import (
 )
 
 
-setup_page("测试体验", icon="🧪")
+setup_page("测试体验", icon="🧭")
 render_top_nav("测试体验")
-render_section("测试体验", "这一页适合直接发给组员试用：既能快速提问，也能预览节点、活动与讲解生成效果。")
+render_section("测试体验", "适合快速预览问答、展项详情与讲解生成，让第一次访问也能在几分钟内看到完整效果。")
 render_model_banner()
 
 provider_config = build_current_provider_config()
 sample = load_home_sample_content()
-route_nodes = load_route_nodes()
+featured_nodes = get_featured_route_nodes(limit=6)
 current_activity = get_activity(st.session_state.get("current_activity_id", ""))
 
 if current_activity:
     st.info(f"当前活动：{current_activity.get('name', '')} · {current_activity.get('mode', '')}")
 
-tab1, tab2, tab3 = st.tabs(["一键提问", "节点速览", "一键生成讲解稿"])
+tab1, tab2, tab3 = st.tabs(["快速问答", "展项预览", "一键讲解"])
 
 with tab1:
-    render_section("试用问题", "点击下方按钮即可快速体验知识问答和依据展示。")
-    quick_questions = sample.get("quick_try_questions") or sample.get("example_questions", [])[:3]
-    cols = st.columns(3)
-    for index, question in enumerate(quick_questions[:3]):
-        with cols[index % 3]:
+    render_section("推荐问题体验", "点击任意问题即可快速体验静态内容底座与 AI 增强回答。")
+    question_cols = st.columns(3)
+    for index, question in enumerate(get_recommended_questions(limit=6)):
+        with question_cols[index % 3]:
             if st.button(question, key=f"quick_try_{index}", use_container_width=True):
                 st.session_state["quick_try_question"] = question
 
@@ -55,33 +55,34 @@ with tab1:
         render_sources(result.get("sources", []), title="本次回答依据")
 
 with tab2:
-    render_section("节点速览", "选择一个节点，快速查看图文、人物、讲解与互动入口。")
-    selected_node_id = st.selectbox(
-        "选择节点",
-        [node["id"] for node in route_nodes],
-        format_func=lambda node_id: next((node["title"] for node in route_nodes if node["id"] == node_id), node_id),
-    )
-    selected_node = get_route_node(selected_node_id)
+    render_section("代表性展项预览", "从重点节点中任选一个，查看完整展项详情、语音讲解和互动题入口。")
+    preview_cols = st.columns(3)
+    for index, node in enumerate(featured_nodes):
+        with preview_cols[index % 3]:
+            st.markdown(f"**{node.get('title', '')}**")
+            st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
+            st.write(node.get("summary", ""))
+            if st.button("打开该展项", key=f"test_node_{node.get('id')}", use_container_width=True):
+                st.session_state["selected_node_id"] = node.get("id", "")
+                st.rerun()
+
+    selected_node = get_route_node(st.session_state.get("selected_node_id", featured_nodes[0].get("id", "") if featured_nodes else ""))
     if selected_node:
         render_node_detail(
             node=selected_node,
             provider_config=provider_config,
-            audience=st.session_state.get("selected_role_name", "侦察兵"),
+            audience=st.session_state.get("selected_role_name", "大学生"),
             key_prefix="test-page-node",
         )
-        if st.button("从该节点进入剧情答题", use_container_width=True, key="jump_story_from_test"):
-            st.session_state["selected_node_id"] = selected_node_id
-            st.switch_page("pages/4_剧情答题.py")
 
 with tab3:
-    render_section("一键生成讲解稿", "适合快速验证讲解生成是否可用。")
-    selected_node_id = st.selectbox(
+    render_section("一键讲解", "选择一个主题节点，快速验证讲解生成、依据展示与展项联动效果。")
+    topic_node = st.selectbox(
         "选择讲解主题",
-        [node["id"] for node in route_nodes],
-        key="test_page_topic",
-        format_func=lambda node_id: next((node["title"] for node in route_nodes if node["id"] == node_id), node_id),
+        [node.get("id", "") for node in featured_nodes],
+        format_func=lambda node_id: next((node.get("title", "") for node in featured_nodes if node.get("id") == node_id), node_id),
     )
-    selected_node = get_route_node(selected_node_id) or {}
+    selected_node = get_route_node(topic_node) or {}
     if st.button("生成该节点讲解稿", use_container_width=True, type="primary"):
         with st.spinner("正在检索资料并生成讲解稿..."):
             result = generate_guide_script(
@@ -96,7 +97,7 @@ with tab3:
     if guide_result:
         render_runtime_notice(guide_result)
         st.write(guide_result.get("script", ""))
-        render_sources(guide_result.get("sources", []), title="本次讲解稿依据")
-        st.markdown("#### 继续体验推荐")
-        for item in sample.get("featured_nodes", [])[:3]:
-            st.markdown(f"- {item.get('title', '')}：{item.get('summary', '')}")
+        render_sources(guide_result.get("sources", []), title="本次讲解依据")
+        st.markdown("#### 推荐继续体验")
+        for node in sample.get("featured_nodes", [])[:3]:
+            st.markdown(f"- **{node.get('title', '')}**：{node.get('summary', '')}")
