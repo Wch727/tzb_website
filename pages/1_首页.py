@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from content_store import get_chapter_for_node, get_route_chapters, get_route_node_data
-from media import render_node_image
+from media import render_audio_player, render_digital_human, render_node_image
 from rag import get_rag_status
 from sample_content import load_home_sample_content
 from streamlit_ui import (
@@ -63,6 +63,15 @@ def _jump_to_question(question: str) -> None:
     st.switch_page("pages/5_知识库.py")
 
 
+def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
+    """跳到指定篇章，可附带首个节点。"""
+    if chapter_id:
+        st.session_state["selected_chapter_id"] = chapter_id
+    if node_id:
+        st.session_state["selected_node_id"] = node_id
+    st.switch_page("pages/3_长征路线.py")
+
+
 setup_page("首页", icon="🏛️")
 render_top_nav("首页")
 
@@ -73,6 +82,10 @@ chapters = get_route_chapters()
 total_nodes = sum(len(item.get("nodes", [])) for item in chapters)
 featured_nodes = sample.get("featured_nodes", [])
 lead_node = featured_nodes[0] if featured_nodes else {}
+story_tracks = sample.get("story_tracks", [])
+default_story_id = story_tracks[0].get("id", "overall_story") if story_tracks else "overall_story"
+selected_story_id = st.session_state.get("home_story_track_id", default_story_id)
+selected_story = next((item for item in story_tracks if item.get("id") == selected_story_id), story_tracks[0] if story_tracks else {})
 
 render_exhibition_hero(
     title="《长征史》交互式导览与闯关学习系统",
@@ -154,32 +167,68 @@ render_feature_ribbon(
     ]
 )
 
-render_gallery_frame("长征故事总讲解", "沿着主线回望长征，从出发、转折、突破到会师，理解这段历史的整体脉络。")
-story_left, story_right = st.columns([1.3, 0.9])
+render_gallery_frame("长征故事", "从整条主线或单个篇章切入，先听一遍长征，再进入对应展项继续浏览。")
+track_cols = st.columns(len(story_tracks) if 0 < len(story_tracks) <= 5 else 5)
+for index, track in enumerate(story_tracks[:5]):
+    with track_cols[index]:
+        if st.button(
+            track.get("title", "长征故事"),
+            key=f"home_story_track_{track.get('id', index)}",
+            width="stretch",
+            type="primary" if track.get("id") == selected_story.get("id") else "secondary",
+        ):
+            st.session_state["home_story_track_id"] = track.get("id", "")
+            st.rerun()
+
+story_left, story_right = st.columns([1.28, 0.92])
 with story_left:
     render_curatorial_note(
-        title="长征故事",
-        body="从主线整体进入长征历史，有助于把各个节点、人物和精神专题放回完整历史进程中加以理解。",
-        label="总讲解",
+        title=selected_story.get("title", "长征故事"),
+        body=selected_story.get("subtitle", "沿着长征主线继续进入这段历史。"),
+        label="故事讲述",
     )
-    st.write(sample.get("long_march_story_script", ""))
+    st.write(selected_story.get("script", sample.get("long_march_story_script", "")))
+    story_action_left, story_action_mid, story_action_right = st.columns(3)
+    with story_action_left:
+        audio_path = render_audio_player(
+            text=selected_story.get("script", ""),
+            cache_key=f"home-story::{selected_story.get('id', 'overall_story')}",
+            button_label="播放讲述",
+        )
+    with story_action_mid:
+        if st.button("进入这一篇章", key=f"home_story_chapter::{selected_story.get('id', '')}", width="stretch"):
+            _jump_to_chapter(selected_story.get("chapter_id", ""), selected_story.get("lead_node_id", ""))
+    with story_action_right:
+        if st.button("打开对应展项", key=f"home_story_node::{selected_story.get('id', '')}", width="stretch"):
+            _jump_to_node(selected_story.get("lead_node_id", ""))
+    if st.toggle("讲解员模式", key=f"story_digital::{selected_story.get('id', '')}"):
+        render_digital_human(
+            section_text=selected_story.get("script", ""),
+            avatar_path="assets/avatar/guide.svg",
+            audio_path=audio_path,
+        )
 with story_right:
+    lead_story_node = get_route_node_data(selected_story.get("lead_node_id", "")) or {}
     render_detail_panels(
         [
             {
-                "title": "第一层理解",
-                "desc": "先理解为什么出发、为什么会转折、为什么最终能够胜利会师。",
+                "title": "这一段会讲到什么",
+                "desc": selected_story.get("subtitle", "围绕长征主线中的关键场景展开讲述。"),
             },
             {
-                "title": "第二层理解",
-                "desc": "再把湘江战役、遵义会议、四渡赤水、泸定桥等节点放回整条主线中理解。",
+                "title": "先看哪一站",
+                "desc": lead_story_node.get("title", "从当前篇章的第一站进入") if selected_story.get("lead_node_id") else "从长征主线的起点进入",
             },
             {
-                "title": "第三层理解",
-                "desc": "最后从理想信念、实事求是、顾全大局、依靠群众等精神层面总结长征的历史价值。",
+                "title": "继续追问",
+                "desc": "、".join(selected_story.get("questions", [])[:2]) or "可继续进入知识百问查看相关问题。",
             },
         ]
     )
+    render_section("继续阅读", "听完这一段后，可直接进入对应问题、篇章或代表性节点继续浏览。")
+    for index, question in enumerate(selected_story.get("questions", [])[:3]):
+        if st.button(question, key=f"home_story_question::{selected_story.get('id', '')}::{index}", width="stretch"):
+            _jump_to_question(question)
 
 render_section("主展结构", "四大篇章共同构成长征主展线，可先整体浏览，再进入关键节点。")
 render_chapter_overview_cards(chapters)

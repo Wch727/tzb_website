@@ -5,9 +5,10 @@ from __future__ import annotations
 import streamlit as st
 
 from activity_manager import get_activity
-from content_store import get_featured_route_nodes, get_recommended_questions
+from content_store import get_featured_route_nodes, get_recommended_questions, get_storytelling_tracks
 from game import get_route_node
 from generator import generate_guide_script
+from media import render_audio_player, render_digital_human
 from node_detail import render_node_detail
 from rag import ask
 from sample_content import load_home_sample_content
@@ -35,7 +36,9 @@ current_activity = get_activity(st.session_state.get("current_activity_id", ""))
 if current_activity:
     st.info(f"当前活动：{current_activity.get('name', '')} · {current_activity.get('mode', '')}")
 
-tab1, tab2, tab3 = st.tabs(["快速问答", "展项预览", "一键讲解"])
+story_tracks = get_storytelling_tracks()
+
+tab1, tab2, tab3, tab4 = st.tabs(["快速问答", "展项预览", "一键讲解", "长征故事"])
 
 with tab1:
     render_section("推荐问题体验", "点击任意问题，即可直接进入长征史问答与依据阅读。")
@@ -101,3 +104,36 @@ with tab3:
         st.markdown("#### 推荐继续体验")
         for node in sample.get("featured_nodes", [])[:3]:
             st.markdown(f"- **{node.get('title', '')}**：{node.get('summary', '')}")
+
+with tab4:
+    render_section("长征故事", "从总讲述或分篇章讲述切入，先听一遍长征，再进入对应展项继续浏览。")
+    story_id = st.selectbox(
+        "选择讲述主题",
+        [track.get("id", "") for track in story_tracks],
+        format_func=lambda track_id: next((track.get("title", "") for track in story_tracks if track.get("id") == track_id), track_id),
+    )
+    current_story = next((track for track in story_tracks if track.get("id") == story_id), story_tracks[0] if story_tracks else {})
+    st.markdown(f"### {current_story.get('title', '长征故事')}")
+    st.caption(current_story.get("subtitle", ""))
+    st.write(current_story.get("script", ""))
+    audio_path = render_audio_player(
+        text=current_story.get("script", ""),
+        cache_key=f"quick-story::{current_story.get('id', 'overall_story')}",
+        button_label="播放这一段讲述",
+    )
+    if st.toggle("显示讲解员模式", key=f"quick_story_avatar::{current_story.get('id', '')}"):
+        render_digital_human(
+            section_text=current_story.get("script", ""),
+            avatar_path="assets/avatar/guide.svg",
+            audio_path=audio_path,
+        )
+    st.markdown("#### 继续阅读")
+    for question in current_story.get("questions", [])[:3]:
+        if st.button(question, key=f"quick_story_question::{story_id}::{question}", width="stretch"):
+            st.session_state["pending_question"] = question
+            st.switch_page("pages/5_知识库.py")
+    story_node = get_route_node(current_story.get("lead_node_id", "")) or {}
+    if story_node:
+        if st.button("打开对应展项", key=f"quick_story_node::{story_id}", width="stretch"):
+            st.session_state["selected_node_id"] = story_node.get("id", "")
+            st.switch_page("pages/3_长征路线.py")

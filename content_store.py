@@ -647,6 +647,66 @@ def build_long_march_story_script() -> str:
     )
 
 
+def build_chapter_story_script(chapter_id: str) -> str:
+    """围绕单个篇章生成首页可直接展示的讲述稿。"""
+    chapter = next((item for item in get_route_chapters() if item.get("id") == chapter_id), None)
+    if not chapter:
+        return build_long_march_story_script()
+
+    nodes = chapter.get("nodes", []) or []
+    if not nodes:
+        return build_long_march_story_script()
+
+    lead_node = nodes[0]
+    turning_node = nodes[min(1, len(nodes) - 1)]
+    closing_node = nodes[-1]
+    node_titles = "、".join(node.get("title", "") for node in nodes[:4] if node.get("title"))
+    return (
+        f"《{chapter.get('title', '长征篇章')}》篇章讲述\n\n"
+        f"{chapter.get('subtitle', '')}"
+        f"{lead_node.get('summary', '') or '这一篇章呈现长征主线中的关键阶段。'}\n\n"
+        f"沿着这一篇章继续看，可以重点把握{node_titles or lead_node.get('title', '关键节点')}等节点。"
+        f"{turning_node.get('background', '') or turning_node.get('summary', '')}\n\n"
+        f"从行动推进来看，{closing_node.get('process', '') or closing_node.get('summary', '')}"
+        f"把这些节点连起来看，更容易理解这一阶段为什么会成为长征主线中的重要转折。"
+        f"{closing_node.get('significance', '') or '这一篇章既展现了红军在危局中的判断与行动，也展现了长征精神在具体历史场景中的形成过程。'}"
+    )
+
+
+def get_storytelling_tracks() -> List[Dict[str, Any]]:
+    """返回首页和速览页共用的长征故事讲述入口。"""
+    chapters = get_route_chapters()
+    tracks: List[Dict[str, Any]] = [
+        {
+            "id": "overall_story",
+            "title": "全线总讲述",
+            "subtitle": "从瑞金出发到会宁会师，先把整条长征主线听完整。",
+            "script": build_long_march_story_script(),
+            "chapter_id": chapters[0].get("id", "") if chapters else "",
+            "lead_node_id": "ruijin_departure",
+            "questions": [
+                "长征为什么要开始？",
+                "为什么说长征是战略转移的伟大胜利？",
+                "长征精神包括哪些核心内涵？",
+            ],
+        }
+    ]
+    for chapter in chapters:
+        nodes = chapter.get("nodes", []) or []
+        tracks.append(
+            {
+                "id": str(chapter.get("id", "")),
+                "title": str(chapter.get("title", "") or "主线篇章"),
+                "subtitle": str(chapter.get("subtitle", "") or ""),
+                "script": build_chapter_story_script(str(chapter.get("id", ""))),
+                "chapter_id": str(chapter.get("id", "")),
+                "lead_node_id": str(nodes[0].get("id", "")) if nodes else "",
+                "questions": build_node_related_questions(nodes[0], limit=3) if nodes else get_recommended_questions(limit=3),
+            }
+        )
+    return tracks
+
+
 def load_all_knowledge_items() -> List[Dict[str, Any]]:
     """汇总全部知识卡片。"""
     items: List[Dict[str, Any]] = []
