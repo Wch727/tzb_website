@@ -64,7 +64,7 @@ def _repository_signature() -> str:
     tracked_files = [
         path
         for path in sorted(DATA_DIR.iterdir(), key=lambda item: item.name.lower())
-        if path.is_file() and path.suffix.lower() in [".json", ".csv", ".txt", ".md", ".pdf", ".docx"]
+        if path.is_file() and path.suffix.lower() in [".json", ".jsonl", ".csv", ".txt", ".md", ".pdf", ".docx"]
     ]
     digest = hashlib.sha256()
     for path in tracked_files:
@@ -86,6 +86,17 @@ def _write_repository_manifest() -> None:
 def _repository_manifest_matches() -> bool:
     manifest = read_json(REPOSITORY_MANIFEST_PATH, {}) or {}
     return manifest.get("signature") == _repository_signature()
+
+
+def _should_rebuild_for_prebuilt_chunks() -> bool:
+    """如果仓库内已有预构建 chunk，但当前向量库尚未纳入，则触发重建。"""
+    from knowledge_base import PREBUILT_CHUNKS_PATH
+
+    if not PREBUILT_CHUNKS_PATH.exists():
+        return False
+    status = get_rag_status()
+    source_type_counts = status.get("source_type_counts", {}) or {}
+    return int(source_type_counts.get("prebuilt_chunk", 0)) <= 0
 
 
 def _source_files_from_docs(documents: List[Dict[str, Any]]) -> List[str]:
@@ -196,6 +207,14 @@ def ensure_default_knowledge_base() -> Dict[str, Any]:
             "initialized": True,
             "default_result": default_result,
             "status": get_rag_status(),
+        }
+    if _should_rebuild_for_prebuilt_chunks():
+        rebuild_result = rebuild_knowledge_base()
+        return {
+            "message": "检测到预构建本地 chunk 尚未纳入知识库，已自动重建。",
+            "initialized": True,
+            "default_result": rebuild_result.get("default_result", {}),
+            "status": rebuild_result.get("status", {}),
         }
     if not _repository_manifest_matches():
         rebuild_result = rebuild_knowledge_base()
