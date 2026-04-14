@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 
 import streamlit as st
 
+from activity_manager import get_activity
 from utils import (
     BASE_DIR,
     get_default_provider_name,
@@ -576,11 +577,6 @@ def inject_custom_css() -> None:
             font-size: 0.88rem;
             line-height: 1.6;
         }
-        .nav-caption {
-            color: #e8ddcf;
-            font-size: 0.85rem;
-            margin-top: 0.35rem;
-        }
         div[data-baseweb="tab-list"] {
             gap: 0.45rem;
             margin-bottom: 0.9rem;
@@ -672,6 +668,7 @@ def setup_page(page_title: str, icon: str = "🏔️") -> None:
 def render_minimal_sidebar() -> None:
     """在侧边栏仅保留导航与少量状态。"""
     current_model = get_selected_model_info()
+    activity_info = get_activity(st.session_state.get("current_activity_id", ""))
     with st.sidebar:
         st.markdown("### 页面导航")
         st.page_link("app.py", label="应用入口")
@@ -688,10 +685,10 @@ def render_minimal_sidebar() -> None:
         st.page_link("pages/11_讲解生成.py", label="讲解工坊")
         st.page_link("pages/12_数据大屏.py", label="数据大屏")
         st.page_link("pages/13_人物专题.py", label="人物专题")
-        st.markdown("<div class='nav-caption'>侧栏仅保留导航与当前状态，主要内容均在页面主体中展开。</div>", unsafe_allow_html=True)
         st.divider()
         st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
-        st.caption(f"当前活动：{st.session_state.get('current_activity_id', 'knowledge-contest')}")
+        if activity_info:
+            st.caption(f"当前活动：{activity_info.get('name', '')}")
         if st.session_state.get("current_team_name"):
             st.caption(f"当前小队：{st.session_state.get('current_team_name', '')}")
         if st.session_state.get("current_branch_name"):
@@ -800,7 +797,8 @@ def render_top_nav(current_page: str) -> None:
     """渲染页内顶部导航。"""
     current_model = get_selected_model_info()
     current_role = st.session_state.get("selected_role_name", "侦察兵")
-    current_activity = st.session_state.get("current_activity_id", "knowledge-contest")
+    current_activity = get_activity(st.session_state.get("current_activity_id", "")) or {}
+    current_activity_name = current_activity.get("name", "")
     subtitle_map = {
         "首页": "从主展入口进入路线、人物、精神与互动学习内容。",
         "角色选择": "以不同角色视角进入长征叙事与任务导览。",
@@ -812,15 +810,15 @@ def render_top_nav(current_page: str) -> None:
         "排行榜": "查看个人、小队、单位与活动排行。",
         "使用设置": "切换导览模式与当前可用模型设置。",
         "内容运营": "维护内容、活动与知识库运行状态。",
-        "导览速览": "快速走读整站的核心展项与学习路径。",
+        "导览速览": "从重点问题、展项与讲解入口快速进入长征主线。",
         "数据大屏": "用于活动现场投屏，集中展示参与与热度数据。",
     }
     chips = [
-        f"<span class='masthead-chip'>当前页面：{html.escape(current_page)}</span>",
-        f"<span class='masthead-chip'>当前角色：{html.escape(current_role)}</span>",
-        f"<span class='masthead-chip'>当前活动：{html.escape(current_activity)}</span>",
+        f"<span class='masthead-chip'>当前身份：{html.escape(current_role)}</span>",
     ]
-    if current_model:
+    if current_activity_name:
+        chips.append(f"<span class='masthead-chip'>当前活动：{html.escape(current_activity_name)}</span>")
+    if current_model and current_page in {"知识百问", "讲解工坊", "使用设置"}:
         chips.append(f"<span class='masthead-chip'>当前模型：{html.escape(current_model.get('display_name', '知识导览模式'))}</span>")
     st.markdown(
         _clean_html(
@@ -828,7 +826,7 @@ def render_top_nav(current_page: str) -> None:
             <div class="masthead-shell">
                 <div class="masthead-top">
                     <div>
-                        <div class="masthead-kicker">Long March Digital Exhibition</div>
+                        <div class="masthead-kicker">长征主题数字展</div>
                         <div class="masthead-title">{html.escape(APP_TITLE)}</div>
                         <div class="masthead-subtitle">{html.escape(subtitle_map.get(current_page, '沿着长征主线浏览展项、知识与互动学习内容。'))}</div>
                     </div>
@@ -939,7 +937,7 @@ def render_section(title: str, subtitle: str = "") -> None:
         st.markdown(f"<div class='section-subtitle'>{html.escape(subtitle)}</div>", unsafe_allow_html=True)
 
 
-def render_curatorial_note(title: str, body: str, label: str = "策展导语") -> None:
+def render_curatorial_note(title: str, body: str, label: str = "专题导语") -> None:
     """渲染策展导语卡。"""
     st.markdown(
         _clean_html(
@@ -1084,7 +1082,7 @@ def render_exhibition_hero(
             <div class="exhibition-hero" style="--hero-image: url('{background_uri}');">
                 <div class="exhibition-hero-inner">
                     <div>
-                        <div class="exhibition-kicker">Thematic Exhibition Entrance</div>
+                        <div class="exhibition-kicker">长征主题展入口</div>
                         <div class="exhibition-title">{html.escape(title)}</div>
                         <div class="exhibition-subtitle">{html.escape(subtitle)}</div>
                         <div class="exhibition-tag-row">{tag_markup}</div>
@@ -1092,7 +1090,7 @@ def render_exhibition_hero(
                     </div>
                     <div class="exhibition-side-panel">
                         <div class="exhibition-side-card">
-                            <div class="exhibition-side-kicker">策展说明</div>
+                            <div class="exhibition-side-kicker">主线提要</div>
                             <div class="exhibition-side-title">{html.escape(side_title)}</div>
                             <div class="exhibition-side-text">{html.escape(side_text)}</div>
                             <ul class="exhibition-side-points">{point_markup}</ul>

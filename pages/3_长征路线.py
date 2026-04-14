@@ -68,13 +68,6 @@ render_feature_ribbon(
     ]
 )
 
-if allowed_node_ids:
-    render_curatorial_note(
-        title="活动高亮范围",
-        body="当前活动仅对部分节点设置了闯关范围，但路线导览仍完整展示整条长征主线。带有“活动重点”提示的节点，更适合从活动入口继续进入互动学习。",
-        label="活动提示",
-    )
-
 chapter_nav_cols = st.columns(max(1, len(chapters)))
 for index, chapter in enumerate(chapters):
     with chapter_nav_cols[index]:
@@ -82,7 +75,7 @@ for index, chapter in enumerate(chapters):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.rerun()
 
-render_gallery_frame("当前篇章展厅", "把本篇章作为一个独立展区来浏览：先看策展导语，再看节点序列，最后进入具体展项详情。")
+render_gallery_frame("当前篇章", "围绕本篇章的关键节点、时间与地点展开浏览，再进入具体历史情境。")
 chapter_left, chapter_right = st.columns([1.1, 0.95])
 with chapter_left:
     render_curatorial_note(
@@ -111,7 +104,7 @@ with chapter_right:
             unsafe_allow_html=True,
         )
 
-render_section("本篇章展项", "当前只展开一个篇章，让浏览像进入一个独立展区，而不是在所有节点里来回跳转。")
+render_section("本篇章节点", "先看本篇章的关键节点，再进入具体展项，能够更清晰地理解这一阶段的历史变化。")
 node_cols = st.columns(2)
 for index, node in enumerate(selected_chapter.get("nodes", [])):
     with node_cols[index % 2]:
@@ -121,7 +114,7 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
         st.write(node.get("summary", ""))
         st.markdown(f"<div class='small-muted'>{node.get('significance', '')[:110]}...</div>", unsafe_allow_html=True)
         if node.get("id") in allowed_node_ids:
-            st.markdown("<div class='small-muted'><strong>活动重点：</strong>当前活动可从该节点继续进入闯关。</div>", unsafe_allow_html=True)
+            st.markdown("<div class='small-muted'><strong>本期互动节点：</strong>可从这里直接进入闯关学习。</div>", unsafe_allow_html=True)
         action_left, action_right = st.columns(2)
         with action_left:
             if st.button("查看详情", key=f"chapter_node_{node.get('id')}", width="stretch"):
@@ -149,7 +142,7 @@ selected_node = get_route_node(selected_node_id)
 if selected_node:
     render_section(
         "节点展项详情",
-        f"当前位于“{selected_chapter.get('title', '主线篇章')}”篇章。每个节点都以小型线上展项的方式呈现，默认包含长文本、讲解、史料依据与互动入口。",
+        f"当前进入“{selected_chapter.get('title', '主线篇章')}”篇章中的重点节点，可继续查看讲解、史料依据与互动学习内容。",
     )
     render_node_detail(
         node=selected_node,

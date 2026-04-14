@@ -67,7 +67,7 @@ def _render_figure_block(node: Dict[str, Any]) -> None:
     figures = node.get("figures", []) or []
     if not figures:
         return
-    render_section("关键人物", "人物并非节点的附属信息，而是理解转折、决策与执行过程的重要入口。")
+    render_section("关键人物", "从关键人物进入本节点，有助于理解其中的决策、组织与行动。")
     chips = []
     for name in figures:
         chips.append(
@@ -93,7 +93,7 @@ def _render_figure_block(node: Dict[str, Any]) -> None:
 def _render_key_points(node: Dict[str, Any]) -> None:
     """渲染关键知识点。"""
     key_points = node.get("key_points", []) or []
-    render_section("关键知识点", "把历史线索、战略节点与精神内涵结合起来，形成更稳定的学习记忆。")
+    render_section("关键知识点", "围绕本节点提炼出最值得把握的历史线索与认识重点。")
     if key_points:
         for item in key_points:
             st.markdown(f"- {item}")
@@ -106,7 +106,7 @@ def _render_extended_reading(node: Dict[str, Any]) -> None:
     extended = get_node_extended_reading(node, limit=4)
     if not extended:
         return
-    render_section("延伸阅读", "从人物、问答和精神专题继续延展开来，让单个展项与更大的长征叙事连接起来。")
+    render_section("延伸阅读", "从相关人物、问题和专题继续展开，帮助把本节点放回更大的长征叙事中理解。")
     cols = st.columns(min(4, len(extended)))
     for index, item in enumerate(extended):
         with cols[index % len(cols)]:
@@ -209,7 +209,7 @@ def render_node_detail(
     _render_figure_block(node)
     _render_key_points(node)
 
-    render_section("讲解与互动", "语音讲解、数字讲解员与内容生成入口集中在同一区域，便于连续浏览。")
+    render_section("讲解与互动", "继续收听讲解、切换讲解员视角，或进入互动题与内容生成。")
     action_left, action_mid, action_right = st.columns(3)
     with action_left:
         if st.button("进入互动题", key=f"quiz::{node_id}", width="stretch", type="primary"):
@@ -243,14 +243,14 @@ def render_node_detail(
         displayed_guide_script = guide_result.get("script", "") or default_guide_script
         displayed_guide_sources = guide_result.get("sources", []) or source_cards
 
-    render_section("本节点正式讲解稿", "页面默认展示完整讲解文本，便于课堂讲述、展项说明与口头导览。")
+    render_section("节点讲解", "围绕历史背景、事件经过和历史意义，阅读本节点的完整讲解内容。")
     st.write(displayed_guide_script)
     render_sources(displayed_guide_sources, title="本次讲解依据")
 
     video_result = st.session_state.get(f"video_result::{node_id}")
     if video_result:
         render_runtime_notice(video_result)
-        render_section("节点短视频脚本", "短视频脚本同样先检索再生成，用于口播展示与新媒体传播。")
+        render_section("节点短视频脚本", "围绕本节点整理为适合口播与传播的脚本内容。")
         st.write(video_result.get("script", ""))
         render_sources(video_result.get("sources", []), title="本次脚本依据")
 
@@ -278,7 +278,7 @@ def render_node_detail(
         )
 
     if source_cards:
-        render_section("史料线索", "除展项正文外，下列依据还可帮助继续追溯来源、章节和相关主题。")
+        render_section("史料线索", "下列资料可继续帮助追溯来源、章节与相关主题。")
         render_ledger_cards(
             [
                 {

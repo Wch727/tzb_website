@@ -24,7 +24,7 @@ from streamlit_ui import (
 
 setup_page("导览速览", icon="🧭")
 render_top_nav("导览速览")
-render_section("导览速览", "适合第一次进入站点时快速浏览问答、展项详情与讲解生成，在几分钟内建立对整站内容的整体印象。")
+render_section("快速导览", "从重点问题、代表性节点和讲解入口出发，快速把握整站主线内容。")
 render_model_banner()
 
 provider_config = build_current_provider_config()
@@ -38,7 +38,7 @@ if current_activity:
 tab1, tab2, tab3 = st.tabs(["快速问答", "展项预览", "一键讲解"])
 
 with tab1:
-    render_section("推荐问题体验", "点击任意问题即可快速体验静态内容底座与 AI 增强回答。")
+    render_section("推荐问题体验", "点击任意问题，即可直接进入长征史问答与依据阅读。")
     question_cols = st.columns(3)
     for index, question in enumerate(get_recommended_questions(limit=6)):
         with question_cols[index % 3]:
@@ -55,7 +55,7 @@ with tab1:
         render_sources(result.get("sources", []), title="本次回答依据")
 
 with tab2:
-    render_section("代表性展项预览", "从重点节点中任选一个，查看完整展项详情、语音讲解和互动题入口。")
+    render_section("代表性展项预览", "从重点节点中任选一个，查看完整展项详情、语音讲解和互动入口。")
     preview_cols = st.columns(3)
     for index, node in enumerate(featured_nodes):
         with preview_cols[index % 3]:
@@ -76,7 +76,7 @@ with tab2:
         )
 
 with tab3:
-    render_section("一键讲解", "选择一个主题节点，快速验证讲解生成、依据展示与展项联动效果。")
+    render_section("一键讲解", "选择一个主题节点，快速查看讲解内容与资料依据。")
     topic_node = st.selectbox(
         "选择讲解主题",
         [node.get("id", "") for node in featured_nodes],

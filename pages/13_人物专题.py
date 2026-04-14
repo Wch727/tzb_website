@@ -44,7 +44,7 @@ figure = get_figure_data(selected_name) or {}
 related_nodes = get_related_nodes_for_figure(figure, limit=4)
 story_script = build_figure_story_script(figure)
 
-render_gallery_frame("人物专题展区", "人物专题页以正式讲解、长征角色、历史贡献和官方资料来源为核心，便于课堂说明和专题讲述。")
+render_gallery_frame("人物专题", "从人物生平、长征中的作用与历史贡献三个方面，理解其在革命进程中的位置。")
 
 hero_left, hero_right = st.columns([0.92, 1.18])
 with hero_left:
@@ -53,8 +53,8 @@ with hero_right:
     st.markdown(f"## {figure.get('title', '重要人物')}")
     st.caption(figure.get("role", "重要人物"))
     render_curatorial_note(
-        title=f"{figure.get('title', '人物')}专题说明",
-        body=figure.get("summary", "本页围绕人物经历、长征角色和历史贡献组织专题介绍。"),
+        title=figure.get("title", "重要人物"),
+        body=figure.get("summary", "围绕人物经历、长征中的作用和历史贡献展开介绍。"),
         label="人物导语",
     )
 
@@ -66,7 +66,7 @@ render_ledger_cards(
     ]
 )
 
-render_section("人物正式讲解稿", "本页默认展示可直接讲述的人物讲解稿，不依赖现场生成。")
+render_section("人物讲解", "围绕人物经历、长征中的作用和历史贡献展开讲解。")
 st.write(story_script)
 
 render_section("专题信息板", "从人物经历、长征角色与历史贡献三个维度理解该人物。")
@@ -78,7 +78,7 @@ render_detail_panels(
     ]
 )
 
-render_section("官方资料来源", "以下链接用于说明专题页面整理所依据的官方公开资料来源。")
+render_section("官方资料来源", "以下资料来自中国共产党新闻网、人民网党史频道等公开党史资料。")
 sources = figure.get("official_sources", []) or []
 if sources:
     for item in sources:
@@ -90,7 +90,7 @@ if sources:
         else:
             st.markdown(f"- {title}  \n  来源：{publisher}")
 else:
-    st.info("当前人物暂未配置官方资料来源链接。")
+    st.info("该人物专题正在补充官方资料链接。")
 
 if related_nodes:
     render_section("相关长征节点", "从人物回到主线节点，更容易把人物作用放回具体历史情境中理解。")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from content_store import get_route_chapters
+from content_store import get_chapter_for_node, get_route_chapters, get_route_node_data
 from media import render_node_image
 from rag import get_rag_status
 from sample_content import load_home_sample_content
@@ -34,6 +34,33 @@ def _jump_to_figure(name: str) -> None:
     """记录用户想查看的人物并跳转。"""
     st.session_state["selected_figure_name"] = name
     st.switch_page("pages/13_人物专题.py")
+
+
+def _extract_route_titles(route_text: str) -> list[str]:
+    """从推荐路线文案中提取节点标题。"""
+    body = route_text
+    for separator in ["：", ":"]:
+        if separator in body:
+            body = body.split(separator, 1)[1]
+            break
+    return [item.strip() for item in body.split("→") if item.strip()]
+
+
+def _jump_to_route(route_text: str) -> None:
+    """按推荐路线跳到首个可浏览节点。"""
+    for title in _extract_route_titles(route_text):
+        node = get_route_node_data(title)
+        if node:
+            st.session_state["selected_node_id"] = node.get("id", "")
+            st.session_state["selected_chapter_id"] = get_chapter_for_node(node).get("id", "")
+            st.switch_page("pages/3_长征路线.py")
+            return
+
+
+def _jump_to_question(question: str) -> None:
+    """把推荐问题带入知识百问页。"""
+    st.session_state["pending_question"] = question
+    st.switch_page("pages/5_知识库.py")
 
 
 setup_page("首页", icon="🏛️")
@@ -73,19 +100,19 @@ render_exhibition_hero(
 intro_left, intro_right = st.columns([1.2, 1])
 with intro_left:
     render_curatorial_note(
-        title="主展序厅",
+        title="长征主题展",
         body=(
-            "第一屏承担的不只是入口功能，而是一次完整的主题导入。"
-            "我们把长征主线浓缩为可观看、可点击、可继续深入的序厅区域，让用户在进入后立刻知道这不是一个工具页，而是一条可以被完整浏览的长征展线。"
+            "从中央苏区出发，到陕甘会师胜利结束，长征既是一段波澜壮阔的革命征程，也是一部理想信念、战略智慧和人民力量共同书写的历史篇章。"
         ),
-        label="序厅说明",
+        label="主题导语",
     )
 with intro_right:
     render_curatorial_note(
-        title="参观建议",
+        title="主线导览",
         body=(
-            "推荐先沿四大篇章浏览，再进入重点展项；如果时间有限，可优先查看湘江战役、遵义会议、四渡赤水和飞夺泸定桥等转折节点。"
+            "可先沿四大篇章浏览，再进入重点节点。湘江战役、遵义会议、四渡赤水和飞夺泸定桥，是理解长征转折、战略机动和胜利意义的重要入口。"
         ),
+        label="导览提示",
     )
     action_left, action_right, action_more = st.columns([1, 1, 1])
     with action_left:
@@ -127,13 +154,13 @@ render_feature_ribbon(
     ]
 )
 
-render_gallery_frame("长征故事总讲解", "首页直接提供一版可用于课堂、展项或答辩讲述的正式文本，帮助用户先把整条主线讲清楚。")
+render_gallery_frame("长征故事总讲解", "沿着主线回望长征，从出发、转折、突破到会师，理解这段历史的整体脉络。")
 story_left, story_right = st.columns([1.3, 0.9])
 with story_left:
     render_curatorial_note(
         title="长征故事",
-        body="以下讲解稿不是临时问答结果，而是首页默认展示的主线讲解文本，适合直接阅读、讲述或作为后续节点浏览的总导语。",
-        label="首页讲解稿",
+        body="从主线整体进入长征历史，有助于把各个节点、人物和精神专题放回完整历史进程中加以理解。",
+        label="总讲解",
     )
     st.write(sample.get("long_march_story_script", ""))
 with story_right:
@@ -154,7 +181,7 @@ with story_right:
         ]
     )
 
-render_section("主展结构", "借鉴数字展的章节化组织方式，先看篇章，再进入展项，帮助用户形成更稳定的学习路线。")
+render_section("主展结构", "四大篇章共同构成长征主展线，可先整体浏览，再进入关键节点。")
 render_chapter_overview_cards(chapters)
 
 render_detail_panels(
@@ -207,7 +234,7 @@ render_feature_ribbon(
     ]
 )
 
-render_section("长征路线总览", "四个篇章共同构成主展展线。每个篇章既有清晰的历史任务，也有代表性的关键展项。")
+render_section("长征路线总览", "从出发、转折、突破到会师，沿着篇章顺序浏览，更容易把握整条征程。")
 chapter_cols = st.columns(4)
 for index, chapter in enumerate(chapters):
     with chapter_cols[index % 4]:
@@ -236,19 +263,31 @@ with route_left:
     )
 with route_right:
     render_curatorial_note(
-        title="推荐参观方式",
-        body="第一次进入可先沿四大篇章顺序浏览；若偏向互动学习，可先进入剧情闯关，再回到节点详情查看完整展项说明。",
-        label="参观建议",
+        title="推荐浏览顺序",
+        body="如果希望尽快把握长征主线，可先沿四大篇章依次浏览；如果更想先体验互动学习，可从剧情闯关进入，再回到具体节点继续阅读。",
+        label="主线提要",
     )
     st.markdown("### 推荐学习路线")
-    for item in sample.get("recommended_learning_paths", [])[:4]:
-        st.markdown(f"- {item}")
+    for index, item in enumerate(sample.get("recommended_learning_paths", [])[:4]):
+        render_curatorial_note(
+            title=item.split("：", 1)[0] if "：" in item else f"学习路线 {index + 1}",
+            body=item.split("：", 1)[1] if "：" in item else item,
+            label="导览路线",
+        )
+        if st.button("按此路线浏览", key=f"learn_route_{index}", width="stretch"):
+            _jump_to_route(item)
     st.markdown("### 今日推荐路线")
-    for item in sample.get("recommended_route", [])[:4]:
-        st.markdown(f"- {item}")
+    for index, item in enumerate(sample.get("recommended_route", [])[:4]):
+        render_curatorial_note(
+            title=item.split("：", 1)[0] if "：" in item else f"推荐路线 {index + 1}",
+            body=item.split("：", 1)[1] if "：" in item else item,
+            label="今日路线",
+        )
+        if st.button("从首站进入", key=f"today_route_{index}", width="stretch"):
+            _jump_to_route(item)
 
-render_gallery_frame("人物与专题展区", "在主线之外，从人物线索与精神专题进入第二层阅读，更接近数字展中的专题分展。")
-render_section("重要人物", "人物专题不是附属内容，而是理解长征决策、组织、战斗和精神内核的重要入口。")
+render_gallery_frame("人物与专题", "在主线之外，从人物与精神专题继续深入，理解长征何以发生、如何转折、为何胜利。")
+render_section("重要人物", "通过关键人物回看决策、组织与战斗过程，能够更完整地理解长征主线。")
 figure_cols = st.columns(3)
 for index, item in enumerate(sample.get("figure_cards", [])[:6]):
     with figure_cols[index % 3]:
@@ -260,12 +299,18 @@ for index, item in enumerate(sample.get("figure_cards", [])[:6]):
         if st.button("查看人物专题", key=f"home_figure_{item.get('title', '')}", width="stretch"):
             _jump_to_figure(item.get("title", ""))
 
-render_section("长征精神专题", "把路线、事件与精神内涵联系起来，形成更完整的学习纵深。")
+render_section("长征精神专题", "从理想信念、独立自主、顾全大局和依靠群众等方面，继续理解长征留下的精神财富。")
 spirit_cols = st.columns(3)
 for index, item in enumerate(sample.get("spirit_topics", [])[:6]):
     with spirit_cols[index % 3]:
-        st.markdown(f"### {item.get('title', '')}")
-        st.write(item.get("summary", ""))
+        render_curatorial_note(
+            title=item.get("title", ""),
+            body=item.get("summary", ""),
+            label="精神专题",
+        )
+        sources = item.get("official_sources", []) or []
+        if sources:
+            st.caption(f"资料来源：{sources[0].get('publisher', '官方资料')}")
 
 render_feature_ribbon(
     [
@@ -281,26 +326,34 @@ render_feature_ribbon(
         },
         {
             "label": "速览入口",
-            "title": "从导览进入全站",
-            "desc": "导览速览页适合第一次体验、课堂展示与答辩讲述，能快速浏览整站核心路径。",
+            "title": "从重点入口进入",
+            "desc": "如果想先试一遍主线、讲解和问答，可直接进入快速导览与互动体验区。",
         },
     ]
 )
 
-render_section("推荐学习内容", "首页不仅是入口页，也承担导学作用。通过推荐问题、示范讲解与阶段路线，用户可以快速找到合适的进入方式。")
+render_section("推荐学习内容", "从问题、讲解与路线三个方向进入主题，逐步形成对长征历史的整体理解。")
 tab1, tab2, tab3, tab4 = st.tabs(["推荐问题", "示范讲解", "推荐学习路线", "导览速览"])
 with tab1:
     render_curatorial_note(
         title="长征百问",
-        body="问题式浏览适合第一次进入主题展的用户。先从核心问题开始，再逐步进入对应节点、人物与精神专题。",
-        label="导学入口",
+        body="从核心问题进入长征史，可先把握主线，再继续深入到具体节点、人物和精神专题。",
+        label="推荐问题",
     )
-    for question in sample.get("example_questions", [])[:8]:
-        st.markdown(f"- {question}")
+    question_cols = st.columns(2)
+    for index, question in enumerate(sample.get("example_questions", [])[:8]):
+        with question_cols[index % 2]:
+            render_curatorial_note(
+                title=question,
+                body="点击后可直接进入知识百问页，查看回答依据与延伸阅读。",
+                label="推荐问题",
+            )
+            if st.button("进入这个问题", key=f"home_question_{index}", width="stretch"):
+                _jump_to_question(question)
 with tab2:
     render_curatorial_note(
         title="示范讲解",
-        body="首页同时保留总讲解与示范讲解两个入口：前者讲清整条长征主线，后者展示单个节点如何组织成正式讲解文本。",
+        body="从整条征程到关键节点，讲解内容可帮助观众更连贯地理解长征的背景、经过与历史意义。",
         label="讲解样例",
     )
     st.write(sample.get("long_march_story_script", ""))
@@ -309,19 +362,33 @@ with tab2:
 with tab3:
     render_curatorial_note(
         title="分阶段学习路线",
-        body="如果希望快速形成主线认知，可先从每个篇章中最具代表性的节点依次展开阅读与互动学习。",
+        body="如果希望沿着主线逐步深入，可先从每个篇章最具代表性的节点进入，再继续展开阅读与互动学习。",
         label="学习路线",
     )
-    for item in sample.get("recommended_nodes_by_stage", []):
-        st.markdown(f"**{item.get('title', '')}**")
-        st.caption(item.get("subtitle", ""))
-        for node in item.get("nodes", [])[:3]:
-            st.markdown(f"- {node.get('title', '')}")
+    stage_cols = st.columns(2)
+    for index, item in enumerate(sample.get("recommended_nodes_by_stage", [])):
+        with stage_cols[index % 2]:
+            render_curatorial_note(
+                title=item.get("title", ""),
+                body=item.get("subtitle", ""),
+                label="分段浏览",
+            )
+            for node in item.get("nodes", [])[:3]:
+                if st.button(f"查看 {node.get('title', '')}", key=f"stage_node_{item.get('title', '')}_{node.get('id', '')}", width="stretch"):
+                    _jump_to_node(node.get("id", ""))
 with tab4:
     render_curatorial_note(
-        title="导览速览",
-        body="导览速览适合课堂展示、答辩讲述和第一次现场介绍，能够在较短时间内浏览主线、展项、问答与互动功能。",
+        title="快速进入主题展",
+        body="如果想先试一遍主线浏览、展项阅读、知识问答和互动学习，可以从这里直接进入。",
         label="快速入口",
     )
-    if st.button("进入导览速览页", key="home_try_page", width="stretch"):
-        st.switch_page("pages/10_测试体验.py")
+    quick_cols = st.columns(3)
+    with quick_cols[0]:
+        if st.button("进入快速导览", key="home_try_page", width="stretch"):
+            st.switch_page("pages/10_测试体验.py")
+    with quick_cols[1]:
+        if st.button("打开知识百问", key="home_jump_qa", width="stretch"):
+            st.switch_page("pages/5_知识库.py")
+    with quick_cols[2]:
+        if st.button("进入互动闯关", key="home_jump_quiz", width="stretch"):
+            st.switch_page("pages/4_剧情答题.py")
