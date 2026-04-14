@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from chunking import attach_metadata
 from content_store import (
     load_events_data,
     load_faq_items,
@@ -14,7 +16,7 @@ from content_store import (
     load_spirit_topics,
 )
 from file_loader import load_file
-from utils import DATA_DIR, UPLOAD_DIR, normalize_knowledge_type
+from utils import DATA_DIR, UPLOAD_DIR, get_settings, normalize_knowledge_type
 
 
 STRUCTURED_SOURCE_FILES = {
@@ -25,6 +27,8 @@ STRUCTURED_SOURCE_FILES = {
     "faq.csv",
     "spirit.json",
 }
+
+PREBUILT_CHUNKS_PATH = DATA_DIR / "prebuilt_uploaded_chunks.jsonl"
 
 
 def _split_terms(text: str) -> List[str]:
@@ -250,16 +254,90 @@ def load_uploaded_raw_docs() -> List[Dict[str, Any]]:
     return load_raw_docs(paths, source_type="uploaded_doc")
 
 
-def build_knowledge_base(include_structured: bool = True, include_repository_raw: bool = True) -> Dict[str, Any]:
+def load_prebuilt_chunk_docs(path: Path = PREBUILT_CHUNKS_PATH) -> List[Dict[str, Any]]:
+    """加载已经预切分好的本地 chunk。"""
+    if not path.exists():
+        return []
+
+    docs: List[Dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        payload = json.loads(line)
+        metadata = (payload.get("metadata", {}) or {}).copy()
+        metadata["source_type"] = str(metadata.get("source_type", "prebuilt_chunk") or "prebuilt_chunk")
+        metadata["pre_chunked"] = True
+        metadata["priority"] = int(metadata.get("priority", 72))
+        docs.append({"text": str(payload.get("text", "") or ""), "metadata": metadata})
+    return docs
+
+
+def export_uploaded_docs_as_prebuilt_chunks(path: Path = PREBUILT_CHUNKS_PATH) -> Dict[str, Any]:
+    """把本地上传资料导出为可跟仓库走的 chunk 文件。"""
+    uploaded_docs = load_uploaded_raw_docs()
+    if not uploaded_docs:
+        if path.exists():
+            path.unlink()
+        return {
+            "message": "当前没有本地上传资料，未生成预构建 chunk 文件。",
+            "chunk_count": 0,
+            "source_files": [],
+            "output_file": str(path),
+        }
+
+    settings = get_settings()
+    chunk_size = int(settings.get("chunk_size", 520))
+    overlap = int(settings.get("chunk_overlap", 90))
+    chunked_docs = attach_metadata(uploaded_docs, chunk_size=chunk_size, overlap=overlap)
+
+    lines: List[str] = []
+    source_files = set()
+    for item in chunked_docs:
+        metadata = (item.get("metadata", {}) or {}).copy()
+        metadata["source_type"] = "prebuilt_chunk"
+        metadata["origin_source_type"] = metadata.get("origin_source_type", "uploaded_doc")
+        metadata["pre_chunked"] = True
+        metadata["priority"] = int(metadata.get("priority", 72))
+        metadata["source_file"] = str(metadata.get("source_file", "") or "")
+        if metadata["source_file"]:
+            source_files.add(metadata["source_file"])
+        lines.append(
+            json.dumps(
+                {
+                    "text": str(item.get("text", "") or ""),
+                    "metadata": metadata,
+                },
+                ensure_ascii=False,
+            )
+        )
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return {
+        "message": "已将本地上传资料导出为预构建 chunk 文件。",
+        "chunk_count": len(chunked_docs),
+        "source_files": sorted(source_files),
+        "output_file": str(path),
+    }
+
+
+def build_knowledge_base(
+    include_structured: bool = True,
+    include_repository_raw: bool = True,
+    include_prebuilt_chunks: bool = True,
+) -> Dict[str, Any]:
     """构建知识库所需的双层内容。"""
     structured_cards = load_structured_cards() if include_structured else []
     structured_docs = [structured_card_to_doc(card) for card in structured_cards]
     repository_raw_docs = load_repository_raw_docs() if include_repository_raw else []
+    prebuilt_chunk_docs = load_prebuilt_chunk_docs() if include_prebuilt_chunks else []
     return {
         "structured_cards": structured_cards,
         "structured_docs": structured_docs,
-        "raw_docs": repository_raw_docs,
-        "all_docs": structured_docs + repository_raw_docs,
+        "raw_docs": repository_raw_docs + prebuilt_chunk_docs,
+        "repository_raw_docs": repository_raw_docs,
+        "prebuilt_chunk_docs": prebuilt_chunk_docs,
+        "all_docs": structured_docs + repository_raw_docs + prebuilt_chunk_docs,
     }
 
 

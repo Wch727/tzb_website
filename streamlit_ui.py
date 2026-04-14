@@ -160,6 +160,128 @@ def inject_custom_css() -> None:
             border: 1px solid rgba(166, 130, 85, 0.24);
             margin: 0.8rem 0 1rem;
         }
+        .curator-note {
+            border-radius: 24px;
+            padding: 1.1rem 1.2rem;
+            background: linear-gradient(135deg, rgba(255, 248, 236, 0.95), rgba(250, 240, 223, 0.92));
+            border: 1px solid rgba(166, 130, 85, 0.28);
+            box-shadow: 0 10px 26px rgba(72, 48, 29, 0.08);
+            margin: 0.6rem 0 1rem;
+        }
+        .curator-label {
+            color: #8b6b4d;
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .curator-title {
+            color: #4b2119;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0.25rem 0 0.4rem;
+        }
+        .curator-desc {
+            color: #4c433d;
+            line-height: 1.78;
+            font-size: 0.95rem;
+        }
+        .chapter-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.95rem;
+            margin: 0.9rem 0 1.2rem;
+        }
+        .chapter-card {
+            background: rgba(255, 252, 247, 0.92);
+            border: 1px solid rgba(154, 113, 61, 0.22);
+            border-radius: 24px;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 12px 30px rgba(72, 48, 29, 0.08);
+        }
+        .chapter-card.active {
+            border-color: rgba(124, 42, 34, 0.48);
+            box-shadow: 0 18px 34px rgba(82, 30, 20, 0.12);
+            background: linear-gradient(180deg, rgba(255, 248, 239, 0.96), rgba(248, 238, 225, 0.92));
+        }
+        .chapter-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.22rem 0.65rem;
+            border-radius: 999px;
+            background: rgba(111, 34, 25, 0.1);
+            color: #7c2a22;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.55rem;
+        }
+        .chapter-title {
+            color: #4b2119;
+            font-size: 1.08rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .chapter-subtitle {
+            color: #675646;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            margin-bottom: 0.55rem;
+        }
+        .chapter-meta {
+            color: #8b6b4d;
+            font-size: 0.84rem;
+            line-height: 1.6;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.95rem;
+            margin: 0.8rem 0 1rem;
+        }
+        .detail-panel {
+            background: rgba(255, 252, 247, 0.9);
+            border: 1px solid rgba(154, 113, 61, 0.18);
+            border-radius: 22px;
+            padding: 1rem 1.1rem;
+        }
+        .detail-panel-title {
+            color: #4b2119;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+        .detail-panel-desc {
+            color: #4c433d;
+            line-height: 1.8;
+            font-size: 0.94rem;
+        }
+        .ledger-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.7rem;
+            margin: 0.8rem 0 1rem;
+        }
+        .ledger-card {
+            background: rgba(255, 249, 239, 0.88);
+            border: 1px solid rgba(166, 130, 85, 0.24);
+            border-radius: 18px;
+            padding: 0.8rem 0.95rem;
+        }
+        .ledger-index {
+            color: #8b6b4d;
+            font-size: 0.82rem;
+            margin-bottom: 0.25rem;
+        }
+        .ledger-title {
+            color: #4b2119;
+            font-size: 0.98rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .ledger-text {
+            color: #5a5047;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
         .nav-caption {
             color: #e8ddcf;
             font-size: 0.85rem;
@@ -458,6 +580,82 @@ def render_section(title: str, subtitle: str = "") -> None:
     st.markdown(f"<div class='section-title'>{html.escape(title)}</div>", unsafe_allow_html=True)
     if subtitle:
         st.markdown(f"<div class='section-subtitle'>{html.escape(subtitle)}</div>", unsafe_allow_html=True)
+
+
+def render_curatorial_note(title: str, body: str, label: str = "策展导语") -> None:
+    """渲染策展导语卡。"""
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="curator-note">
+                <div class="curator-label">{html.escape(label)}</div>
+                <div class="curator-title">{html.escape(title)}</div>
+                <div class="curator-desc">{html.escape(body)}</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def render_chapter_overview_cards(chapters: List[Dict[str, Any]], active_id: str = "") -> None:
+    """渲染篇章总览卡。"""
+    cards: List[str] = []
+    for chapter in chapters:
+        class_name = "chapter-card active" if chapter.get("id") == active_id else "chapter-card"
+        node_titles = " · ".join(node.get("title", "") for node in chapter.get("nodes", [])[:3])
+        cards.append(
+            _clean_html(
+                f"""
+                <div class="{class_name}">
+                    <div class="chapter-badge">{html.escape(str(chapter.get('badge', '主线篇章')))}</div>
+                    <div class="chapter-title">{html.escape(str(chapter.get('title', '未命名篇章')))}</div>
+                    <div class="chapter-subtitle">{html.escape(str(chapter.get('subtitle', '')))}</div>
+                    <div class="chapter-meta">节点数量：{html.escape(str(chapter.get('count', len(chapter.get('nodes', [])))))}</div>
+                    <div class="chapter-meta">代表节点：{html.escape(node_titles or '沿线展项')}</div>
+                </div>
+                """
+            )
+        )
+    if cards:
+        st.markdown(f"<div class='chapter-strip'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
+def render_detail_panels(items: List[Dict[str, str]]) -> None:
+    """渲染展项信息板。"""
+    cards: List[str] = []
+    for item in items:
+        cards.append(
+            _clean_html(
+                f"""
+                <div class="detail-panel">
+                    <div class="detail-panel-title">{html.escape(str(item.get('title', '')))}</div>
+                    <div class="detail-panel-desc">{html.escape(str(item.get('desc', '')))}</div>
+                </div>
+                """
+            )
+        )
+    if cards:
+        st.markdown(f"<div class='detail-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
+def render_ledger_cards(items: List[Dict[str, str]]) -> None:
+    """渲染路线或展项清单卡。"""
+    cards: List[str] = []
+    for item in items:
+        cards.append(
+            _clean_html(
+                f"""
+                <div class="ledger-card">
+                    <div class="ledger-index">{html.escape(str(item.get('label', '')))}</div>
+                    <div class="ledger-title">{html.escape(str(item.get('title', '')))}</div>
+                    <div class="ledger-text">{html.escape(str(item.get('desc', '')))}</div>
+                </div>
+                """
+            )
+        )
+    if cards:
+        st.markdown(f"<div class='ledger-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
 
 
 def render_model_banner() -> None:

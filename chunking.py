@@ -96,6 +96,11 @@ def _chunk_document_text(text: str, metadata: Dict[str, Any], chunk_size: int, o
     """按标题感知与段落优先的方式切分单个文档。"""
     prefix = _build_prefix(metadata)
     source_type = str(metadata.get("source_type", "") or "")
+    if bool(metadata.get("pre_chunked")):
+        prepared_text = str(text or "").strip()
+        if not prepared_text:
+            return []
+        return [prepared_text]
     if source_type == "structured_card":
         structured_text = f"{prefix}\n{text}".strip() if prefix else str(text or "").strip()
         return [structured_text]

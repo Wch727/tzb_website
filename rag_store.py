@@ -137,7 +137,8 @@ def ingest_default_data() -> Dict[str, Any]:
     result = _upsert_documents(knowledge_base["all_docs"])
     result["mode"] = "default_data"
     result["structured_card_count"] = len(knowledge_base["structured_docs"])
-    result["repository_raw_count"] = len(knowledge_base["raw_docs"])
+    result["repository_raw_count"] = len(knowledge_base.get("repository_raw_docs", []))
+    result["prebuilt_chunk_count"] = len(knowledge_base.get("prebuilt_chunk_docs", []))
     _write_repository_manifest()
     return result
 
