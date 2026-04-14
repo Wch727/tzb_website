@@ -41,6 +41,9 @@ def _source_cards_from_retrieval(node: Dict[str, Any], retrieval: Dict[str, Any]
             "source_file": item["metadata"].get("source_file", "未知文件"),
             "title": item["metadata"].get("title", "未命名"),
             "type": item["metadata"].get("type", "未知"),
+            "chapter_title": item["metadata"].get("chapter_title", ""),
+            "section_title": item["metadata"].get("section_title", ""),
+            "source_page": item["metadata"].get("source_page", ""),
             "snippet": item.get("text", "")[:220],
         }
         for item in retrieval.get("hits", [])

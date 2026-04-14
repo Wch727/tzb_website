@@ -16,30 +16,37 @@ from rag import retrieve_knowledge
 
 
 def _context_from_hits(hits: List[Dict[str, Any]]) -> List[str]:
-    """将检索结果转成上下文块。"""
-    blocks = []
+    """将检索结果整理成上下文块。"""
+    blocks: List[str] = []
     for item in hits:
-        metadata = item.get("metadata", {})
+        metadata = item.get("metadata", {}) or {}
         blocks.append(
-            f"标题：{metadata.get('title', '未命名')}\n"
-            f"类型：{metadata.get('type', '未知')}\n"
-            f"地点：{metadata.get('place', '未标注')}\n"
-            f"路线节点：{metadata.get('route_stage', '未标注')}\n"
-            f"内容：{item.get('text', '')}"
+            "\n".join(
+                [
+                    f"标题：{metadata.get('title', '未命名')}",
+                    f"类型：{metadata.get('type', '未知')}",
+                    f"地点：{metadata.get('place', '未标注')}",
+                    f"路线阶段：{metadata.get('route_stage', '未标注')}",
+                    f"内容：{item.get('text', '')}",
+                ]
+            )
         )
     return blocks
 
 
 def _source_cards(hits: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """整理生成结果使用到的依据。"""
-    cards = []
+    """整理前端展示需要的依据来源。"""
+    cards: List[Dict[str, Any]] = []
     for item in hits:
-        metadata = item.get("metadata", {})
+        metadata = item.get("metadata", {}) or {}
         cards.append(
             {
                 "source_file": metadata.get("source_file", "未知文件"),
                 "title": metadata.get("title", "未命名"),
                 "type": metadata.get("type", "未知"),
+                "chapter_title": metadata.get("chapter_title", ""),
+                "section_title": metadata.get("section_title", ""),
+                "source_page": metadata.get("source_page", ""),
                 "snippet": item.get("text", "")[:220],
             }
         )
@@ -47,16 +54,15 @@ def _source_cards(hits: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def _static_context_summary(hits: List[Dict[str, Any]]) -> str:
-    """把检索结果整理成适合静态模式使用的摘要。"""
-    sections: List[str] = []
+    """把检索结果压缩成静态模式使用的摘要。"""
+    lines: List[str] = []
     for index, item in enumerate(hits[:4], start=1):
-        metadata = item.get("metadata", {})
+        metadata = item.get("metadata", {}) or {}
         snippet = str(item.get("text", "") or "").replace("\n", " ").strip()
-        sections.append(
-            f"{index}. {metadata.get('title', '未命名')}："
-            f"{snippet[:120]}{'...' if len(snippet) > 120 else ''}"
-        )
-    return "\n".join(sections)
+        if len(snippet) > 120:
+            snippet = f"{snippet[:120]}..."
+        lines.append(f"{index}. {metadata.get('title', '未命名')}：{snippet}")
+    return "\n".join(lines)
 
 
 def _match_node_data(topic: str) -> Dict[str, Any]:
@@ -64,8 +70,19 @@ def _match_node_data(topic: str) -> Dict[str, Any]:
     direct = get_route_node_data(topic)
     if direct:
         return direct
-    matched = match_route_node(topic)
-    return matched or {}
+    return match_route_node(topic) or {}
+
+
+def _fit_text_range(text: str, min_chars: int, max_chars: int) -> str:
+    """把静态生成内容控制在更适合展示的长度区间。"""
+    cleaned = str(text or "").strip()
+    if len(cleaned) <= max_chars:
+        return cleaned
+    window = cleaned[:max_chars]
+    cut = max(window.rfind("。"), window.rfind("！"), window.rfind("？"))
+    if cut >= min_chars:
+        return window[: cut + 1].strip()
+    return f"{window.rstrip('，；、 ')}。"
 
 
 def fallback_guide_script(
@@ -84,19 +101,17 @@ def fallback_guide_script(
     summary = node.get("summary", "")
     figures = "、".join(node.get("figures", [])[:4]) if node.get("figures") else "长征中的重要领导人与广大红军指战员"
     points = "；".join(node.get("key_points", [])[:4]) if node.get("key_points") else _static_context_summary(hits or [])
-    return (
+    script = (
         f"《{title}》讲解稿\n\n"
-        f"一、开场引入\n"
-        f"各位{audience}，下面我们围绕“{title}”展开导览。本段内容适合约{duration}的现场讲解，"
-        "重点帮助大家把握长征主线中的关键转折、典型场景与精神内涵。\n\n"
+        f"一、开场导入\n各位{audience}，下面我们围绕“{title}”展开导览。本段内容适合约{duration}的现场讲解，重点帮助大家把握长征主线中的关键转折、典型场景与精神内涵。\n\n"
         f"二、历史背景\n{background or summary or '这一节点处在长征主线的重要阶段，是理解战略转移全局的关键入口。'}\n\n"
         f"三、事件经过\n{process or '这一节点记录了红军在复杂敌情与艰险环境中作出的关键行动。'}\n\n"
         f"四、关键人物\n本节点涉及的主要人物包括：{figures}。他们在组织指挥、思想统一和部队行动方面发挥了重要作用。\n\n"
         f"五、历史意义\n{significance or '这一节点不仅影响了红军的行军路线，也加深了党对战略方向和革命道路的认识。'}\n\n"
         f"六、讲解提示\n可重点提醒听众关注以下要点：{points or '结合时间、地点、人物和意义进行理解。'}\n\n"
-        "七、结语\n从这一节点可以看到，长征并不是单纯的远距离行军，而是在极端艰难条件下进行的一次伟大战略转移，"
-        "也是中国共产党和红军在实践中不断校正方向、锤炼意志、凝聚精神的重要历程。"
+        "七、结语\n从这一节点可以看到，长征并不是单纯的远距离行军，而是在极端艰难条件下进行的一次伟大战略转移，也是中国共产党和红军在实践中不断校正方向、锻炼意志、凝聚精神的重要历程。"
     )
+    return _fit_text_range(script, min_chars=320, max_chars=520)
 
 
 def fallback_video_script(
@@ -114,24 +129,17 @@ def fallback_video_script(
     process = node.get("process", "")
     significance = node.get("significance", "")
     static_context = _static_context_summary(hits or [])
-    return (
+    script = (
         f"标题：《{title}》\n"
         f"受众：{audience}\n"
         f"风格：{style}\n\n"
-        "镜头一：路线图与节点标题出现\n"
-        f"旁白：{summary or '从长征主线中的关键节点切入，理解这段波澜壮阔的革命历程。'}\n\n"
-        "镜头二：历史背景图文切换\n"
-        f"旁白：{background or '这一节点形成于极其严峻的革命形势之中，既体现战略压力，也体现主动求变。'}\n\n"
-        "镜头三：事件经过重点呈现\n"
-        f"旁白：{process or '红军在复杂环境中完成了一次关键行动，为后续全局转折创造了条件。'}\n\n"
-        "镜头四：人物与知识点叠加\n"
-        f"字幕：{('、'.join(node.get('figures', [])[:4])) or '重要领导人与广大红军指战员'}\n"
-        f"补充：{static_context or '可同步展示路线节点、关键人物和历史照片。'}\n\n"
-        "镜头五：历史意义升华\n"
-        f"旁白：{significance or '这一节点是长征历史逻辑中的关键环节，也集中体现了理想信念与革命意志。'}\n\n"
-        "结尾：精神传承\n"
-        "旁白：长征留给后人的，不只是行军路线，更是一种在艰难环境中坚定前行的精神力量。"
+        f"开场：从“{title}”切入，用一句高度概括的旁白说明它在长征主线中的位置。建议使用这样的开场：{summary or '这一节点是长征进程中的关键环节，也是理解革命转折的重要入口。'}\n\n"
+        f"主体一：交代历史背景。旁白可围绕以下内容展开：{background or '在复杂严峻的形势下，红军需要在战略上及时调整方向，并在实际行动中寻找新的突破口。'}\n\n"
+        f"主体二：呈现事件经过。镜头可以配合路线图、历史照片和人物资料，重点说明：{process or '红军在极其困难的环境中完成了关键行动，为后续主线推进创造了条件。'}\n\n"
+        f"主体三：突出人物与知识点。可同步出现的人物包括：{'、'.join(node.get('figures', [])[:4]) or '重要领导人与广大红军指战员'}。可叠加的资料提示为：{static_context or '展示节点图片、人物卡片和关键知识点。'}\n\n"
+        f"结尾：上升到历史意义。结语可采用这样的表达：{significance or '这一节点不仅改变了长征主线的推进方式，也集中体现了理想信念、战略智慧与革命意志。'}"
     )
+    return _fit_text_range(script, min_chars=320, max_chars=560)
 
 
 def fallback_learning_summary(role: str, score: int, unlocked_nodes: List[str], hits: List[Dict[str, Any]]) -> str:
@@ -155,12 +163,13 @@ def generate_guide_script(
     """生成讲解稿。"""
     retrieval = retrieve_knowledge(question=topic, filters={"intent": "generate_script"}, top_k=5)
     hits = retrieval["hits"]
+    context_payload = retrieval.get("context_payload", {})
     node_data = _match_node_data(topic)
     prompt = build_guide_script_prompt(
         topic=topic,
         audience=audience,
         duration=duration,
-        context="\n\n".join(_context_from_hits(hits)),
+        context=context_payload.get("context_text", "\n\n".join(_context_from_hits(hits))),
     )
     static_mode = bool(provider_config.get("static_mode"))
     result: Dict[str, Any] = {}
@@ -168,11 +177,17 @@ def generate_guide_script(
         client = get_llm_client(provider_config)
         result = client.generate_with_context(
             prompt=f"{LONG_MARCH_GUIDE_ROLE_PROMPT}\n\n{prompt}",
-            context_blocks=_context_from_hits(hits),
+            context_blocks=context_payload.get("context_blocks", _context_from_hits(hits)),
             temperature=0.4,
         )
     script = result.get("content", "").strip()
-    use_static = static_mode or not script or result.get("fallback_used", False) or result.get("provider") == "mock"
+    use_static = (
+        static_mode
+        or not script
+        or len(script) < 260
+        or result.get("fallback_used", False)
+        or result.get("provider") == "mock"
+    )
     if use_static:
         script = fallback_guide_script(topic=topic, audience=audience, duration=duration, node_data=node_data, hits=hits)
     sources = _source_cards(hits)
@@ -204,12 +219,13 @@ def generate_short_video_script(
     """生成短视频脚本。"""
     retrieval = retrieve_knowledge(question=topic, filters={"intent": "generate_script"}, top_k=5)
     hits = retrieval["hits"]
+    context_payload = retrieval.get("context_payload", {})
     node_data = _match_node_data(topic)
     prompt = build_short_video_script_prompt(
         topic=topic,
         audience=audience,
         style=style,
-        context="\n\n".join(_context_from_hits(hits)),
+        context=context_payload.get("context_text", "\n\n".join(_context_from_hits(hits))),
     )
     static_mode = bool(provider_config.get("static_mode"))
     result: Dict[str, Any] = {}
@@ -217,11 +233,17 @@ def generate_short_video_script(
         client = get_llm_client(provider_config)
         result = client.generate_with_context(
             prompt=f"{LONG_MARCH_GUIDE_ROLE_PROMPT}\n\n{prompt}",
-            context_blocks=_context_from_hits(hits),
+            context_blocks=context_payload.get("context_blocks", _context_from_hits(hits)),
             temperature=0.4,
         )
     script = result.get("content", "").strip()
-    use_static = static_mode or not script or result.get("fallback_used", False) or result.get("provider") == "mock"
+    use_static = (
+        static_mode
+        or not script
+        or len(script) < 260
+        or result.get("fallback_used", False)
+        or result.get("provider") == "mock"
+    )
     if use_static:
         script = fallback_video_script(topic=topic, audience=audience, style=style, node_data=node_data, hits=hits)
     sources = _source_cards(hits)

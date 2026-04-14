@@ -513,6 +513,13 @@ def render_sources(sources: List[Dict[str, Any]], title: str = "本次回答依�
     with st.expander(title, expanded=False):
         cards = []
         for item in sources:
+            meta_bits = [f"类型：{html.escape(str(item.get('type', '未知')))}"]
+            if item.get("chapter_title"):
+                meta_bits.append(f"章节：{html.escape(str(item.get('chapter_title', '')))}")
+            if item.get("section_title"):
+                meta_bits.append(f"小节：{html.escape(str(item.get('section_title', '')))}")
+            if item.get("source_page"):
+                meta_bits.append(f"页码：{html.escape(str(item.get('source_page', '')))}")
             cards.append(
                 _clean_html(
                     f"""
@@ -520,7 +527,7 @@ def render_sources(sources: List[Dict[str, Any]], title: str = "本次回答依�
                     <div class="source-label">来源文件：{html.escape(str(item.get('source_file', '未知文件')))}</div>
                     <div class="source-title">{html.escape(str(item.get('title', '未命名')))}</div>
                     <div class="source-desc">
-                        类型：{html.escape(str(item.get('type', '未知')))}<br/>
+                        {' | '.join(meta_bits)}<br/>
                         摘要片段：{html.escape(str(item.get('snippet', '')))}
                     </div>
                 </div>

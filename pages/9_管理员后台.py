@@ -225,11 +225,33 @@ with rag_tab:
         result = run_retrieval_debug(question=question, filters=filters, top_k=top_k)
         st.markdown(
             f"**识别意图：** {result.get('intent', 'general')}  \n"
+            f"**识别目标：** {result.get('target', '未识别')}  \n"
             f"**实际过滤：** `{result.get('applied_filters', {})}`  \n"
             f"**命中数量：** {result.get('hit_count', 0)}"
         )
         if result.get("sources"):
             st.dataframe(pd.DataFrame(result["sources"]), use_container_width=True, hide_index=True)
+        debug_tabs = st.tabs(["关键词召回", "向量召回", "融合排序", "Context", "回答预览"])
+        with debug_tabs[0]:
+            if result.get("keyword_hits"):
+                st.dataframe(pd.DataFrame(result["keyword_hits"]), use_container_width=True, hide_index=True)
+            else:
+                st.info("当前没有关键词召回结果。")
+        with debug_tabs[1]:
+            if result.get("vector_hits"):
+                st.dataframe(pd.DataFrame(result["vector_hits"]), use_container_width=True, hide_index=True)
+            else:
+                st.info("当前没有向量召回结果。")
+        with debug_tabs[2]:
+            if result.get("fused_hits"):
+                st.dataframe(pd.DataFrame(result["fused_hits"]), use_container_width=True, hide_index=True)
+            else:
+                st.info("当前没有融合排序结果。")
+        with debug_tabs[3]:
+            st.text_area("组装后的 Context", value=result.get("context", ""), height=280)
+        with debug_tabs[4]:
+            st.caption(f"输出字数：{result.get('output_length', 0)} | fallback：{result.get('fallback_used', False)}")
+            st.write(result.get("answer_preview", ""))
         if result.get("hits"):
             for index, hit in enumerate(result["hits"], start=1):
                 with st.expander(f"命中片段 {index}", expanded=index == 1):
