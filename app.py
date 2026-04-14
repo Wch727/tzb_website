@@ -18,13 +18,13 @@ def main() -> None:
     )
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.page_link("pages/1_首页.py", label="进入首页", use_container_width=True)
+        st.page_link("pages/1_首页.py", label="进入首页", width="stretch")
     with col2:
-        st.page_link("pages/2_角色选择.py", label="角色选择", use_container_width=True)
+        st.page_link("pages/2_角色选择.py", label="角色选择", width="stretch")
     with col3:
-        st.page_link("pages/6_活动中心.py", label="活动中心", use_container_width=True)
+        st.page_link("pages/6_活动中心.py", label="活动中心", width="stretch")
     with col4:
-        st.page_link("pages/9_管理员后台.py", label="进入内容运营", use_container_width=True)
+        st.page_link("pages/9_管理员后台.py", label="进入内容运营", width="stretch")
 
     st.switch_page("pages/1_首页.py")
 

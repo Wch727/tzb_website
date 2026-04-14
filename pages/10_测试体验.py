@@ -42,7 +42,7 @@ with tab1:
     question_cols = st.columns(3)
     for index, question in enumerate(get_recommended_questions(limit=6)):
         with question_cols[index % 3]:
-            if st.button(question, key=f"quick_try_{index}", use_container_width=True):
+            if st.button(question, key=f"quick_try_{index}", width="stretch"):
                 st.session_state["quick_try_question"] = question
 
     question = st.session_state.get("quick_try_question", "")
@@ -62,7 +62,7 @@ with tab2:
             st.markdown(f"**{node.get('title', '')}**")
             st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
             st.write(node.get("summary", ""))
-            if st.button("打开该展项", key=f"test_node_{node.get('id')}", use_container_width=True):
+            if st.button("打开该展项", key=f"test_node_{node.get('id')}", width="stretch"):
                 st.session_state["selected_node_id"] = node.get("id", "")
                 st.rerun()
 
@@ -83,7 +83,7 @@ with tab3:
         format_func=lambda node_id: next((node.get("title", "") for node in featured_nodes if node.get("id") == node_id), node_id),
     )
     selected_node = get_route_node(topic_node) or {}
-    if st.button("生成该节点讲解稿", use_container_width=True, type="primary"):
+    if st.button("生成该节点讲解稿", width="stretch", type="primary"):
         with st.spinner("正在检索资料并生成讲解稿..."):
             result = generate_guide_script(
                 topic=selected_node.get("title", ""),

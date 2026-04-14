@@ -184,7 +184,7 @@ def render_node_image(node: Dict[str, Any], caption: str = "") -> None:
             st.image(
                 resolved["path"],
                 caption=final_caption,
-                use_container_width=True,
+                width="stretch",
             )
             return
         except Exception:
@@ -192,7 +192,7 @@ def render_node_image(node: Dict[str, Any], caption: str = "") -> None:
 
     st.image(
         resolved.get("svg", generate_placeholder_svg(node.get("title", "长征史"), node.get("place", ""), node.get("type", "event"))).encode("utf-8"),
-        use_container_width=True,
+        width="stretch",
     )
     if final_caption:
         st.caption(final_caption)
@@ -209,7 +209,7 @@ def render_audio_player(
     """渲染语音生成与播放控件。"""
     state_key = f"audio::{cache_key}"
     mode_key = f"audio_mode::{cache_key}"
-    if st.button(button_label, key=f"btn::{cache_key}", use_container_width=True):
+    if st.button(button_label, key=f"btn::{cache_key}", width="stretch"):
         result = synthesize_text_to_audio(text=text, cache_key=cache_key, voice=voice)
         st.session_state[state_key] = result["audio_path"]
         st.session_state[mode_key] = result["mode"]
@@ -230,9 +230,9 @@ def render_digital_human(section_text: str, avatar_path: str, audio_path: str = 
             if resolved.suffix.lower() in [".mp4", ".mov", ".webm"]:
                 st.video(str(resolved))
             else:
-                st.image(str(resolved), use_container_width=True)
+                st.image(str(resolved), width="stretch")
         else:
-            st.image(generate_placeholder_svg("数字讲解员", "长征史导览").encode("utf-8"), use_container_width=True)
+            st.image(generate_placeholder_svg("数字讲解员", "长征史导览").encode("utf-8"), width="stretch")
     with col2:
         st.markdown(
             """

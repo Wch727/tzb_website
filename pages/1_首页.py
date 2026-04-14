@@ -37,13 +37,13 @@ render_hero(
 
 hero_left, hero_right, hero_more = st.columns([1.15, 1.15, 0.9])
 with hero_left:
-    if st.button("开始长征导览", use_container_width=True, type="primary"):
+    if st.button("开始长征导览", width="stretch", type="primary"):
         st.switch_page("pages/3_长征路线.py")
 with hero_right:
-    if st.button("进入互动闯关", use_container_width=True):
+    if st.button("进入互动闯关", width="stretch"):
         st.switch_page("pages/4_剧情答题.py")
 with hero_more:
-    if st.button("进入导览速览", use_container_width=True):
+    if st.button("进入导览速览", width="stretch"):
         st.switch_page("pages/10_测试体验.py")
 
 render_metrics(
@@ -64,7 +64,7 @@ for index, node in enumerate(featured_nodes):
         st.markdown(f"#### {node.get('title', '')}")
         st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
         st.write(node.get("summary", ""))
-        if st.button("查看详情", key=f"home_featured_{node.get('id')}", use_container_width=True):
+        if st.button("查看详情", key=f"home_featured_{node.get('id')}", width="stretch"):
             _jump_to_node(node.get("id", ""))
 
 render_section("长征路线总览", "把路线拆成四个篇章，每一篇都像独立展区，帮助用户形成清晰的征程感。")
@@ -75,7 +75,7 @@ for index, chapter in enumerate(chapters):
         st.caption(chapter.get("subtitle", ""))
         for node in chapter.get("nodes", [])[:3]:
             st.markdown(f"- **{node.get('title', '')}**：{node.get('summary', '')[:34]}...")
-        if st.button("进入本篇章", key=f"home_chapter_{chapter.get('id')}", use_container_width=True):
+        if st.button("进入本篇章", key=f"home_chapter_{chapter.get('id')}", width="stretch"):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.switch_page("pages/3_长征路线.py")
 
@@ -129,5 +129,5 @@ with tab3:
             st.markdown(f"- {node.get('title', '')}")
 with tab4:
     st.write("适合第一次进入站点时快速浏览问答、展项、讲解与互动学习的完整路径。")
-    if st.button("进入导览速览页", key="home_try_page", use_container_width=True):
+    if st.button("进入导览速览页", key="home_try_page", width="stretch"):
         st.switch_page("pages/10_测试体验.py")

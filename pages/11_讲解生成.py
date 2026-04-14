@@ -61,7 +61,7 @@ with tab1:
         topic = st.text_input("讲解主题", value=selected_node.get("title", ""), placeholder="例如：遵义会议的历史意义")
         audience = st.selectbox("受众对象", ["大学生", "研学团成员", "普通参观者"])
         duration = st.selectbox("讲解时长", ["2分钟", "3分钟", "5分钟"])
-        submitted = st.form_submit_button("生成讲解稿", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("生成讲解稿", width="stretch", type="primary")
 
     if submitted and topic.strip():
         with st.spinner("正在检索资料并生成讲解稿..."):
@@ -84,7 +84,7 @@ with tab1:
             cache_key=f"guide-page-{st.session_state.get('guide_page_topic', 'topic')}",
             button_label="播放讲解稿语音",
         )
-        if st.button("数字人讲解模式", key="guide_digital", use_container_width=True):
+        if st.button("数字人讲解模式", key="guide_digital", width="stretch"):
             st.session_state["guide_digital_mode"] = not st.session_state.get("guide_digital_mode", False)
         if st.session_state.get("guide_digital_mode", False):
             render_digital_human(
@@ -99,7 +99,7 @@ with tab2:
         topic = st.text_input("脚本主题", value=selected_node.get("title", ""), placeholder="例如：飞夺泸定桥")
         audience = st.selectbox("目标受众", ["大学生", "研学团成员", "普通参观者"], key="video_audience")
         style = st.selectbox("呈现风格", ["正式讲述", "历史叙事", "青年宣讲"])
-        submitted = st.form_submit_button("生成短视频脚本", use_container_width=True)
+        submitted = st.form_submit_button("生成短视频脚本", width="stretch")
 
     if submitted and topic.strip():
         with st.spinner("正在检索资料并生成短视频脚本..."):
@@ -122,7 +122,7 @@ with tab2:
             cache_key=f"video-page-{st.session_state.get('video_page_topic', 'topic')}",
             button_label="播放脚本文案语音",
         )
-        if st.button("切换数字讲解员模式", key="video_digital", use_container_width=True):
+        if st.button("切换数字讲解员模式", key="video_digital", width="stretch"):
             st.session_state["video_digital_mode"] = not st.session_state.get("video_digital_mode", False)
         if st.session_state.get("video_digital_mode", False):
             render_digital_human(

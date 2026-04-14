@@ -100,11 +100,11 @@ with right:
 
 btn1, btn2, btn3 = st.columns(3)
 with btn1:
-    if st.button("进入长征路线", use_container_width=True, type="primary"):
+    if st.button("进入长征路线", width="stretch", type="primary"):
         st.switch_page("pages/3_长征路线.py")
 with btn2:
-    if st.button("直接开始剧情答题", use_container_width=True):
+    if st.button("直接开始剧情答题", width="stretch"):
         st.switch_page("pages/4_剧情答题.py")
 with btn3:
-    if st.button("前往活动中心", use_container_width=True):
+    if st.button("前往活动中心", width="stretch"):
         st.switch_page("pages/6_活动中心.py")

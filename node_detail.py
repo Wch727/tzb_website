@@ -159,12 +159,12 @@ def render_node_detail(
     render_section("讲解与互动", "语音讲解、数字讲解员与内容生成入口集中在同一区域，便于连续浏览。")
     action_left, action_mid, action_right = st.columns(3)
     with action_left:
-        if st.button("进入互动题", key=f"quiz::{node_id}", use_container_width=True, type="primary"):
+        if st.button("进入互动题", key=f"quiz::{node_id}", width="stretch", type="primary"):
             st.session_state["story_state"] = {}
             st.session_state["selected_node_id"] = node_id
             st.switch_page("pages/4_剧情答题.py")
     with action_mid:
-        if st.button("生成讲解稿", key=f"guide::{node_id}", use_container_width=True):
+        if st.button("生成讲解稿", key=f"guide::{node_id}", width="stretch"):
             result = generate_guide_script(
                 topic=node.get("title", ""),
                 audience=audience,
@@ -173,7 +173,7 @@ def render_node_detail(
             )
             st.session_state[f"guide_result::{node_id}"] = result
     with action_right:
-        if st.button("生成短视频脚本", key=f"video::{node_id}", use_container_width=True):
+        if st.button("生成短视频脚本", key=f"video::{node_id}", width="stretch"):
             result = generate_short_video_script(
                 topic=node.get("title", ""),
                 audience=audience,
@@ -209,7 +209,7 @@ def render_node_detail(
             button_label="播放语音讲解",
         )
     with media_right:
-        if st.button("切换数字讲解员模式", key=f"digital::{node_id}", use_container_width=True):
+        if st.button("切换数字讲解员模式", key=f"digital::{node_id}", width="stretch"):
             st.session_state[f"show_digital::{node_id}"] = not st.session_state.get(f"show_digital::{node_id}", False)
 
     if st.session_state.get(f"show_digital::{node_id}", False):
@@ -230,7 +230,7 @@ def render_node_detail(
                 st.markdown(f"**{related.get('title', '')}**")
                 st.caption(f"{related.get('date', '')} · {related.get('place', '')}")
                 st.write(related.get("summary", ""))
-                if st.button("查看该节点", key=f"related::{node_id}::{related.get('id', '')}", use_container_width=True):
+                if st.button("查看该节点", key=f"related::{node_id}::{related.get('id', '')}", width="stretch"):
                     st.session_state["selected_node_id"] = related.get("id", "")
                     st.rerun()
 

@@ -62,7 +62,7 @@ render_hero(
 
 if not st.session_state.get("selected_role_id"):
     st.warning("请先完成角色选择，再进入剧情答题。")
-    st.page_link("pages/2_角色选择.py", label="前往角色选择", use_container_width=True)
+    st.page_link("pages/2_角色选择.py", label="前往角色选择", width="stretch")
     st.stop()
 
 story_state = _ensure_story_state()
@@ -154,13 +154,13 @@ if story_state.get("finished"):
         st.session_state[record_key] = True
 
     st.markdown("### 电子证书")
-    st.image(svg.encode("utf-8"), use_container_width=True)
+    st.image(svg.encode("utf-8"), width="stretch")
     st.download_button(
         "下载电子证书（SVG）",
         data=svg.encode("utf-8"),
         file_name="long_march_certificate.svg",
         mime="image/svg+xml",
-        use_container_width=True,
+        width="stretch",
     )
 
     personal_share = build_user_share_text(
@@ -171,7 +171,7 @@ if story_state.get("finished"):
     share_left, share_right = st.columns(2)
     with share_left:
         st.text_area("个人战绩分享文案", value=personal_share, height=130)
-        if st.button("广播个人战绩", use_container_width=True, disabled=not personal_share):
+        if st.button("广播个人战绩", width="stretch", disabled=not personal_share):
             record_share_event(
                 user_name=st.session_state.get("user_name", "红色学习者"),
                 unit_name=st.session_state.get("unit_name", "体验组"),
@@ -185,7 +185,7 @@ if story_state.get("finished"):
             st.success("个人战绩已写入实时播报流。")
     with share_right:
         st.text_area("小队战绩分享文案", value=team_share, height=130)
-        if st.button("广播小队战绩", use_container_width=True, disabled=not team_share):
+        if st.button("广播小队战绩", width="stretch", disabled=not team_share):
             record_share_event(
                 user_name=st.session_state.get("user_name", "红色学习者"),
                 unit_name=st.session_state.get("unit_name", "体验组"),
@@ -200,13 +200,13 @@ if story_state.get("finished"):
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("查看排行榜", use_container_width=True):
+        if st.button("查看排行榜", width="stretch"):
             st.switch_page("pages/7_排行榜.py")
     with col2:
-        if st.button("前往活动中心", use_container_width=True):
+        if st.button("前往活动中心", width="stretch"):
             st.switch_page("pages/6_活动中心.py")
     with col3:
-        if st.button("重新开始活动", use_container_width=True):
+        if st.button("重新开始活动", width="stretch"):
             st.session_state.pop(record_key, None)
             st.session_state.pop("story_last_result", None)
             st.session_state["story_state"] = create_story_state(
@@ -309,7 +309,7 @@ st.markdown("## 开始作答")
 st.write(stage.get("question", "暂无题目。"))
 answer = st.radio("请选择你的答案", stage.get("options", []), index=None, key=f"story_answer_{node.get('id', '')}")
 
-if st.button("提交答案", use_container_width=True, type="primary", disabled=not answer):
+if st.button("提交答案", width="stretch", type="primary", disabled=not answer):
     old_progress = story_state.get("progress", {}) or {}
     result = submit_stage_answer(story_state, answer or "")
     answer_detail = result.get("answer_detail", {})

@@ -37,7 +37,7 @@ def _render_dashboard_body(hours: int) -> None:
         render_section("活动动态概览", "展示各活动的参与人数、答题数、小队数和正确率。")
         activity_live = payload.get("activity_live", [])
         if activity_live:
-            st.dataframe(pd.DataFrame(activity_live), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(activity_live), width="stretch", hide_index=True)
         else:
             st.info("当前暂无活动动态数据。")
 
@@ -46,14 +46,14 @@ def _render_dashboard_body(hours: int) -> None:
         render_section("全服实时排行榜", "展示近期表现突出的用户与队伍，适合课堂、展陈和活动现场投屏。")
         realtime_rows = payload.get("realtime_leaderboard", [])
         if realtime_rows:
-            st.dataframe(pd.DataFrame(realtime_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(realtime_rows), width="stretch", hide_index=True)
         else:
             st.info("当前暂无全服实时排行数据。")
     with middle_right:
         render_section("红军小队排行榜", "展示协作答题形成的小队总分与粮草表现。")
         team_rows = payload.get("team_leaderboard", [])
         if team_rows:
-            st.dataframe(pd.DataFrame(team_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         else:
             st.info("当前暂无红军小队排行数据。")
 
@@ -62,14 +62,14 @@ def _render_dashboard_body(hours: int) -> None:
         render_section("支部对抗榜", "按支部或单位汇总队伍成绩，适合组织化学习活动中的集体展示。")
         branch_rows = payload.get("branch_pk", [])
         if branch_rows:
-            st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(branch_rows), width="stretch", hide_index=True)
         else:
             st.info("当前暂无支部对抗成绩。")
     with pk_right:
         render_section("班级/单位排行预览", "用于课堂、班级、支部等组织化学习场景。")
         unit_rows = payload.get("unit_leaderboard", [])
         if unit_rows:
-            st.dataframe(pd.DataFrame(unit_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(unit_rows), width="stretch", hide_index=True)
         else:
             st.info("当前暂无班级/单位排行数据。")
 
@@ -80,7 +80,7 @@ def _render_dashboard_body(hours: int) -> None:
         if node_rows:
             node_df = pd.DataFrame(node_rows).set_index("node_title")
             st.bar_chart(node_df[["answer_count"]])
-            st.dataframe(pd.DataFrame(node_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(node_rows), width="stretch", hide_index=True)
         else:
             st.info("当前暂无节点热度数据。")
     with chart_right:
@@ -99,7 +99,7 @@ def _render_dashboard_body(hours: int) -> None:
     render_section("实时战绩播报流", "可作为活动主持口播、现场播报和大屏轮播数据源。")
     live_rows = payload.get("live_feed", [])
     if live_rows:
-        st.dataframe(pd.DataFrame(live_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
     else:
         st.info("当前暂无实时战绩播报数据。")
 
@@ -123,7 +123,7 @@ refresh_col1, refresh_col2 = st.columns([1, 2])
 with refresh_col1:
     auto_refresh = st.toggle("自动刷新", value=True, help="开启后页面每 15 秒自动刷新一次。")
 with refresh_col2:
-    if st.button("立即刷新数据", use_container_width=True):
+    if st.button("立即刷新数据", width="stretch"):
         st.rerun()
 
 if auto_refresh and hasattr(st, "fragment"):

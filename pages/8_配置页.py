@@ -119,7 +119,7 @@ with user_tab:
                 value=st.session_state.get("session_api_keys", {}).get(selected, ""),
                 placeholder="如已开放个人接入，可在此输入你自己的 API Key",
             )
-            if st.button("保存当前会话 Key", use_container_width=True):
+            if st.button("保存当前会话 Key", width="stretch"):
                 set_runtime_api_key(selected, api_key.strip())
                 st.success("已保存到当前访问会话。关闭页面或切换会话后将失效。")
         else:
@@ -140,7 +140,7 @@ with admin_tab:
 
     if not admin_is_logged_in():
         st.info("请先前往“内容运营”页面完成登录，再返回此处进行开放策略配置。")
-        st.page_link("pages/9_管理员后台.py", label="前往内容运营页面登录", use_container_width=True)
+        st.page_link("pages/9_管理员后台.py", label="前往内容运营页面登录", width="stretch")
         st.stop()
 
     provider_configs = list_provider_configs(include_disabled=True)
@@ -153,7 +153,7 @@ with admin_tab:
             if get_default_provider_name() in enabled_provider_names
             else 0,
         )
-        if st.button("保存默认模型", use_container_width=True):
+        if st.button("保存默认模型", width="stretch"):
             set_default_provider(default_provider)
             st.success("默认模型已更新。")
             st.rerun()
@@ -189,7 +189,7 @@ with admin_tab:
                     key=f"user_key_{provider_name}",
                 )
 
-            if st.button(f"保存 {provider_name} 的开放策略", key=f"save_flags_{provider_name}", use_container_width=True):
+            if st.button(f"保存 {provider_name} 的开放策略", key=f"save_flags_{provider_name}", width="stretch"):
                 set_provider_enabled(provider_name, enabled)
                 set_provider_visibility(provider_name, visible)
                 set_provider_allow_user_key(provider_name, allow_user_key)
@@ -211,7 +211,7 @@ with admin_tab:
                     placeholder="如使用平台统一密钥，可留空本地回退值",
                 )
                 description = st.text_area("说明", value=provider.get("description", ""))
-                submitted = st.form_submit_button("保存 provider 配置", use_container_width=True)
+                submitted = st.form_submit_button("保存 provider 配置", width="stretch")
 
             if submitted:
                 upsert_provider_config(
@@ -245,7 +245,7 @@ with admin_tab:
         enabled = st.checkbox("创建后立即启用", value=False)
         visible = st.checkbox("创建后立即开放给普通用户", value=False)
         allow_user_key = st.checkbox("允许普通用户输入自己的 Key", value=False)
-        submitted = st.form_submit_button("新增 provider", use_container_width=True)
+        submitted = st.form_submit_button("新增 provider", width="stretch")
 
     if submitted and provider_name.strip():
         upsert_provider_config(

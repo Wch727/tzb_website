@@ -373,28 +373,28 @@ def render_top_nav(current_page: str) -> None:
     """渲染页内顶部导航。"""
     row1 = st.columns(5)
     with row1[0]:
-        st.page_link("pages/1_首页.py", label="首页", use_container_width=True)
+        st.page_link("pages/1_首页.py", label="首页", width="stretch")
     with row1[1]:
-        st.page_link("pages/2_角色选择.py", label="角色选择", use_container_width=True)
+        st.page_link("pages/2_角色选择.py", label="角色选择", width="stretch")
     with row1[2]:
-        st.page_link("pages/3_长征路线.py", label="长征路线", use_container_width=True)
+        st.page_link("pages/3_长征路线.py", label="长征路线", width="stretch")
     with row1[3]:
-        st.page_link("pages/4_剧情答题.py", label="剧情答题", use_container_width=True)
+        st.page_link("pages/4_剧情答题.py", label="剧情答题", width="stretch")
     with row1[4]:
-        st.page_link("pages/5_知识库.py", label="知识百问", use_container_width=True)
+        st.page_link("pages/5_知识库.py", label="知识百问", width="stretch")
     row2 = st.columns(6)
     with row2[0]:
-        st.page_link("pages/6_活动中心.py", label="活动中心", use_container_width=True)
+        st.page_link("pages/6_活动中心.py", label="活动中心", width="stretch")
     with row2[1]:
-        st.page_link("pages/7_排行榜.py", label="排行榜", use_container_width=True)
+        st.page_link("pages/7_排行榜.py", label="排行榜", width="stretch")
     with row2[2]:
-        st.page_link("pages/8_配置页.py", label="使用设置", use_container_width=True)
+        st.page_link("pages/8_配置页.py", label="使用设置", width="stretch")
     with row2[3]:
-        st.page_link("pages/9_管理员后台.py", label="内容运营", use_container_width=True)
+        st.page_link("pages/9_管理员后台.py", label="内容运营", width="stretch")
     with row2[4]:
-        st.page_link("pages/10_测试体验.py", label="导览速览", use_container_width=True)
+        st.page_link("pages/10_测试体验.py", label="导览速览", width="stretch")
     with row2[5]:
-        st.page_link("pages/12_数据大屏.py", label="数据大屏", use_container_width=True)
+        st.page_link("pages/12_数据大屏.py", label="数据大屏", width="stretch")
     st.caption(f"当前页面：{current_page}")
 
 

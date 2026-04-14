@@ -111,7 +111,7 @@ if not st.session_state.get("admin_authenticated"):
     with st.form("admin_login_form"):
         username = st.text_input("管理员账号", value="admin")
         password = st.text_input("管理员密码", type="password")
-        submitted = st.form_submit_button("登录运营后台", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("登录运营后台", width="stretch", type="primary")
     if submitted:
         try:
             result = admin_login(username=username, password=password)
@@ -133,7 +133,7 @@ top_left, top_right = st.columns([3, 1])
 with top_left:
     st.success(f"当前运营账号：{profile.get('display_name', profile.get('username', 'admin'))}")
 with top_right:
-    if st.button("退出登录", use_container_width=True):
+    if st.button("退出登录", width="stretch"):
         st.session_state["admin_authenticated"] = False
         st.session_state["admin_profile"] = {}
         st.session_state["admin_token"] = ""
@@ -162,7 +162,7 @@ with file_tab:
         accept_multiple_files=True,
         type=["txt", "md", "pdf", "docx", "json", "csv"],
     )
-    if st.button("保存上传文件", use_container_width=True, type="primary", disabled=not uploaded_files):
+    if st.button("保存上传文件", width="stretch", type="primary", disabled=not uploaded_files):
         success_files = []
         for uploaded in uploaded_files or []:
             filename = safe_filename(uploaded.name)
@@ -178,13 +178,13 @@ with file_tab:
 
     file_rows = list_uploaded_files()
     if file_rows:
-        st.dataframe(pd.DataFrame(file_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(file_rows), width="stretch", hide_index=True)
         for row in file_rows:
             col1, col2 = st.columns([5, 1])
             with col1:
                 st.caption(f"{row['filename']} | {row['size_kb']} KB | 处理文件：{row['processed_file']}")
             with col2:
-                if st.button("删除", key=f"delete_{row['filename']}", use_container_width=True):
+                if st.button("删除", key=f"delete_{row['filename']}", width="stretch"):
                     remove_if_exists(UPLOAD_DIR / row["filename"])
                     remove_if_exists(PROCESSED_DIR / f"{Path(row['filename']).stem}.txt")
                     from rag import delete_source_file_from_rag
@@ -199,13 +199,13 @@ with rag_tab:
     render_section("知识库更新与检索调试", "可在这里执行增量导入、重建索引，并检查知识卡与资料片段的命中情况。")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("执行增量导入", use_container_width=True, type="primary"):
+        if st.button("执行增量导入", width="stretch", type="primary"):
             with st.spinner("正在执行增量导入..."):
                 result = incremental_ingest()
             st.success(result.get("message", "增量导入完成。"))
             st.json(result)
     with col2:
-        if st.button("重建知识库索引", use_container_width=True):
+        if st.button("重建知识库索引", width="stretch"):
             with st.spinner("正在重建知识库..."):
                 result = rebuild_knowledge_base()
             st.success(result.get("message", "知识库重建完成。"))
@@ -215,7 +215,7 @@ with rag_tab:
         question = st.text_input("测试问题", placeholder="例如：遵义会议为什么是长征转折点？")
         type_filter = st.selectbox("限定类型（可选）", ["全部", "event", "figure", "place", "route", "faq", "spirit"])
         top_k = st.slider("Top K", min_value=1, max_value=8, value=4)
-        submitted = st.form_submit_button("开始检索调试", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("开始检索调试", width="stretch", type="primary")
 
     if submitted and question.strip():
         filters = {}
@@ -229,21 +229,21 @@ with rag_tab:
             f"**命中数量：** {result.get('hit_count', 0)}"
         )
         if result.get("sources"):
-            st.dataframe(pd.DataFrame(result["sources"]), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(result["sources"]), width="stretch", hide_index=True)
         debug_tabs = st.tabs(["关键词召回", "向量召回", "融合排序", "Context", "回答预览"])
         with debug_tabs[0]:
             if result.get("keyword_hits"):
-                st.dataframe(pd.DataFrame(result["keyword_hits"]), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(result["keyword_hits"]), width="stretch", hide_index=True)
             else:
                 st.info("当前没有关键词召回结果。")
         with debug_tabs[1]:
             if result.get("vector_hits"):
-                st.dataframe(pd.DataFrame(result["vector_hits"]), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(result["vector_hits"]), width="stretch", hide_index=True)
             else:
                 st.info("当前没有向量召回结果。")
         with debug_tabs[2]:
             if result.get("fused_hits"):
-                st.dataframe(pd.DataFrame(result["fused_hits"]), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(result["fused_hits"]), width="stretch", hide_index=True)
             else:
                 st.info("当前没有融合排序结果。")
         with debug_tabs[3]:
@@ -279,7 +279,7 @@ with activity_tab:
                 item,
             ),
         )
-        create_submitted = st.form_submit_button("创建活动", use_container_width=True, type="primary")
+        create_submitted = st.form_submit_button("创建活动", width="stretch", type="primary")
     if create_submitted and name.strip():
         activity = create_activity(
             name=name.strip(),
@@ -344,7 +344,7 @@ with activity_tab:
                     item,
                 ),
             )
-            update_submitted = st.form_submit_button("保存活动修改", use_container_width=True)
+            update_submitted = st.form_submit_button("保存活动修改", width="stretch")
         if update_submitted:
             update_activity(
                 selected_activity_id,
@@ -364,28 +364,28 @@ with activity_tab:
         ranking_rows = get_activity_leaderboard(selected_activity_id, limit=10)
         st.markdown("#### 活动排行榜预览")
         if ranking_rows:
-            st.dataframe(pd.DataFrame(ranking_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(ranking_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动尚无成绩记录。")
 
         team_rows = get_team_leaderboard(selected_activity_id, limit=10)
         st.markdown("#### 红军小队排行榜预览")
         if team_rows:
-            st.dataframe(pd.DataFrame(team_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动尚无红军小队战绩。")
 
         branch_rows = get_branch_pk_board(selected_activity_id, limit=10)
         st.markdown("#### 支部对抗预览")
         if branch_rows:
-            st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(branch_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动尚无支部对抗数据。")
 
         team_list_rows = list_teams(selected_activity_id)
         st.markdown("#### 当前活动小队列表")
         if team_list_rows:
-            st.dataframe(pd.DataFrame(team_list_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(team_list_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有创建小队。")
 
@@ -425,7 +425,7 @@ with content_tab:
             answer = st.text_input("正确答案", value=quiz.get("answer", ""))
             explanation = st.text_area("答案解析", value=quiz.get("explanation", ""), height=140)
             extended_note = st.text_area("延伸知识点", value=quiz.get("extended_note", ""), height=120)
-            save_node_submitted = st.form_submit_button("保存节点与题目修改", use_container_width=True, type="primary")
+            save_node_submitted = st.form_submit_button("保存节点与题目修改", width="stretch", type="primary")
 
         if save_node_submitted:
             for index, item in enumerate(raw_rows):
@@ -465,7 +465,7 @@ with content_tab:
         with preview_right:
             st.markdown("#### FAQ 预览")
             faq_rows = load_faq_items()[:8]
-            st.dataframe(pd.DataFrame(faq_rows)[["question", "answer"]], use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(faq_rows)[["question", "answer"]], width="stretch", hide_index=True)
 
     with faq_subtab:
         faq_rows = _load_faq_rows()
@@ -483,7 +483,7 @@ with content_tab:
                 faq_answer = st.text_area("答案", value=selected_faq.get("answer", ""), height=160)
                 faq_keywords = st.text_input("关键词（用顿号分隔）", value=selected_faq.get("keywords", ""))
                 faq_type = st.selectbox("类型", ["faq", "event", "spirit"], index=["faq", "event", "spirit"].index(selected_faq.get("type", "faq")) if selected_faq.get("type", "faq") in ["faq", "event", "spirit"] else 0)
-                save_faq_submitted = st.form_submit_button("保存 FAQ 修改", use_container_width=True)
+                save_faq_submitted = st.form_submit_button("保存 FAQ 修改", width="stretch")
             if save_faq_submitted:
                 faq_rows[faq_index] = {
                     **selected_faq,
@@ -539,7 +539,7 @@ with content_tab:
             figure_alt = st.text_input("图片替代文本", value=figure_seed.get("image_alt", ""))
             figure_caption = st.text_input("图片说明", value=figure_seed.get("image_caption", ""))
             figure_remote = st.text_input("远程图片 URL", value=figure_seed.get("remote_image_url", ""))
-            save_figure = st.form_submit_button("保存人物专题", use_container_width=True, type="primary")
+            save_figure = st.form_submit_button("保存人物专题", width="stretch", type="primary")
         if save_figure and figure_title.strip():
             row = {
                 **figure_seed,
@@ -569,7 +569,7 @@ with content_tab:
         if preview_figures:
             st.dataframe(
                 pd.DataFrame(preview_figures)[["title", "role", "route_stage", "summary"]],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -610,7 +610,7 @@ with content_tab:
             spirit_alt = st.text_input("图片替代文本", value=spirit_seed.get("image_alt", ""))
             spirit_caption = st.text_input("图片说明", value=spirit_seed.get("image_caption", ""))
             spirit_remote = st.text_input("远程图片 URL", value=spirit_seed.get("remote_image_url", ""))
-            save_spirit = st.form_submit_button("保存精神专题", use_container_width=True, type="primary")
+            save_spirit = st.form_submit_button("保存精神专题", width="stretch", type="primary")
         if save_spirit and spirit_title.strip():
             row = {
                 **spirit_seed,
@@ -638,7 +638,7 @@ with content_tab:
         if preview_spirits:
             st.dataframe(
                 pd.DataFrame(preview_spirits)[["title", "route_stage", "summary"]],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -680,69 +680,69 @@ with data_tab:
         else:
             st.info("当前暂无节点热度数据。")
 
-    st.page_link("pages/12_数据大屏.py", label="打开数据大屏页", use_container_width=True)
+    st.page_link("pages/12_数据大屏.py", label="打开数据大屏页", width="stretch")
 
     if global_rows:
         st.markdown("#### 全局排行榜数据")
-        st.dataframe(pd.DataFrame(global_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(global_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出全局排行榜 CSV",
             data=export_leaderboard_csv(""),
             file_name="global_leaderboard.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     else:
         st.info("暂无全局排行榜数据。")
 
     if activity_rows:
         st.markdown("#### 当前活动排行榜数据")
-        st.dataframe(pd.DataFrame(activity_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(activity_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动排行榜 CSV",
             data=export_leaderboard_csv(st.session_state.get("current_activity_id", "")),
             file_name="activity_leaderboard.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     else:
         st.info("当前活动暂无排行榜数据。")
 
     if unit_rows:
         st.markdown("#### 当前活动单位排行")
-        st.dataframe(pd.DataFrame(unit_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(unit_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动单位排行 CSV",
             data=export_rows_to_csv(unit_rows),
             file_name="unit_leaderboard.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     else:
         st.info("当前活动暂无单位排行数据。")
 
     if team_rows:
         st.markdown("#### 当前活动红军小队排行")
-        st.dataframe(pd.DataFrame(team_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动小队排行 CSV",
             data=export_rows_to_csv(export_team_rows(st.session_state.get("current_activity_id", ""))),
             file_name="team_leaderboard.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     else:
         st.info("当前活动暂无小队排行数据。")
 
     if branch_rows:
         st.markdown("#### 当前活动支部对抗榜")
-        st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(branch_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动支部对抗 CSV",
             data=export_rows_to_csv(export_branch_rows(st.session_state.get("current_activity_id", ""))),
             file_name="branch_pk_board.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     else:
         st.info("当前活动暂无支部对抗数据。")
@@ -766,14 +766,14 @@ with data_tab:
         ),
         file_name="route_question_bank.csv",
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
     )
     st.download_button(
         "导出大屏数据 JSON",
         data=json.dumps(dashboard_payload, ensure_ascii=False, indent=2),
         file_name="dashboard_payload.json",
         mime="application/json",
-        use_container_width=True,
+        width="stretch",
     )
 
 with status_tab:
@@ -793,7 +793,7 @@ with status_tab:
         for item in provider_configs
     ]
     st.markdown("#### Provider 状态")
-    st.dataframe(pd.DataFrame(provider_rows), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(provider_rows), width="stretch", hide_index=True)
     st.caption(f"配置目录：{CONFIG_DIR}")
 
     st.markdown("#### RAG 样例")

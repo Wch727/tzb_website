@@ -46,7 +46,7 @@ render_section("征程篇章", "不再以单一列表罗列节点，而是按历
 chapter_nav_cols = st.columns(max(1, len(chapters)))
 for index, chapter in enumerate(chapters):
     with chapter_nav_cols[index]:
-        if st.button(chapter.get("title", ""), key=f"chapter_nav_{chapter.get('id')}", use_container_width=True):
+        if st.button(chapter.get("title", ""), key=f"chapter_nav_{chapter.get('id')}", width="stretch"):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.rerun()
 
@@ -60,7 +60,7 @@ for chapter in chapters:
             st.markdown(f"#### {node.get('title', '')}")
             st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
             st.write(node.get("summary", ""))
-            if st.button("查看详情", key=f"chapter_node_{node.get('id')}", use_container_width=True):
+            if st.button("查看详情", key=f"chapter_node_{node.get('id')}", width="stretch"):
                 st.session_state["selected_chapter_id"] = chapter.get("id", "")
                 st.session_state["selected_node_id"] = node.get("id", "")
                 st.rerun()
@@ -86,7 +86,7 @@ if selected_node:
     )
     action_left, action_right = st.columns(2)
     with action_left:
-        if st.button("从该节点进入互动题", use_container_width=True, type="primary"):
+        if st.button("从该节点进入互动题", width="stretch", type="primary"):
             story_state = create_story_state(
                 role_id=st.session_state.get("selected_role_id", "scout"),
                 activity_id=st.session_state.get("current_activity_id", ""),
@@ -95,5 +95,5 @@ if selected_node:
             st.session_state["story_state"] = set_story_checkpoint(story_state, selected_node_id)
             st.switch_page("pages/4_剧情答题.py")
     with action_right:
-        if st.button("进入知识百问", use_container_width=True):
+        if st.button("进入知识百问", width="stretch"):
             st.switch_page("pages/5_知识库.py")

@@ -55,13 +55,13 @@ with tab1:
     with quick_left:
         render_section("推荐问题", "从高频问题开始进入长征知识脉络。")
         for index, question in enumerate(get_recommended_questions(limit=6)):
-            if st.button(question, key=f"knowledge_hot_{index}", use_container_width=True):
+            if st.button(question, key=f"knowledge_hot_{index}", width="stretch"):
                 st.session_state["pending_question"] = question
     with quick_right:
         render_section("节点相关问题", "当你已经在浏览某个节点时，可以沿着该节点继续发问。")
         if selected_node:
             for index, question in enumerate(build_node_related_questions(selected_node, limit=4)):
-                if st.button(question, key=f"knowledge_node_q_{index}", use_container_width=True):
+                if st.button(question, key=f"knowledge_node_q_{index}", width="stretch"):
                     st.session_state["pending_question"] = question
         else:
             st.info("先从路线页选择一个节点，这里会自动出现该节点的相关追问。")
@@ -117,7 +117,7 @@ with tab2:
             with card_cols[index % 3]:
                 st.markdown(f"**{item.get('title', item.get('question', ''))}**")
                 st.write(item.get("summary", item.get("answer", "")))
-                if item.get("id") and st.button("查看展项", key=f"knowledge_node_{item.get('id')}", use_container_width=True):
+                if item.get("id") and st.button("查看展项", key=f"knowledge_node_{item.get('id')}", width="stretch"):
                     st.session_state["selected_node_id"] = item.get("id", "")
                     st.rerun()
     else:

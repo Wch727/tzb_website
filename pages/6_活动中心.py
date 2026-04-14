@@ -100,16 +100,16 @@ with left:
 
     button_cols = st.columns(4)
     with button_cols[0]:
-        if st.button("选择角色", use_container_width=True):
+        if st.button("选择角色", width="stretch"):
             st.switch_page("pages/2_角色选择.py")
     with button_cols[1]:
-        if st.button("进入路线", use_container_width=True):
+        if st.button("进入路线", width="stretch"):
             st.switch_page("pages/3_长征路线.py")
     with button_cols[2]:
-        if st.button("开始答题", use_container_width=True, type="primary"):
+        if st.button("开始答题", width="stretch", type="primary"):
             st.switch_page("pages/4_剧情答题.py")
     with button_cols[3]:
-        if st.button("查看排行榜", use_container_width=True):
+        if st.button("查看排行榜", width="stretch"):
             st.switch_page("pages/7_排行榜.py")
 
 with right:
@@ -138,14 +138,14 @@ with info_tab:
     render_section("活动个人榜预览", "适合课堂竞赛和现场展示，便于快速看到本活动中的个人表现。")
     ranking = get_activity_leaderboard(current_activity_id, limit=8)
     if ranking:
-        st.dataframe(pd.DataFrame(ranking), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(ranking), width="stretch", hide_index=True)
     else:
         st.info("当前活动还没有成绩记录。完成一次剧情答题后，这里将自动出现活动排行榜。")
 
     render_section("班级/单位榜预览", "可直接展示班级、单位或学习小组的聚合成绩。")
     unit_rows = get_unit_leaderboard(current_activity_id, limit=8)
     if unit_rows:
-        st.dataframe(pd.DataFrame(unit_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(unit_rows), width="stretch", hide_index=True)
     else:
         st.info("当前活动还没有班级/单位排行数据。")
 
@@ -165,14 +165,14 @@ with team_tab:
                 st.markdown("### 当前小队成员贡献")
                 member_rows = build_team_member_summary(current_team.get("team_id", ""))
                 if member_rows:
-                    st.dataframe(pd.DataFrame(member_rows), use_container_width=True, hide_index=True)
+                    st.dataframe(pd.DataFrame(member_rows), width="stretch", hide_index=True)
             with team_right:
                 st.markdown("### 当前小队战力")
                 st.metric("小队总分", current_team.get("total_score", 0))
                 st.metric("小队粮草", current_team.get("total_grain", 0))
                 st.metric("累计作答", current_team.get("answered_count", 0))
                 st.metric("正确率", f"{round((current_team.get('correct_count', 0) / max(current_team.get('answered_count', 1), 1)) * 100, 1)}%")
-                if st.button("退出当前小队", use_container_width=True):
+                if st.button("退出当前小队", width="stretch"):
                     leave_team(current_team.get("team_id", ""), st.session_state.get("user_name", "红色学习者"))
                     _sync_current_team(current_activity_id)
                     st.success("已退出当前小队。")
@@ -185,7 +185,7 @@ with team_tab:
                 team_name = st.text_input("小队名称", placeholder="例如：赤水先锋队")
                 branch_name = st.text_input("所属支部/单位", value=st.session_state.get("unit_name", "体验组"))
                 slogan = st.text_input("小队口号", placeholder="例如：重走长征路，争当先锋队")
-                create_submitted = st.form_submit_button("创建并加入小队", use_container_width=True, type="primary")
+                create_submitted = st.form_submit_button("创建并加入小队", width="stretch", type="primary")
             if create_submitted and team_name.strip():
                 team = create_team(
                     activity_id=current_activity_id,
@@ -213,7 +213,7 @@ with team_tab:
                         f"队员 {len(item.get('members', []))}/{item.get('max_team_size', 6)} | "
                         f"总分 {item.get('total_score', 0)}"
                     )
-                    if st.button(f"加入 {item.get('team_name', '')}", key=f"join_{item.get('team_id')}", use_container_width=True):
+                    if st.button(f"加入 {item.get('team_name', '')}", key=f"join_{item.get('team_id')}", width="stretch"):
                         joined = join_team(
                             team_id=item.get("team_id", ""),
                             user_name=st.session_state.get("user_name", "红色学习者"),
@@ -233,7 +233,7 @@ with team_tab:
         render_section("小队排行榜", "多名队员分别完成节点作答后，会自动合并为队伍协作成绩。")
         team_rows = get_team_leaderboard(current_activity_id, limit=10)
         if team_rows:
-            st.dataframe(pd.DataFrame(team_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有小队战绩。")
 
@@ -256,7 +256,7 @@ with pk_tab:
                 for item in pk_rows[:4]
             ]
             render_cards(top_cards)
-            st.dataframe(pd.DataFrame(pk_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(pk_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有支部 PK 数据。先创建小队并完成答题后即可形成对抗榜。")
 
@@ -272,7 +272,7 @@ with share_tab:
     with share_left:
         st.markdown("### 个人战绩分享")
         st.text_area("个人分享文案", value=personal_share, height=130)
-        if st.button("记录个人分享播报", use_container_width=True, disabled=not personal_share):
+        if st.button("记录个人分享播报", width="stretch", disabled=not personal_share):
             record_share_event(
                 user_name=st.session_state.get("user_name", "红色学习者"),
                 unit_name=st.session_state.get("unit_name", "体验组"),
@@ -287,7 +287,7 @@ with share_tab:
     with share_right:
         st.markdown("### 小队战绩分享")
         st.text_area("小队分享文案", value=team_share, height=130)
-        if st.button("记录小队分享播报", use_container_width=True, disabled=not team_share):
+        if st.button("记录小队分享播报", width="stretch", disabled=not team_share):
             record_share_event(
                 user_name=st.session_state.get("user_name", "红色学习者"),
                 unit_name=st.session_state.get("unit_name", "体验组"),
@@ -303,6 +303,6 @@ with share_tab:
     render_section("实时战绩播报流", "这里展示最近的小队协作贡献和战绩分享事件，可直接作为主持口播素材或活动播报内容。")
     live_rows = build_live_battle_rows(hours=48, limit=12)
     if live_rows:
-        st.dataframe(pd.DataFrame(live_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
     else:
         st.info("当前还没有可展示的实时战绩播报。")

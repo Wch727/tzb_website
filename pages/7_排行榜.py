@@ -38,7 +38,7 @@ def _render_rank_board(current_activity_id: str) -> None:
         render_section("全服实时排行榜", "展示近期学习表现最突出的用户与队伍，适合课堂、活动和集中展示场景。")
         rows = get_live_leaderboard(activity_id="", limit=20, hours=72)
         if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
             st.info("暂无全服实时成绩记录。")
 
@@ -48,7 +48,7 @@ def _render_rank_board(current_activity_id: str) -> None:
             st.caption(f"当前活动：{activity.get('name', '')} | {activity.get('mode', '')}")
         rows = get_activity_leaderboard(current_activity_id, limit=20) if current_activity_id else []
         if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有成绩记录。")
 
@@ -56,7 +56,7 @@ def _render_rank_board(current_activity_id: str) -> None:
         render_section("红军小队榜", "多名队员分别完成剧情关卡后，会自动汇总到小队总分，用于展示协作答题效果。")
         rows = get_team_leaderboard(current_activity_id, limit=20) if current_activity_id else []
         if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有小队战绩。")
 
@@ -64,7 +64,7 @@ def _render_rank_board(current_activity_id: str) -> None:
         render_section("支部对抗榜", "以支部或单位为聚合维度，展示组织化学习对抗的阶段结果。")
         rows = get_branch_pk_board(current_activity_id, limit=20) if current_activity_id else []
         if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有支部对抗成绩。")
 
@@ -72,7 +72,7 @@ def _render_rank_board(current_activity_id: str) -> None:
         render_section("班级/单位榜", "把个人战绩按班级、单位或学习小组聚合，更贴近真实组织化活动的展示方式。")
         rows = get_unit_leaderboard(current_activity_id, limit=20) if current_activity_id else []
         if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有班级/单位排行数据。")
 
@@ -82,7 +82,7 @@ def _render_rank_board(current_activity_id: str) -> None:
         with live_left:
             live_rows = build_live_battle_rows(hours=48, limit=12)
             if live_rows:
-                st.dataframe(pd.DataFrame(live_rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
             else:
                 st.info("当前还没有实时战绩流。")
         with live_right:
@@ -98,7 +98,7 @@ def _render_rank_board(current_activity_id: str) -> None:
             st.markdown("### 最近个人战绩")
             battle_rows = get_user_battles(user_name, limit=6)
             if battle_rows:
-                st.dataframe(pd.DataFrame(battle_rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(battle_rows), width="stretch", hide_index=True)
             else:
                 st.info("当前用户还没有战绩记录。")
 
@@ -130,7 +130,7 @@ refresh_left, refresh_right = st.columns([1, 2])
 with refresh_left:
     auto_refresh = st.toggle("自动刷新", value=True, help="开启后排行榜每 12 秒自动刷新一次。")
 with refresh_right:
-    if st.button("立即刷新排行", use_container_width=True):
+    if st.button("立即刷新排行", width="stretch"):
         st.rerun()
 
 if auto_refresh and hasattr(st, "fragment"):
