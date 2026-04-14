@@ -30,6 +30,12 @@ def _jump_to_node(node_id: str) -> None:
     st.switch_page("pages/3_长征路线.py")
 
 
+def _jump_to_figure(name: str) -> None:
+    """记录用户想查看的人物并跳转。"""
+    st.session_state["selected_figure_name"] = name
+    st.switch_page("pages/13_人物专题.py")
+
+
 setup_page("首页", icon="🏛️")
 render_top_nav("首页")
 
@@ -251,6 +257,8 @@ for index, item in enumerate(sample.get("figure_cards", [])[:6]):
         st.caption(item.get("role", "重要人物"))
         st.write(item.get("summary", ""))
         st.markdown(f"<div class='small-muted'>{item.get('significance', '')[:88]}...</div>", unsafe_allow_html=True)
+        if st.button("查看人物专题", key=f"home_figure_{item.get('title', '')}", width="stretch"):
+            _jump_to_figure(item.get("title", ""))
 
 render_section("长征精神专题", "把路线、事件与精神内涵联系起来，形成更完整的学习纵深。")
 spirit_cols = st.columns(3)

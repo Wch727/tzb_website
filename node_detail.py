@@ -82,6 +82,12 @@ def _render_figure_block(node: Dict[str, Any]) -> None:
             )
         )
     st.markdown(f"<div class='card-grid'>{''.join(chips)}</div>", unsafe_allow_html=True)
+    cols = st.columns(min(4, len(figures)))
+    for index, name in enumerate(figures):
+        with cols[index % len(cols)]:
+            if st.button(f"查看{name}专题", key=f"figure_detail::{node.get('id', '')}::{name}", width="stretch"):
+                st.session_state["selected_figure_name"] = name
+                st.switch_page("pages/13_人物专题.py")
 
 
 def _render_key_points(node: Dict[str, Any]) -> None:

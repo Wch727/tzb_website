@@ -617,6 +617,7 @@ def init_session_state() -> None:
         "user_name": "红色学习者",
         "unit_name": "体验组",
         "user_role": "大学生",
+        "selected_figure_name": "毛泽东",
         "selected_provider_name": default_provider,
         "selected_topic_label": "综合导览",
         "session_api_keys": {},
@@ -686,6 +687,7 @@ def render_minimal_sidebar() -> None:
         st.page_link("pages/10_测试体验.py", label="导览速览")
         st.page_link("pages/11_讲解生成.py", label="讲解工坊")
         st.page_link("pages/12_数据大屏.py", label="数据大屏")
+        st.page_link("pages/13_人物专题.py", label="人物专题")
         st.markdown("<div class='nav-caption'>侧栏仅保留导航与当前状态，主要内容均在页面主体中展开。</div>", unsafe_allow_html=True)
         st.divider()
         st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
