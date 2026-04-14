@@ -14,6 +14,8 @@ from streamlit_ui import (
     build_current_provider_config,
     render_chapter_overview_cards,
     render_curatorial_note,
+    render_feature_ribbon,
+    render_gallery_frame,
     render_hero,
     render_ledger_cards,
     render_section,
@@ -46,6 +48,25 @@ selected_chapter = next((item for item in chapters if item.get("id") == st.sessi
 
 render_section("征程篇章", "先看全线篇章，再进入当前展区。每个篇章都以明确的历史任务和关键节点组织。")
 render_chapter_overview_cards(chapters, active_id=selected_chapter.get("id", ""))
+render_feature_ribbon(
+    [
+        {
+            "label": selected_chapter.get("badge", "篇章"),
+            "title": selected_chapter.get("title", "长征路线"),
+            "desc": selected_chapter.get("subtitle", "按篇章进入主线节点，逐步理解长征的战略变化与历史意义。"),
+        },
+        {
+            "label": "阅读方式",
+            "title": "先篇章后节点",
+            "desc": "先把握本篇章的任务和转折，再进入具体节点，避免在碎片信息中来回跳转。",
+        },
+        {
+            "label": "互动方式",
+            "title": "看展项再答题",
+            "desc": "每个节点既可展开图文阅读，也可进入互动题，把导览体验直接转化成学习反馈。",
+        },
+    ]
+)
 
 if allowed_node_ids:
     render_curatorial_note(
@@ -61,6 +82,7 @@ for index, chapter in enumerate(chapters):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.rerun()
 
+render_gallery_frame("当前篇章展厅", "把本篇章作为一个独立展区来浏览：先看策展导语，再看节点序列，最后进入具体展项详情。")
 chapter_left, chapter_right = st.columns([1.1, 0.95])
 with chapter_left:
     render_curatorial_note(
@@ -83,6 +105,10 @@ with chapter_right:
         render_node_image(
             lead_node,
             caption=f"{selected_chapter.get('title', '')}篇章入口展项",
+        )
+        st.markdown(
+            f"<div class='small-muted'>推荐首先进入：{lead_node.get('title', '')}。该节点通常最能概括本篇章的历史任务与转折意义。</div>",
+            unsafe_allow_html=True,
         )
 
 render_section("本篇章展项", "当前只展开一个篇章，让浏览像进入一个独立展区，而不是在所有节点里来回跳转。")

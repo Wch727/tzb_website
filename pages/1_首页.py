@@ -12,6 +12,8 @@ from streamlit_ui import (
     render_chapter_overview_cards,
     render_curatorial_note,
     render_detail_panels,
+    render_feature_ribbon,
+    render_gallery_frame,
     render_hero,
     render_ledger_cards,
     render_metrics,
@@ -85,6 +87,26 @@ render_metrics(
     ]
 )
 
+render_feature_ribbon(
+    [
+        {
+            "label": "主展定位",
+            "title": "以路线为主轴",
+            "desc": "从出发、转折、突破到会师，网站采用章节式展陈结构，而不是零散知识点堆叠。",
+        },
+        {
+            "label": "学习方式",
+            "title": "以题带学",
+            "desc": "通过节点阅读、知识百问、讲解生成与互动答题，把浏览体验转化为学习过程。",
+        },
+        {
+            "label": "阅读路径",
+            "title": "先主线，后专题",
+            "desc": "推荐先看长征主线，再进入人物、精神、讲解与活动入口，形成更完整的认知链路。",
+        },
+    ]
+)
+
 render_section("主展结构", "借鉴数字展的章节化组织方式，先看篇章，再进入展项，帮助用户形成更稳定的学习路线。")
 render_chapter_overview_cards(chapters)
 
@@ -105,6 +127,7 @@ render_detail_panels(
     ]
 )
 
+render_gallery_frame("重点展项导览", "从最能代表长征转折、战略机动和胜利会师的节点切入，快速建立主线认识。")
 render_section("重点展项", "优先从最能代表长征主线与历史转折的节点进入，建立整条征程的基本认识。")
 featured_nodes = sample.get("featured_nodes", [])
 feature_cols = st.columns(3)
@@ -117,6 +140,26 @@ for index, node in enumerate(featured_nodes):
         st.markdown(f"<div class='small-muted'>{node.get('significance', '')[:80]}...</div>", unsafe_allow_html=True)
         if st.button("进入展项", key=f"home_featured_{node.get('id')}", width="stretch"):
             _jump_to_node(node.get("id", ""))
+
+render_feature_ribbon(
+    [
+        {
+            "label": "序厅导览",
+            "title": "从路线总览进入",
+            "desc": "先看全线，再进入四大篇章中的具体节点，更容易把握长征的整体逻辑。",
+        },
+        {
+            "label": "重点建议",
+            "title": "优先看转折节点",
+            "desc": "湘江战役、遵义会议、四渡赤水与泸定桥，是最适合快速理解长征精神与战略转折的展项。",
+        },
+        {
+            "label": "延展阅读",
+            "title": "人物与精神专题",
+            "desc": "在主线基础上继续看人物专题与长征精神，可把节点理解提升到更完整的历史叙事层面。",
+        },
+    ]
+)
 
 render_section("长征路线总览", "四个篇章共同构成主展展线。每个篇章既有清晰的历史任务，也有代表性的关键展项。")
 chapter_cols = st.columns(4)
@@ -158,6 +201,7 @@ with route_right:
     for item in sample.get("recommended_route", [])[:4]:
         st.markdown(f"- {item}")
 
+render_gallery_frame("人物与专题展区", "在主线之外，从人物线索与精神专题进入第二层阅读，更接近数字展中的专题分展。")
 render_section("重要人物", "人物专题不是附属内容，而是理解长征决策、组织、战斗和精神内核的重要入口。")
 figure_cols = st.columns(3)
 for index, item in enumerate(sample.get("figure_cards", [])[:6]):
@@ -174,6 +218,26 @@ for index, item in enumerate(sample.get("spirit_topics", [])[:6]):
     with spirit_cols[index % 3]:
         st.markdown(f"### {item.get('title', '')}")
         st.write(item.get("summary", ""))
+
+render_feature_ribbon(
+    [
+        {
+            "label": "推荐问题",
+            "title": "从问题进入历史",
+            "desc": "围绕“为什么开始、为何转折、精神何在”这些核心问题阅读，更容易建立知识框架。",
+        },
+        {
+            "label": "示范讲解",
+            "title": "从讲解进入表达",
+            "desc": "通过示范讲解稿与脚本，把静态史料组织成可讲述、可展示、可传播的内容。",
+        },
+        {
+            "label": "速览入口",
+            "title": "从导览进入全站",
+            "desc": "导览速览页适合第一次体验、课堂展示与答辩讲述，能快速浏览整站核心路径。",
+        },
+    ]
+)
 
 render_section("推荐学习内容", "首页不仅是入口页，也承担导学作用。通过推荐问题、示范讲解与阶段路线，用户可以快速找到合适的进入方式。")
 tab1, tab2, tab3, tab4 = st.tabs(["推荐问题", "示范讲解", "推荐学习路线", "导览速览"])

@@ -340,6 +340,57 @@ def inject_custom_css() -> None:
             line-height: 1.8;
             font-size: 0.94rem;
         }
+        .feature-ribbon {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin: 0.85rem 0 1.2rem;
+        }
+        .feature-shell {
+            background: linear-gradient(180deg, rgba(255, 251, 245, 0.94), rgba(248, 239, 225, 0.9));
+            border: 1px solid rgba(154, 113, 61, 0.2);
+            border-radius: 24px;
+            padding: 1rem 1.05rem;
+            box-shadow: 0 14px 34px rgba(72, 48, 29, 0.08);
+        }
+        .feature-kicker {
+            color: #8b6b4d;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.32rem;
+        }
+        .feature-headline {
+            color: #4b2119;
+            font-size: 1.08rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .feature-body {
+            color: #5a5047;
+            line-height: 1.72;
+            font-size: 0.92rem;
+        }
+        .gallery-frame {
+            border-radius: 28px;
+            padding: 1rem 1.05rem;
+            background: linear-gradient(180deg, rgba(255, 250, 243, 0.88), rgba(247, 236, 219, 0.84));
+            border: 1px solid rgba(154, 113, 61, 0.16);
+            box-shadow: 0 14px 34px rgba(72, 48, 29, 0.06);
+            margin: 0.85rem 0 1.2rem;
+        }
+        .gallery-title {
+            color: #4b2119;
+            font-size: 1.08rem;
+            font-weight: 700;
+            margin-bottom: 0.18rem;
+        }
+        .gallery-subtitle {
+            color: #6f5c4c;
+            font-size: 0.92rem;
+            line-height: 1.72;
+            margin-bottom: 0.85rem;
+        }
         .ledger-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -787,6 +838,25 @@ def render_detail_panels(items: List[Dict[str, str]]) -> None:
         st.markdown(f"<div class='detail-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
 
 
+def render_feature_ribbon(items: List[Dict[str, str]]) -> None:
+    """渲染首页或篇章摘要带。"""
+    cards: List[str] = []
+    for item in items:
+        cards.append(
+            _clean_html(
+                f"""
+                <div class="feature-shell">
+                    <div class="feature-kicker">{html.escape(str(item.get('label', '')))}</div>
+                    <div class="feature-headline">{html.escape(str(item.get('title', '')))}</div>
+                    <div class="feature-body">{html.escape(str(item.get('desc', '')))}</div>
+                </div>
+                """
+            )
+        )
+    if cards:
+        st.markdown(f"<div class='feature-ribbon'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
 def render_ledger_cards(items: List[Dict[str, str]]) -> None:
     """渲染路线或展项清单卡。"""
     cards: List[str] = []
@@ -804,6 +874,21 @@ def render_ledger_cards(items: List[Dict[str, str]]) -> None:
         )
     if cards:
         st.markdown(f"<div class='ledger-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
+def render_gallery_frame(title: str, subtitle: str = "") -> None:
+    """渲染展厅框架标题。"""
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="gallery-frame">
+                <div class="gallery-title">{html.escape(title)}</div>
+                <div class="gallery-subtitle">{html.escape(subtitle)}</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def render_model_banner() -> None:
