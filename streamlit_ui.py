@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import base64
 import html
+import mimetypes
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List
 
@@ -46,10 +48,23 @@ def _background_image_uri() -> str:
     for path in candidates:
         if not path.exists():
             continue
-        mime = "image/svg+xml" if path.suffix.lower() == ".svg" else "image/jpeg"
-        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
-        return f"data:{mime};base64,{encoded}"
+        return _asset_to_data_uri(path)
     return ""
+
+
+def _asset_to_data_uri(path_like: Any) -> str:
+    """将本地素材转换为 data URI。"""
+    path = path_like if isinstance(path_like, str) else str(path_like)
+    candidate = BASE_DIR / path if not str(path).startswith(str(BASE_DIR)) else Path(path)
+    if not candidate.exists():
+        candidate = BASE_DIR / str(path).lstrip("./")
+    if not candidate.exists():
+        return ""
+    mime, _ = mimetypes.guess_type(str(candidate))
+    if candidate.suffix.lower() == ".svg":
+        mime = "image/svg+xml"
+    encoded = base64.b64encode(candidate.read_bytes()).decode("ascii")
+    return f"data:{mime or 'application/octet-stream'};base64,{encoded}"
 
 
 def inject_custom_css() -> None:
@@ -390,6 +405,149 @@ def inject_custom_css() -> None:
             font-size: 0.92rem;
             line-height: 1.72;
             margin-bottom: 0.85rem;
+        }
+        .exhibition-hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 34px;
+            min-height: 460px;
+            padding: 2rem 2rem 1.75rem;
+            margin: 0.4rem 0 1.1rem;
+            background:
+                linear-gradient(110deg, rgba(55, 21, 16, 0.88) 0%, rgba(92, 34, 24, 0.84) 42%, rgba(138, 71, 41, 0.56) 72%, rgba(248, 234, 212, 0.12) 100%),
+                linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22));
+            border: 1px solid rgba(255, 240, 220, 0.16);
+            box-shadow: 0 26px 64px rgba(67, 29, 20, 0.22);
+            color: #fff9f0;
+        }
+        .exhibition-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: var(--hero-image);
+            background-size: cover;
+            background-position: center center;
+            opacity: 0.3;
+            transform: scale(1.04);
+            filter: saturate(0.96) contrast(1.02);
+            z-index: 0;
+        }
+        .exhibition-hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -80px -80px auto;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 214, 147, 0.22) 0%, rgba(255,214,147,0.04) 60%, transparent 72%);
+            z-index: 0;
+        }
+        .exhibition-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.85fr);
+            gap: 1.2rem;
+            align-items: stretch;
+        }
+        .exhibition-kicker {
+            color: rgba(255, 233, 199, 0.92);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-size: 0.82rem;
+            margin-bottom: 0.55rem;
+        }
+        .exhibition-title {
+            font-size: 2.7rem;
+            line-height: 1.16;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            max-width: 760px;
+        }
+        .exhibition-subtitle {
+            color: rgba(255, 246, 232, 0.92);
+            font-size: 1rem;
+            line-height: 1.92;
+            max-width: 760px;
+            margin-bottom: 1rem;
+        }
+        .exhibition-tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-bottom: 1.1rem;
+        }
+        .exhibition-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.36rem 0.82rem;
+            border-radius: 999px;
+            background: rgba(255, 248, 236, 0.12);
+            border: 1px solid rgba(255, 244, 228, 0.22);
+            font-size: 0.86rem;
+        }
+        .exhibition-storyline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.7rem;
+        }
+        .exhibition-story-card {
+            padding: 0.85rem 0.95rem;
+            border-radius: 20px;
+            background: rgba(255, 248, 236, 0.1);
+            border: 1px solid rgba(255, 244, 228, 0.16);
+            backdrop-filter: blur(4px);
+        }
+        .exhibition-story-label {
+            font-size: 0.82rem;
+            color: rgba(255, 226, 191, 0.88);
+            margin-bottom: 0.24rem;
+        }
+        .exhibition-story-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.18rem;
+        }
+        .exhibition-story-desc {
+            font-size: 0.88rem;
+            line-height: 1.68;
+            color: rgba(255, 246, 232, 0.9);
+        }
+        .exhibition-side-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.9rem;
+        }
+        .exhibition-side-card {
+            padding: 1rem 1rem 0.95rem;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 248, 236, 0.14), rgba(255, 248, 236, 0.08));
+            border: 1px solid rgba(255, 243, 223, 0.18);
+            backdrop-filter: blur(6px);
+        }
+        .exhibition-side-kicker {
+            color: rgba(255, 226, 191, 0.86);
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+        }
+        .exhibition-side-title {
+            font-size: 1.18rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .exhibition-side-text {
+            color: rgba(255, 245, 231, 0.92);
+            font-size: 0.92rem;
+            line-height: 1.78;
+        }
+        .exhibition-side-points {
+            margin-top: 0.55rem;
+            padding-left: 1rem;
+        }
+        .exhibition-side-points li {
+            margin-bottom: 0.28rem;
+            color: rgba(255, 245, 231, 0.9);
         }
         .ledger-grid {
             display: grid;
@@ -884,6 +1042,63 @@ def render_gallery_frame(title: str, subtitle: str = "") -> None:
             <div class="gallery-frame">
                 <div class="gallery-title">{html.escape(title)}</div>
                 <div class="gallery-subtitle">{html.escape(subtitle)}</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def render_exhibition_hero(
+    *,
+    title: str,
+    subtitle: str,
+    background_path: str,
+    tags: List[str],
+    storyline_items: List[Dict[str, str]],
+    side_title: str,
+    side_text: str,
+    side_points: List[str],
+) -> None:
+    """渲染更具展厅感的首页第一屏。"""
+    background_uri = _asset_to_data_uri(background_path)
+    tag_markup = "".join(
+        f"<span class='exhibition-tag'>{html.escape(item)}</span>" for item in tags if item
+    )
+    story_markup = "".join(
+        _clean_html(
+            f"""
+            <div class="exhibition-story-card">
+                <div class="exhibition-story-label">{html.escape(str(item.get('label', '展线')))}</div>
+                <div class="exhibition-story-title">{html.escape(str(item.get('title', '')))}</div>
+                <div class="exhibition-story-desc">{html.escape(str(item.get('desc', '')))}</div>
+            </div>
+            """
+        )
+        for item in storyline_items
+    )
+    point_markup = "".join(f"<li>{html.escape(item)}</li>" for item in side_points if item)
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="exhibition-hero" style="--hero-image: url('{background_uri}');">
+                <div class="exhibition-hero-inner">
+                    <div>
+                        <div class="exhibition-kicker">Thematic Exhibition Entrance</div>
+                        <div class="exhibition-title">{html.escape(title)}</div>
+                        <div class="exhibition-subtitle">{html.escape(subtitle)}</div>
+                        <div class="exhibition-tag-row">{tag_markup}</div>
+                        <div class="exhibition-storyline">{story_markup}</div>
+                    </div>
+                    <div class="exhibition-side-panel">
+                        <div class="exhibition-side-card">
+                            <div class="exhibition-side-kicker">策展说明</div>
+                            <div class="exhibition-side-title">{html.escape(side_title)}</div>
+                            <div class="exhibition-side-text">{html.escape(side_text)}</div>
+                            <ul class="exhibition-side-points">{point_markup}</ul>
+                        </div>
+                    </div>
+                </div>
             </div>
             """
         ),

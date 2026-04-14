@@ -12,9 +12,9 @@ from streamlit_ui import (
     render_chapter_overview_cards,
     render_curatorial_note,
     render_detail_panels,
+    render_exhibition_hero,
     render_feature_ribbon,
     render_gallery_frame,
-    render_hero,
     render_ledger_cards,
     render_metrics,
     render_section,
@@ -38,33 +38,47 @@ models = get_visible_user_models()
 sample = load_home_sample_content()
 chapters = get_route_chapters()
 total_nodes = sum(len(item.get("nodes", [])) for item in chapters)
+featured_nodes = sample.get("featured_nodes", [])
+lead_node = featured_nodes[0] if featured_nodes else {}
 
-render_hero(
+render_exhibition_hero(
     title="《长征史》交互式导览与闯关学习系统",
     subtitle=(
-        "以长征主线为展陈骨架，把路线导览、知识百问、讲解生成与互动答题组织成一个可浏览、可学习、可参与的线上主题展。"
+        "以长征主线为展陈骨架，把路线导览、知识百问、讲解生成与互动答题组织成一个更接近数字展馆入口的线上主题展。"
     ),
-    badges=["主线导览", "展项浏览", "知识百问", "互动闯关", "图文音一体"],
+    background_path=lead_node.get("image", "") or sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg"),
+    tags=["主线导览", "展项浏览", "知识百问", "互动闯关", "图文音一体"],
+    storyline_items=[
+        {"label": chapter.get("badge", "篇章"), "title": chapter.get("title", ""), "desc": chapter.get("subtitle", "")[:42]}
+        for chapter in chapters[:4]
+    ],
+    side_title=lead_node.get("title", "长征主线导览"),
+    side_text=(
+        lead_node.get("summary", "")
+        or "从瑞金出发到会宁会师，网站把长征主线拆解为可连续浏览的篇章与展项，让用户像在专题展中一样逐步进入历史情境。"
+    ),
+    side_points=[
+        "先看四大篇章，再进入具体展项",
+        "每个节点都可继续讲解、问答与互动答题",
+        "没有模型时也能依靠静态厚内容完整浏览",
+    ],
 )
 
 intro_left, intro_right = st.columns([1.2, 1])
 with intro_left:
-    render_node_image(
-        {
-            "title": "长征路线总览",
-            "image": sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg"),
-            "place": "从瑞金出发到会宁会师的长征路线",
-            "type": "route",
-            "image_key": "changzheng_route_map",
-        },
-        caption="长征路线总览",
+    render_curatorial_note(
+        title="主展序厅",
+        body=(
+            "第一屏承担的不只是入口功能，而是一次完整的主题导入。"
+            "我们把长征主线浓缩为可观看、可点击、可继续深入的序厅区域，让用户在进入后立刻知道这不是一个工具页，而是一条可以被完整浏览的长征展线。"
+        ),
+        label="序厅说明",
     )
 with intro_right:
     render_curatorial_note(
-        title="主展导语",
+        title="参观建议",
         body=(
-            "本网站不以零散知识点为主，而是把长征放回完整历史进程之中。"
-            "用户将沿着出发、转折、突破与会师四个篇章进入展线，在每个节点中依次看到历史背景、行动过程、战略意义、人物线索与互动学习入口。"
+            "推荐先沿四大篇章浏览，再进入重点展项；如果时间有限，可优先查看湘江战役、遵义会议、四渡赤水和飞夺泸定桥等转折节点。"
         ),
     )
     action_left, action_right, action_more = st.columns([1, 1, 1])
@@ -129,7 +143,6 @@ render_detail_panels(
 
 render_gallery_frame("重点展项导览", "从最能代表长征转折、战略机动和胜利会师的节点切入，快速建立主线认识。")
 render_section("重点展项", "优先从最能代表长征主线与历史转折的节点进入，建立整条征程的基本认识。")
-featured_nodes = sample.get("featured_nodes", [])
 feature_cols = st.columns(3)
 for index, node in enumerate(featured_nodes):
     with feature_cols[index % 3]:
