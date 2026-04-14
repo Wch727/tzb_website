@@ -16,7 +16,14 @@ from content_store import (
 from generator import generate_guide_script, generate_short_video_script
 from media import render_audio_player, render_digital_human, render_node_image
 from rag import retrieve_knowledge
-from streamlit_ui import render_runtime_notice, render_section, render_sources
+from streamlit_ui import (
+    render_curatorial_note,
+    render_detail_panels,
+    render_ledger_cards,
+    render_runtime_notice,
+    render_section,
+    render_sources,
+)
 
 
 def _node_narration_text(node: Dict[str, Any], explanation: str = "", guide_script: str = "") -> str:
@@ -127,6 +134,15 @@ def render_node_detail(
         unsafe_allow_html=True,
     )
 
+    render_curatorial_note(
+        title=node.get("title", "长征节点"),
+        body=(
+            node.get("summary", "")
+            or "该节点是长征主线中的重要展项，可从历史背景、行动过程、战略意义与人物线索四个层面展开阅读。"
+        ),
+        label="展项导语",
+    )
+
     hero_left, hero_right = st.columns([1.02, 1.28])
     with hero_left:
         render_node_image(node, caption=node.get("image_caption", "") or f"{node.get('title', '')} · {node.get('place', '')}")
@@ -144,14 +160,40 @@ def render_node_detail(
             for question in related_questions:
                 st.markdown(f"- {question}")
 
-    render_section("历史背景", "先理解处境，再理解决策，这样节点才不只是一个孤立的名称。")
-    st.write(node.get("background", "暂无背景介绍。"))
+    render_ledger_cards(
+        [
+            {"label": "时间", "title": node.get("date", "未标注"), "desc": "以时间为坐标理解节点在长征全线中的位置。"},
+            {"label": "地点", "title": node.get("place", "未标注"), "desc": "从地理空间进入节点，理解行动路线与作战环境。"},
+            {
+                "label": "篇章",
+                "title": chapter.get("title", "主线展项"),
+                "desc": chapter.get("subtitle", "沿着长征主线继续深入理解历史逻辑。"),
+            },
+            {
+                "label": "路线位置",
+                "title": node.get("route_stage", "未标注"),
+                "desc": "该位置决定了节点在整条征程中的转折意义与战略角色。",
+            },
+        ]
+    )
 
-    render_section("事件经过", "从行动脉络、转移路线和关键动作三个层次还原节点过程。")
-    st.write(node.get("process", "暂无事件经过说明。"))
-
-    render_section("历史意义", "把转折意义、战略价值与长征精神联系起来，形成更完整的学习闭环。")
-    st.write(node.get("significance", "暂无历史意义说明。"))
+    render_section("展项信息板", "先理解处境，再还原过程，最后把历史意义放回整条长征主线中。")
+    render_detail_panels(
+        [
+            {
+                "title": "历史背景",
+                "desc": node.get("background", "暂无背景介绍。"),
+            },
+            {
+                "title": "事件经过",
+                "desc": node.get("process", "暂无事件经过说明。"),
+            },
+            {
+                "title": "历史意义",
+                "desc": node.get("significance", "暂无历史意义说明。"),
+            },
+        ]
+    )
 
     _render_figure_block(node)
     _render_key_points(node)
@@ -217,6 +259,19 @@ def render_node_detail(
             section_text=narration_text,
             avatar_path=node.get("avatar", "assets/avatar/guide.svg"),
             audio_path=audio_path,
+        )
+
+    if source_cards:
+        render_section("史料线索", "除展项正文外，下列依据还可帮助继续追溯来源、章节和相关主题。")
+        render_ledger_cards(
+            [
+                {
+                    "label": item.get("type", "依据"),
+                    "title": item.get("title", "未命名"),
+                    "desc": f"{item.get('source_file', '未知文件')} · {item.get('chapter_title', '') or item.get('section_title', '') or item.get('snippet', '')[:44]}",
+                }
+                for item in source_cards[:4]
+            ]
         )
 
     _render_extended_reading(node)

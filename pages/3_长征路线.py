@@ -10,7 +10,16 @@ from game import get_route_node
 from media import render_node_image
 from node_detail import render_node_detail
 from quiz_engine import create_story_state, set_story_checkpoint
-from streamlit_ui import build_current_provider_config, render_hero, render_section, render_top_nav, setup_page
+from streamlit_ui import (
+    build_current_provider_config,
+    render_chapter_overview_cards,
+    render_curatorial_note,
+    render_hero,
+    render_ledger_cards,
+    render_section,
+    render_top_nav,
+    setup_page,
+)
 
 
 setup_page("长征路线", icon="🗺️")
@@ -18,7 +27,7 @@ render_top_nav("长征路线")
 
 render_hero(
     title="长征路线导览",
-    subtitle="以篇章化方式组织长征主线节点。用户可按阶段浏览，也可从任意节点进入展项详情与互动答题。",
+    subtitle="以篇章化方式组织长征主线节点。用户可按阶段进入各个展区，再从具体节点展开图文阅读、讲解与互动答题。",
     badges=["四大篇章", "节点导览", "展项详情", "互动入口"],
 )
 
@@ -42,7 +51,11 @@ if selected_chapter_id not in chapter_ids and chapter_ids:
     selected_chapter_id = chapter_ids[0]
 st.session_state["selected_chapter_id"] = selected_chapter_id
 
-render_section("征程篇章", "不再以单一列表罗列节点，而是按历史阶段拆成多个展区，形成连续浏览的路线感。")
+selected_chapter = next((item for item in chapters if item.get("id") == st.session_state.get("selected_chapter_id")), chapters[0] if chapters else {})
+
+render_section("征程篇章", "先看全线篇章，再进入当前展区。每个篇章都以明确的历史任务和关键节点组织。")
+render_chapter_overview_cards(chapters, active_id=selected_chapter.get("id", ""))
+
 chapter_nav_cols = st.columns(max(1, len(chapters)))
 for index, chapter in enumerate(chapters):
     with chapter_nav_cols[index]:
@@ -50,20 +63,54 @@ for index, chapter in enumerate(chapters):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.rerun()
 
-selected_chapter = next((item for item in chapters if item.get("id") == st.session_state.get("selected_chapter_id")), chapters[0] if chapters else {})
-for chapter in chapters:
-    render_section(chapter.get("title", "路线篇章"), chapter.get("subtitle", ""))
-    node_cols = st.columns(3)
-    for index, node in enumerate(chapter.get("nodes", [])):
-        with node_cols[index % 3]:
-            render_node_image(node, caption=node.get("place", ""))
-            st.markdown(f"#### {node.get('title', '')}")
-            st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
-            st.write(node.get("summary", ""))
+chapter_left, chapter_right = st.columns([1.1, 0.95])
+with chapter_left:
+    render_curatorial_note(
+        title=f"{selected_chapter.get('badge', '篇章')} · {selected_chapter.get('title', '长征主线')}",
+        body=selected_chapter.get("subtitle", ""),
+    )
+    render_ledger_cards(
+        [
+            {
+                "label": f"节点 {index + 1}",
+                "title": node.get("title", ""),
+                "desc": f"{node.get('date', '')} · {node.get('place', '')}",
+            }
+            for index, node in enumerate(selected_chapter.get("nodes", []))
+        ]
+    )
+with chapter_right:
+    if selected_chapter.get("nodes"):
+        lead_node = selected_chapter["nodes"][0]
+        render_node_image(
+            lead_node,
+            caption=f"{selected_chapter.get('title', '')}篇章入口展项",
+        )
+
+render_section("本篇章展项", "当前只展开一个篇章，让浏览像进入一个独立展区，而不是在所有节点里来回跳转。")
+node_cols = st.columns(2)
+for index, node in enumerate(selected_chapter.get("nodes", [])):
+    with node_cols[index % 2]:
+        render_node_image(node, caption=node.get("place", ""))
+        st.markdown(f"#### {node.get('title', '')}")
+        st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
+        st.write(node.get("summary", ""))
+        st.markdown(f"<div class='small-muted'>{node.get('significance', '')[:110]}...</div>", unsafe_allow_html=True)
+        action_left, action_right = st.columns(2)
+        with action_left:
             if st.button("查看详情", key=f"chapter_node_{node.get('id')}", width="stretch"):
-                st.session_state["selected_chapter_id"] = chapter.get("id", "")
+                st.session_state["selected_chapter_id"] = selected_chapter.get("id", "")
                 st.session_state["selected_node_id"] = node.get("id", "")
                 st.rerun()
+        with action_right:
+            if st.button("进入互动", key=f"chapter_quiz_{node.get('id')}", width="stretch"):
+                story_state = create_story_state(
+                    role_id=st.session_state.get("selected_role_id", "scout"),
+                    activity_id=st.session_state.get("current_activity_id", ""),
+                    start_node_id=node.get("id", ""),
+                )
+                st.session_state["story_state"] = set_story_checkpoint(story_state, node.get("id", ""))
+                st.switch_page("pages/4_剧情答题.py")
 
 all_nodes = [node for chapter in chapters for node in chapter.get("nodes", [])]
 node_ids = [node.get("id", "") for node in all_nodes]
@@ -76,7 +123,7 @@ selected_node = get_route_node(selected_node_id)
 if selected_node:
     render_section(
         "节点展项详情",
-        f"当前位于“{selected_chapter.get('title', '主线篇章')}”篇章。每个节点都以小型线上展项的方式呈现，默认包含长文本、讲解与互动入口。",
+        f"当前位于“{selected_chapter.get('title', '主线篇章')}”篇章。每个节点都以小型线上展项的方式呈现，默认包含长文本、讲解、史料依据与互动入口。",
     )
     render_node_detail(
         node=selected_node,
