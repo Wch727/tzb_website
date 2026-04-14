@@ -71,6 +71,27 @@ class UserSelectModelRequest(UserProviderSelection):
     """普通用户选择模型请求。"""
 
 
+class TeamCreateRequest(BaseModel):
+    """创建红军小队请求。"""
+
+    activity_id: str
+    team_name: str
+    branch_name: str = ""
+    slogan: str = ""
+    user_name: str = "红色学习者"
+    unit_name: str = "体验组"
+    role_name: str = "侦察兵"
+
+
+class TeamJoinRequest(BaseModel):
+    """加入红军小队请求。"""
+
+    team_id: str
+    user_name: str = "红色学习者"
+    unit_name: str = "体验组"
+    role_name: str = "侦察兵"
+
+
 class AskRequest(UserProviderSelection):
     """RAG 问答请求。"""
 

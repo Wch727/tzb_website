@@ -216,6 +216,9 @@ def init_session_state() -> None:
         "selected_role_id": "scout",
         "selected_role_name": "侦察兵",
         "current_activity_id": "knowledge-contest",
+        "current_team_id": "",
+        "current_team_name": "",
+        "current_branch_name": "",
         "story_state": {},
         "progress_snapshot": {},
     }
@@ -272,6 +275,10 @@ def render_minimal_sidebar() -> None:
         st.divider()
         st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
         st.caption(f"当前活动：{st.session_state.get('current_activity_id', 'knowledge-contest')}")
+        if st.session_state.get("current_team_name"):
+            st.caption(f"当前小队：{st.session_state.get('current_team_name', '')}")
+        if st.session_state.get("current_branch_name"):
+            st.caption(f"支部归属：{st.session_state.get('current_branch_name', '')}")
         if current_model:
             st.caption(f"当前模型：{current_model.get('display_name', '未选择')}")
         st.caption(f"更新时间：{now_text()}")

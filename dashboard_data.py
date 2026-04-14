@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 from activity_manager import list_activities
-from leaderboard import get_global_leaderboard, get_unit_leaderboard
+from leaderboard import get_global_leaderboard, get_live_leaderboard, get_unit_leaderboard
+from team_manager import build_live_feed, get_branch_pk_board, get_team_leaderboard, summarize_team_presence
 from utils import RUNTIME_DIR, now_text, read_json, write_json
 
 ANALYTICS_PATH = RUNTIME_DIR / "analytics_events.json"
@@ -28,16 +29,20 @@ def record_dashboard_event(event: Dict[str, Any]) -> Dict[str, Any]:
     events = _load_events()
     normalized = {
         "event_type": str(event.get("event_type", "unknown") or "unknown"),
-        "user_name": str(event.get("user_name", "匿名用户") or "匿名用户"),
+        "user_name": str(event.get("user_name", "匿名学习者") or "匿名学习者"),
         "unit_name": str(event.get("unit_name", "未填写单位") or "未填写单位"),
         "role_name": str(event.get("role_name", "") or ""),
         "activity_id": str(event.get("activity_id", "global") or "global"),
         "activity_name": str(event.get("activity_name", "全局活动") or "全局活动"),
+        "team_id": str(event.get("team_id", "") or ""),
+        "team_name": str(event.get("team_name", "") or ""),
+        "branch_name": str(event.get("branch_name", event.get("unit_name", "未填写单位")) or event.get("unit_name", "未填写单位")),
         "node_id": str(event.get("node_id", "") or ""),
         "node_title": str(event.get("node_title", "") or ""),
         "question_type": str(event.get("question_type", "") or ""),
         "correct": bool(event.get("correct", False)),
         "mode_label": str(event.get("mode_label", "") or ""),
+        "share_text": str(event.get("share_text", "") or ""),
         "timestamp": str(event.get("timestamp", now_text()) or now_text()),
     }
     events.append(normalized)
@@ -54,6 +59,9 @@ def record_participation_event(
     role_name: str,
     activity_id: str,
     activity_name: str,
+    team_id: str = "",
+    team_name: str = "",
+    branch_name: str = "",
 ) -> Dict[str, Any]:
     """记录进入活动或剧情的参与事件。"""
     return record_dashboard_event(
@@ -64,6 +72,9 @@ def record_participation_event(
             "role_name": role_name,
             "activity_id": activity_id,
             "activity_name": activity_name,
+            "team_id": team_id,
+            "team_name": team_name,
+            "branch_name": branch_name or unit_name,
         }
     )
 
@@ -80,6 +91,10 @@ def record_answer_event(
     question_type: str,
     correct: bool,
     mode_label: str = "",
+    team_id: str = "",
+    team_name: str = "",
+    branch_name: str = "",
+    share_text: str = "",
 ) -> Dict[str, Any]:
     """记录答题事件。"""
     return record_dashboard_event(
@@ -90,11 +105,42 @@ def record_answer_event(
             "role_name": role_name,
             "activity_id": activity_id,
             "activity_name": activity_name,
+            "team_id": team_id,
+            "team_name": team_name,
+            "branch_name": branch_name or unit_name,
             "node_id": node_id,
             "node_title": node_title,
             "question_type": question_type,
             "correct": correct,
             "mode_label": mode_label,
+            "share_text": share_text,
+        }
+    )
+
+
+def record_share_event(
+    *,
+    user_name: str,
+    unit_name: str,
+    activity_id: str,
+    activity_name: str,
+    share_text: str,
+    team_id: str = "",
+    team_name: str = "",
+    branch_name: str = "",
+) -> Dict[str, Any]:
+    """记录战绩分享事件。"""
+    return record_dashboard_event(
+        {
+            "event_type": "battle_share",
+            "user_name": user_name,
+            "unit_name": unit_name,
+            "activity_id": activity_id,
+            "activity_name": activity_name,
+            "team_id": team_id,
+            "team_name": team_name,
+            "branch_name": branch_name or unit_name,
+            "share_text": share_text,
         }
     )
 
@@ -124,6 +170,7 @@ def build_dashboard_summary(hours: int = 24) -> Dict[str, Any]:
     recent_events = _filter_recent_hours(events, hours)
     answer_events = [event for event in recent_events if event.get("event_type") == "quiz_submit"]
     enter_events = [event for event in recent_events if event.get("event_type") == "participant_enter"]
+    share_events = [event for event in recent_events if event.get("event_type") == "battle_share"]
     unique_recent_users = {
         str(event.get("user_name", "")).strip()
         for event in recent_events
@@ -136,15 +183,20 @@ def build_dashboard_summary(hours: int = 24) -> Dict[str, Any]:
     }
     correct_count = len([event for event in answer_events if event.get("correct")])
     correct_rate = round((correct_count / len(answer_events)) * 100, 1) if answer_events else 0.0
+    team_presence = summarize_team_presence()
     return {
         "time_window_hours": hours,
         "recent_participant_count": len(unique_recent_users),
         "recent_unit_count": len(unique_units),
         "recent_enter_count": len(enter_events),
         "recent_answer_count": len(answer_events),
+        "recent_share_count": len(share_events),
         "correct_rate": correct_rate,
         "activity_count": len(list_activities()),
         "leaderboard_count": len(get_global_leaderboard(limit=500)),
+        "team_count": team_presence.get("team_count", 0),
+        "branch_count": team_presence.get("branch_count", 0),
+        "team_member_count": team_presence.get("team_member_count", 0),
     }
 
 
@@ -223,11 +275,15 @@ def build_activity_live_rows(hours: int = 24) -> List[Dict[str, Any]]:
                 "participant_names": set(),
                 "answer_count": 0,
                 "correct_count": 0,
+                "team_names": set(),
             },
         )
         user_name = str(event.get("user_name", "") or "")
         if user_name:
             row["participant_names"].add(user_name)
+        team_name = str(event.get("team_name", "") or "")
+        if team_name:
+            row["team_names"].add(team_name)
         if event.get("event_type") == "quiz_submit":
             row["answer_count"] += 1
             if event.get("correct"):
@@ -240,6 +296,7 @@ def build_activity_live_rows(hours: int = 24) -> List[Dict[str, Any]]:
                 "activity_id": item.get("activity_id", ""),
                 "activity_name": item.get("activity_name", ""),
                 "participant_count": len(item.get("participant_names", set())),
+                "team_count": len(item.get("team_names", set())),
                 "answer_count": answer_count,
                 "correct_rate": round((int(item.get("correct_count", 0)) / answer_count) * 100, 1) if answer_count else 0.0,
             }
@@ -248,8 +305,46 @@ def build_activity_live_rows(hours: int = 24) -> List[Dict[str, Any]]:
     return rows
 
 
+def build_live_battle_rows(hours: int = 24, limit: int = 20) -> List[Dict[str, Any]]:
+    """构建实时战绩流。"""
+    activity_filter = ""
+    team_rows = build_live_feed(activity_filter, limit=limit, hours=hours)
+    events = _filter_recent_hours(_load_events(), hours)
+    share_rows = []
+    for item in events:
+        if item.get("event_type") != "battle_share":
+            continue
+        share_rows.append(
+            {
+                "timestamp": item.get("timestamp", ""),
+                "activity_name": item.get("activity_name", ""),
+                "team_name": item.get("team_name", ""),
+                "branch_name": item.get("branch_name", ""),
+                "user_name": item.get("user_name", ""),
+                "share_text": item.get("share_text", ""),
+                "source": "分享",
+            }
+        )
+    rows = []
+    for item in team_rows:
+        rows.append(
+            {
+                "timestamp": item.get("timestamp", ""),
+                "activity_name": item.get("activity_name", ""),
+                "team_name": item.get("team_name", ""),
+                "branch_name": item.get("branch_name", ""),
+                "user_name": item.get("user_name", ""),
+                "share_text": item.get("share_text", ""),
+                "source": "答题贡献",
+            }
+        )
+    rows.extend(share_rows)
+    rows.sort(key=lambda item: item.get("timestamp", ""), reverse=True)
+    return rows[:limit]
+
+
 def build_dashboard_payload(hours: int = 24) -> Dict[str, Any]:
-    """输出完整大屏数据。"""
+    """输出完整大屏数据载荷。"""
     return {
         "summary": build_dashboard_summary(hours=hours),
         "answer_heat": build_answer_heat_series(hours=hours),
@@ -258,4 +353,8 @@ def build_dashboard_payload(hours: int = 24) -> Dict[str, Any]:
         "role_distribution": build_role_distribution(hours=hours),
         "activity_live": build_activity_live_rows(hours=hours),
         "unit_leaderboard": get_unit_leaderboard(limit=8),
+        "realtime_leaderboard": get_live_leaderboard(limit=12, hours=max(hours, 24)),
+        "team_leaderboard": get_team_leaderboard(limit=10),
+        "branch_pk": get_branch_pk_board(limit=10),
+        "live_feed": build_live_battle_rows(hours=hours, limit=20),
     }

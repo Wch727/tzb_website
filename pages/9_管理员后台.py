@@ -25,6 +25,7 @@ from leaderboard import get_activity_leaderboard, get_global_leaderboard, get_un
 from rag import get_rag_status, incremental_ingest, rebuild_knowledge_base
 from retrieval_debug import run_retrieval_debug
 from streamlit_ui import render_hero, render_metrics, render_section, render_top_nav, setup_page
+from team_manager import export_branch_rows, export_team_rows, get_branch_pk_board, get_team_leaderboard, list_teams
 from utils import (
     CONFIG_DIR,
     DATA_DIR,
@@ -246,6 +247,9 @@ with activity_tab:
         mode = st.selectbox("活动模式", ["知识竞赛", "党史学习日", "红色研学任务"])
         description = st.text_area("活动说明", placeholder="说明活动对象、规则和使用场景")
         time_range = st.text_input("活动时长", value="60分钟")
+        support_team_mode = st.toggle("开启红军小队协作", value=True)
+        support_branch_pk = st.toggle("开启支部PK对抗", value=True)
+        max_team_size = st.slider("小队人数上限", min_value=2, max_value=12, value=6)
         node_scope = st.multiselect(
             "活动节点范围",
             [item.get("id", "") for item in load_route_nodes_data()],
@@ -263,6 +267,9 @@ with activity_tab:
             time_range=time_range.strip(),
             node_scope=node_scope,
             created_by=profile.get("username", "admin"),
+            support_team_mode=support_team_mode,
+            support_branch_pk=support_branch_pk,
+            max_team_size=max_team_size,
         )
         st.success(f"活动“{activity.get('name', '')}”已创建。")
         st.session_state["current_activity_id"] = activity.get("activity_id", "")
@@ -288,6 +295,9 @@ with activity_tab:
             st.caption(f"时长：{selected_activity.get('time_range', '')}")
             st.caption(f"状态：{selected_activity.get('status', '')}")
             st.caption(f"节点数：{len(selected_activity.get('node_scope', []))}")
+            st.caption(f"红军小队：{'开启' if selected_activity.get('support_team_mode', True) else '关闭'}")
+            st.caption(f"支部PK：{'开启' if selected_activity.get('support_branch_pk', True) else '关闭'}")
+            st.caption(f"小队人数上限：{selected_activity.get('max_team_size', 6)}")
         with right:
             share_link = build_activity_share_link(selected_activity)
             st.text_input("活动分享链接", value=share_link, disabled=True)
@@ -301,6 +311,9 @@ with activity_tab:
             new_description = st.text_area("修改活动说明", value=selected_activity.get("description", ""))
             new_time_range = st.text_input("修改活动时长", value=selected_activity.get("time_range", ""))
             new_status = st.selectbox("活动状态", ["进行中", "已完成", "待开始"], index=["进行中", "已完成", "待开始"].index(selected_activity.get("status", "进行中")) if selected_activity.get("status", "进行中") in ["进行中", "已完成", "待开始"] else 0)
+            new_support_team = st.toggle("开启红军小队协作", value=selected_activity.get("support_team_mode", True))
+            new_support_pk = st.toggle("开启支部PK对抗", value=selected_activity.get("support_branch_pk", True))
+            new_max_team_size = st.slider("小队人数上限", min_value=2, max_value=12, value=int(selected_activity.get("max_team_size", 6) or 6))
             new_scope = st.multiselect(
                 "修改活动节点范围",
                 [item.get("id", "") for item in load_route_nodes_data()],
@@ -318,6 +331,9 @@ with activity_tab:
                     "description": new_description.strip(),
                     "time_range": new_time_range.strip(),
                     "status": new_status,
+                    "support_team_mode": new_support_team,
+                    "support_branch_pk": new_support_pk,
+                    "max_team_size": new_max_team_size,
                     "node_scope": new_scope,
                 },
             )
@@ -330,6 +346,27 @@ with activity_tab:
             st.dataframe(pd.DataFrame(ranking_rows), use_container_width=True, hide_index=True)
         else:
             st.info("当前活动尚无成绩记录。")
+
+        team_rows = get_team_leaderboard(selected_activity_id, limit=10)
+        st.markdown("#### 红军小队排行榜预览")
+        if team_rows:
+            st.dataframe(pd.DataFrame(team_rows), use_container_width=True, hide_index=True)
+        else:
+            st.info("当前活动尚无红军小队战绩。")
+
+        branch_rows = get_branch_pk_board(selected_activity_id, limit=10)
+        st.markdown("#### 支部PK预览")
+        if branch_rows:
+            st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
+        else:
+            st.info("当前活动尚无支部PK数据。")
+
+        team_list_rows = list_teams(selected_activity_id)
+        st.markdown("#### 当前活动小队列表")
+        if team_list_rows:
+            st.dataframe(pd.DataFrame(team_list_rows), use_container_width=True, hide_index=True)
+        else:
+            st.info("当前活动还没有创建小队。")
 
 with content_tab:
     render_section("题库与内容管理", "当前版本支持直接维护主线节点、FAQ、人物专题和长征精神专题，使后台更接近内容运营工具。")
@@ -589,6 +626,8 @@ with data_tab:
     global_rows = get_global_leaderboard(limit=100)
     activity_rows = get_activity_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
     unit_rows = get_unit_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
+    team_rows = get_team_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
+    branch_rows = get_branch_pk_board(st.session_state.get("current_activity_id", ""), limit=100)
     dashboard_summary = build_dashboard_summary(hours=24)
     dashboard_payload = build_dashboard_payload(hours=24)
 
@@ -660,6 +699,32 @@ with data_tab:
         )
     else:
         st.info("当前活动暂无单位排行数据。")
+
+    if team_rows:
+        st.markdown("#### 当前活动红军小队排行")
+        st.dataframe(pd.DataFrame(team_rows), use_container_width=True, hide_index=True)
+        st.download_button(
+            "导出当前活动小队排行 CSV",
+            data=export_rows_to_csv(export_team_rows(st.session_state.get("current_activity_id", ""))),
+            file_name="team_leaderboard.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+    else:
+        st.info("当前活动暂无小队排行数据。")
+
+    if branch_rows:
+        st.markdown("#### 当前活动支部PK榜")
+        st.dataframe(pd.DataFrame(branch_rows), use_container_width=True, hide_index=True)
+        st.download_button(
+            "导出当前活动支部PK CSV",
+            data=export_rows_to_csv(export_branch_rows(st.session_state.get("current_activity_id", ""))),
+            file_name="branch_pk_board.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+    else:
+        st.info("当前活动暂无支部PK数据。")
 
     route_rows = _load_route_node_rows()
     st.download_button(

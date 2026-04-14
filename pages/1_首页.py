@@ -12,6 +12,7 @@ from rag import get_rag_status
 from role_system import list_roles
 from sample_content import load_home_sample_content
 from streamlit_ui import render_cards, render_hero, render_metrics, render_section, render_top_nav, setup_page
+from team_manager import get_branch_pk_board, get_team_leaderboard
 from utils import get_visible_user_models
 
 
@@ -31,6 +32,8 @@ all_nodes = load_route_nodes()
 activities = list_activities()
 roles = list_roles()
 leaderboard_rows = get_global_leaderboard(limit=5)
+team_preview_rows = get_team_leaderboard(limit=3)
+branch_preview_rows = get_branch_pk_board(limit=3)
 
 render_hero(
     title="《长征精神·沉浸式云端答题互动平台》",
@@ -163,6 +166,29 @@ for index, item in enumerate(activities[:3]):
         if st.button(f"进入 {item.get('name', '')}", key=f"activity_home_{item.get('activity_id')}", use_container_width=True):
             st.session_state["current_activity_id"] = item.get("activity_id", "")
             st.switch_page("pages/6_活动中心.py")
+
+render_section("红军小队与支部PK预览", "平台已经支持创建红军小队、团队协作答题、支部PK对抗和班级/单位排名展示。")
+preview_left, preview_right = st.columns(2)
+with preview_left:
+    st.markdown("### 红军小队榜前列")
+    if team_preview_rows:
+        for item in team_preview_rows:
+            st.markdown(
+                f"{item.get('rank', 0)}. **{item.get('team_name', '')}** | "
+                f"{item.get('branch_name', '')} | 总分 {item.get('total_score', 0)}"
+            )
+    else:
+        st.info("当前暂无小队数据，进入活动中心即可创建。")
+with preview_right:
+    st.markdown("### 支部PK榜前列")
+    if branch_preview_rows:
+        for item in branch_preview_rows:
+            st.markdown(
+                f"{item.get('rank', 0)}. **{item.get('branch_name', '')}** | "
+                f"总分 {item.get('total_score', 0)} | 小队数 {item.get('team_count', 0)}"
+            )
+    else:
+        st.info("当前暂无支部PK数据，完成小队协作答题后将自动生成。")
 
 render_section("长征精神专题", "把事件、路线与精神主题结合起来，突出思政教育与历史阐释价值。")
 spirit_cols = st.columns(3)

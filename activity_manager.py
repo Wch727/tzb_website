@@ -15,48 +15,99 @@ DEFAULT_ACTIVITY_TEMPLATES: List[Dict[str, Any]] = [
     {
         "activity_id": "knowledge-contest",
         "name": "长征精神知识竞赛",
-        "description": "面向课堂、团日活动和专题学习的标准化竞赛模板。",
+        "description": "面向课堂、党史学习日和主题竞赛的标准化活动模板，强调主线剧情、角色扮演和积分排行。",
         "mode": "知识竞赛",
         "time_range": "长期开放",
-        "node_scope": ["ruijin_departure", "xiangjiang_battle", "zunyi_meeting", "sidu_chishui", "luding_bridge", "huining_meeting"],
+        "node_scope": [
+            "ruijin_departure",
+            "xiangjiang_battle",
+            "zunyi_meeting",
+            "sidu_chishui",
+            "jinshajiang_crossing",
+            "luding_bridge",
+            "grassland_crossing",
+            "huining_meeting",
+        ],
         "status": "进行中",
         "created_by": "system",
+        "support_team_mode": True,
+        "support_branch_pk": True,
+        "max_team_size": 6,
     },
     {
         "activity_id": "party-study-day",
         "name": "党史学习日",
-        "description": "聚焦转折会议、长征精神和理论学习的专题活动模板。",
+        "description": "聚焦转折节点、长征精神与理论学习的专题活动模板，适合支部学习与班级联学。",
         "mode": "党史学习日",
         "time_range": "90分钟",
-        "node_scope": ["tongdao_turn", "liping_meeting", "houchang_meeting", "zunyi_meeting", "bangluo_meeting"],
+        "node_scope": [
+            "tongdao_turn",
+            "liping_meeting",
+            "houchang_meeting",
+            "zunyi_meeting",
+            "bangluo_meeting",
+            "wuqi_meeting",
+        ],
         "status": "进行中",
         "created_by": "system",
+        "support_team_mode": True,
+        "support_branch_pk": True,
+        "max_team_size": 8,
     },
     {
         "activity_id": "study-tour-task",
         "name": "红色研学任务",
-        "description": "适合景区、纪念馆与研学团使用的沉浸式路线任务。",
+        "description": "适合景区、纪念馆与研学团队使用的沉浸式路线任务，支持小队协作完成节点挑战。",
         "mode": "研学任务",
         "time_range": "120分钟",
-        "node_scope": ["ruijin_departure", "yudu_crossing", "xiangjiang_battle", "luding_bridge", "grassland_crossing", "wuqi_meeting"],
+        "node_scope": [
+            "ruijin_departure",
+            "yudu_crossing",
+            "xiangjiang_battle",
+            "luding_bridge",
+            "snow_mountains",
+            "grassland_crossing",
+            "wuqi_meeting",
+        ],
         "status": "进行中",
         "created_by": "system",
+        "support_team_mode": True,
+        "support_branch_pk": False,
+        "max_team_size": 5,
     },
 ]
 
 
 def _load_activities() -> List[Dict[str, Any]]:
     """读取活动列表。"""
-    activities = read_json(ACTIVITY_PATH, []) or []
-    if not activities:
+    rows = read_json(ACTIVITY_PATH, []) or []
+    if not rows:
         write_json(ACTIVITY_PATH, DEFAULT_ACTIVITY_TEMPLATES)
         return [item.copy() for item in DEFAULT_ACTIVITY_TEMPLATES]
-    return activities
+    normalized: List[Dict[str, Any]] = []
+    for item in rows:
+        normalized.append(
+            {
+                "activity_id": str(item.get("activity_id", "") or f"act-{secrets.token_hex(4)}"),
+                "name": str(item.get("name", "未命名活动") or "未命名活动"),
+                "description": str(item.get("description", "") or ""),
+                "mode": str(item.get("mode", "知识竞赛") or "知识竞赛"),
+                "time_range": str(item.get("time_range", "60分钟") or "60分钟"),
+                "node_scope": list(item.get("node_scope", []) or []),
+                "status": str(item.get("status", "进行中") or "进行中"),
+                "created_by": str(item.get("created_by", "admin") or "admin"),
+                "created_at": str(item.get("created_at", "") or ""),
+                "support_team_mode": bool(item.get("support_team_mode", True)),
+                "support_branch_pk": bool(item.get("support_branch_pk", True)),
+                "max_team_size": int(item.get("max_team_size", 6) or 6),
+            }
+        )
+    return normalized
 
 
-def _save_activities(activities: List[Dict[str, Any]]) -> None:
+def _save_activities(rows: List[Dict[str, Any]]) -> None:
     """保存活动列表。"""
-    write_json(ACTIVITY_PATH, activities)
+    write_json(ACTIVITY_PATH, rows)
 
 
 def list_activities() -> List[Dict[str, Any]]:
@@ -80,40 +131,49 @@ def create_activity(
     time_range: str,
     node_scope: List[str],
     created_by: str = "admin",
+    support_team_mode: bool = True,
+    support_branch_pk: bool = True,
+    max_team_size: int = 6,
 ) -> Dict[str, Any]:
     """创建活动。"""
-    activities = _load_activities()
-    activity_id = f"act-{secrets.token_hex(4)}"
+    rows = _load_activities()
     activity = {
-        "activity_id": activity_id,
-        "name": name.strip(),
-        "description": description.strip(),
-        "mode": mode.strip() or "知识竞赛",
-        "time_range": time_range.strip() or "60分钟",
+        "activity_id": f"act-{secrets.token_hex(4)}",
+        "name": str(name or "").strip() or "未命名活动",
+        "description": str(description or "").strip(),
+        "mode": str(mode or "").strip() or "知识竞赛",
+        "time_range": str(time_range or "").strip() or "60分钟",
         "node_scope": [item for item in node_scope if item],
         "status": "进行中",
         "created_by": created_by,
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "support_team_mode": bool(support_team_mode),
+        "support_branch_pk": bool(support_branch_pk),
+        "max_team_size": max(2, min(int(max_team_size or 6), 20)),
     }
-    activities.append(activity)
-    _save_activities(activities)
+    rows.append(activity)
+    _save_activities(rows)
     return activity
 
 
 def update_activity(activity_id: str, patch: Dict[str, Any]) -> Dict[str, Any]:
     """更新活动。"""
-    activities = _load_activities()
+    rows = _load_activities()
     updated: Dict[str, Any] = {}
-    for index, item in enumerate(activities):
+    for index, item in enumerate(rows):
         if item.get("activity_id") != activity_id:
             continue
-        item = item.copy()
-        item.update({key: value for key, value in patch.items() if value is not None})
-        activities[index] = item
-        updated = item
+        row = item.copy()
+        for key, value in patch.items():
+            if value is None:
+                continue
+            row[key] = value
+        row["max_team_size"] = max(2, min(int(row.get("max_team_size", 6) or 6), 20))
+        rows[index] = row
+        updated = row
         break
     if updated:
-        _save_activities(activities)
+        _save_activities(rows)
     return updated
 
 

@@ -8,13 +8,14 @@ from activity_manager import get_activity, list_activities
 from game import load_route_nodes
 from role_system import get_role, list_roles
 from streamlit_ui import render_cards, render_hero, render_section, render_top_nav, setup_page
+from team_manager import get_user_team
 
 
 setup_page("角色选择", icon="🪖")
 render_top_nav("角色选择")
 render_hero(
     title="角色选择",
-    subtitle="选择你的长征身份后，再进入主线剧情关卡。不同角色会在任务提示、历史导入和奖励加成上体现差异。",
+    subtitle="选择你的长征身份后，再进入主线剧情关卡。不同角色会在任务提示、历史导入、协作贡献和奖励加成上体现差异。",
     badges=["侦察兵", "卫生员", "通讯员", "角色任务"],
 )
 
@@ -26,7 +27,7 @@ else:
     st.session_state["current_activity_id"] = default_activity.get("activity_id", "")
     current_activity = default_activity
 
-render_section("选择你的红军身份", "角色机制是剧情答题的重要入口。当前版本已实现角色差异化任务提示、节点推荐与奖励加成。")
+render_section("选择你的红军身份", "角色机制是剧情答题的重要入口。当前版本已实现角色差异化任务提示、推荐节点与奖励加成。")
 roles = list_roles()
 role_cards = [
     {
@@ -49,7 +50,7 @@ with identity_right:
     st.session_state["unit_name"] = st.text_input(
         "班级 / 单位 / 小组",
         value=st.session_state.get("unit_name", "体验组"),
-        help="用于活动排行和单位排行展示。",
+        help="用于活动排行、支部PK和班级/单位展示。",
     )
 
 selected_role_id = st.session_state.get("selected_role_id", "scout")
@@ -87,12 +88,24 @@ with right:
     st.caption(f"活动模式：{current_activity.get('mode', '')}")
     st.caption(f"活动时长：{current_activity.get('time_range', '')}")
     st.caption(f"节点范围：{len(current_activity.get('node_scope', []))} 个核心节点")
-    st.caption(f"当前参与身份：{st.session_state.get('user_name', '红色学习者')} · {st.session_state.get('unit_name', '体验组')}")
+    st.caption(f"当前参与身份：{st.session_state.get('user_name', '红色学习者')} | {st.session_state.get('unit_name', '体验组')}")
+    current_team = get_user_team(st.session_state.get("user_name", "红色学习者"), current_activity.get("activity_id", ""))
+    if current_team:
+        st.success(
+            f"已加入小队：{current_team.get('team_name', '')} | "
+            f"{current_team.get('branch_name', '')} | 队员 {len(current_team.get('members', []))} 人"
+        )
+    else:
+        st.info("你当前还没有加入红军小队，可在活动中心创建或加入小队后再进入剧情答题。")
 
-btn1, btn2 = st.columns(2)
+btn1, btn2, btn3 = st.columns(3)
 with btn1:
     if st.button("进入长征路线", use_container_width=True, type="primary"):
         st.switch_page("pages/3_长征路线.py")
 with btn2:
     if st.button("直接开始剧情答题", use_container_width=True):
         st.switch_page("pages/4_剧情答题.py")
+with btn3:
+    if st.button("前往活动中心", use_container_width=True):
+        st.switch_page("pages/6_活动中心.py")
+

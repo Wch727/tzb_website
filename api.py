@@ -13,6 +13,7 @@ from file_loader import load_file, persist_processed_text
 from game import start_game, submit_choice
 from generator import generate_guide_script, generate_short_video_script
 from dashboard_data import build_dashboard_payload, build_dashboard_summary
+from leaderboard import get_live_battle_feed, get_live_leaderboard
 from models import (
     AdminLoginRequest,
     AskRequest,
@@ -23,6 +24,8 @@ from models import (
     ProviderFlagRequest,
     ProviderUpsertRequest,
     RetrievalTestRequest,
+    TeamCreateRequest,
+    TeamJoinRequest,
     UserSelectModelRequest,
 )
 from rag import (
@@ -53,6 +56,7 @@ from utils import (
     set_provider_visibility,
     upsert_provider_config,
 )
+from team_manager import build_team_share_text, create_team, get_branch_pk_board, get_team_leaderboard, join_team, list_teams
 
 app = FastAPI(title="《长征精神·沉浸式云端答题互动平台》API", version="0.2.0")
 
@@ -123,6 +127,61 @@ def dashboard_summary_api(hours: int = 24) -> Dict[str, Any]:
 def dashboard_live_api(hours: int = 24) -> Dict[str, Any]:
     """获取大屏完整数据载荷。"""
     return build_dashboard_payload(hours=max(1, min(hours, 168)))
+
+
+@app.get("/user/teams")
+def user_teams_api(activity_id: str = "") -> Dict[str, Any]:
+    """获取活动下的红军小队列表。"""
+    return {
+        "teams": list_teams(activity_id),
+        "team_leaderboard": get_team_leaderboard(activity_id, limit=20),
+        "branch_pk": get_branch_pk_board(activity_id, limit=20),
+    }
+
+
+@app.post("/user/teams")
+def user_create_team_api(payload: TeamCreateRequest) -> Dict[str, Any]:
+    """创建红军小队。"""
+    team = create_team(
+        activity_id=payload.activity_id,
+        team_name=payload.team_name,
+        branch_name=payload.branch_name,
+        slogan=payload.slogan,
+        created_by=payload.user_name,
+        unit_name=payload.unit_name,
+        role_name=payload.role_name,
+    )
+    return {
+        "message": "红军小队创建成功。",
+        "team": team,
+        "share_text": build_team_share_text(team.get("team_id", ""), payload.user_name),
+    }
+
+
+@app.post("/user/teams/{team_id}/join")
+def user_join_team_api(team_id: str, payload: TeamJoinRequest) -> Dict[str, Any]:
+    """加入红军小队。"""
+    joined = join_team(
+        team_id=team_id,
+        user_name=payload.user_name,
+        unit_name=payload.unit_name,
+        role_name=payload.role_name,
+    )
+    if not joined:
+        raise HTTPException(status_code=400, detail="加入小队失败，可能是队伍已满或不存在。")
+    return {"message": "已加入红军小队。", "team": joined}
+
+
+@app.get("/user/leaderboard/realtime")
+def user_realtime_leaderboard_api(activity_id: str = "", hours: int = 72) -> Dict[str, Any]:
+    """获取实时排行榜与战绩流。"""
+    safe_hours = max(1, min(hours, 168))
+    return {
+        "realtime_leaderboard": get_live_leaderboard(activity_id=activity_id, limit=20, hours=safe_hours),
+        "battle_feed": get_live_battle_feed(activity_id=activity_id, limit=20, hours=safe_hours),
+        "team_leaderboard": get_team_leaderboard(activity_id, limit=20),
+        "branch_pk": get_branch_pk_board(activity_id, limit=20),
+    }
 
 
 @app.post("/admin/login")
