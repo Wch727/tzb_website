@@ -8,6 +8,7 @@ import streamlit as st
 
 from content_store import (
     build_node_related_questions,
+    build_node_story_script,
     build_static_sources_for_node,
     get_chapter_for_node,
     get_node_extended_reading,
@@ -125,6 +126,7 @@ def render_node_detail(
     source_cards = _source_cards_from_retrieval(node, retrieval)
     related_nodes = get_related_nodes(node, limit=3)
     related_questions = build_node_related_questions(node, limit=4)
+    default_guide_script = build_node_story_script(node)
 
     st.markdown(
         f"""
@@ -228,11 +230,16 @@ def render_node_detail(
             st.session_state[f"video_result::{node_id}"] = result
 
     guide_result = st.session_state.get(f"guide_result::{node_id}")
+    displayed_guide_script = default_guide_script
+    displayed_guide_sources = source_cards
     if guide_result:
         render_runtime_notice(guide_result)
-        render_section("节点讲解稿", "即使没有模型，也会优先使用内置静态内容生成完整讲解。")
-        st.write(guide_result.get("script", ""))
-        render_sources(guide_result.get("sources", []), title="本次讲解依据")
+        displayed_guide_script = guide_result.get("script", "") or default_guide_script
+        displayed_guide_sources = guide_result.get("sources", []) or source_cards
+
+    render_section("本节点正式讲解稿", "页面默认展示完整讲解文本，便于课堂讲述、展项说明与口头导览。")
+    st.write(displayed_guide_script)
+    render_sources(displayed_guide_sources, title="本次讲解依据")
 
     video_result = st.session_state.get(f"video_result::{node_id}")
     if video_result:
@@ -244,7 +251,7 @@ def render_node_detail(
     narration_text = _node_narration_text(
         node=node,
         explanation=explanation,
-        guide_script=guide_result.get("script", "") if isinstance(guide_result, dict) else "",
+        guide_script=displayed_guide_script,
     )
     media_left, media_right = st.columns([1, 1])
     with media_left:

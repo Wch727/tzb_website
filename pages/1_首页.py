@@ -121,6 +121,33 @@ render_feature_ribbon(
     ]
 )
 
+render_gallery_frame("长征故事总讲解", "首页直接提供一版可用于课堂、展项或答辩讲述的正式文本，帮助用户先把整条主线讲清楚。")
+story_left, story_right = st.columns([1.3, 0.9])
+with story_left:
+    render_curatorial_note(
+        title="长征故事",
+        body="以下讲解稿不是临时问答结果，而是首页默认展示的主线讲解文本，适合直接阅读、讲述或作为后续节点浏览的总导语。",
+        label="首页讲解稿",
+    )
+    st.write(sample.get("long_march_story_script", ""))
+with story_right:
+    render_detail_panels(
+        [
+            {
+                "title": "第一层理解",
+                "desc": "先理解为什么出发、为什么会转折、为什么最终能够胜利会师。",
+            },
+            {
+                "title": "第二层理解",
+                "desc": "再把湘江战役、遵义会议、四渡赤水、泸定桥等节点放回整条主线中理解。",
+            },
+            {
+                "title": "第三层理解",
+                "desc": "最后从理想信念、实事求是、顾全大局、依靠群众等精神层面总结长征的历史价值。",
+            },
+        ]
+    )
+
 render_section("主展结构", "借鉴数字展的章节化组织方式，先看篇章，再进入展项，帮助用户形成更稳定的学习路线。")
 render_chapter_overview_cards(chapters)
 
@@ -265,9 +292,11 @@ with tab1:
 with tab2:
     render_curatorial_note(
         title="示范讲解",
-        body="讲解稿以节点史实为中心组织，强调背景、经过和意义三层结构，便于课堂讲述与展项说明。",
+        body="首页同时保留总讲解与示范讲解两个入口：前者讲清整条长征主线，后者展示单个节点如何组织成正式讲解文本。",
         label="讲解样例",
     )
+    st.write(sample.get("long_march_story_script", ""))
+    st.divider()
     st.write(sample.get("example_guide_script", ""))
 with tab3:
     render_curatorial_note(

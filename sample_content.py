@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from content_store import (
+    build_long_march_story_script,
     get_featured_route_nodes,
     get_recommended_questions,
     get_route_chapters,
@@ -40,6 +41,7 @@ def load_home_sample_content() -> Dict[str, Any]:
         "recommended_route": script_block.get("recommended_routes", []),
         "spirit_topics": spirit[:6],
         "example_questions": get_recommended_questions(limit=8),
+        "long_march_story_script": build_long_march_story_script(),
         "example_guide_script": script_block.get("example_guide_script", ""),
         "example_video_script": script_block.get("example_video_script", ""),
         "quick_try_questions": script_block.get("quick_try_questions", []),

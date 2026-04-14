@@ -470,6 +470,53 @@ def build_static_sources_for_node(node: Dict[str, Any], extra_items: Optional[Li
     return sources
 
 
+def build_node_story_script(node: Dict[str, Any]) -> str:
+    """为节点生成可直接展示的正式讲解稿。"""
+    title = str(node.get("title", "") or "长征节点")
+    audience = "各位参观者"
+    summary = str(node.get("summary", "") or "").strip()
+    background = str(node.get("background", "") or "").strip()
+    process = str(node.get("process", "") or "").strip()
+    significance = str(node.get("significance", "") or "").strip()
+    figures = "、".join(node.get("figures", [])[:4]) if node.get("figures") else "红军指战员与党的重要领导人"
+    key_points = "；".join(node.get("key_points", [])[:4]) if node.get("key_points") else "结合时间、地点、人物与历史意义整体理解这一节点。"
+    return (
+        f"《{title}》展项讲解稿\n\n"
+        f"{audience}，下面我们围绕“{title}”展开讲解。"
+        f"{summary or '这一节点处在长征主线的重要位置，是理解战略转移、路线调整与革命精神的重要入口。'}\n\n"
+        f"首先看历史背景。{background or '在敌强我弱、形势严峻的条件下，红军必须在保存革命力量与打开新局面之间作出关键抉择。'}\n\n"
+        f"再看事件经过。{process or '红军在这一阶段完成了关键行动，并通过严密组织与顽强斗争推动主线继续向前发展。'}\n\n"
+        f"从人物线索看，本节点涉及{figures}等重要人物，他们在组织、判断、执行和统一思想等方面发挥了关键作用。\n\n"
+        f"最后看历史意义。{significance or '这一节点不仅影响了长征的进程，也深化了党对革命道路、战略方向和群众力量的认识。'}\n\n"
+        f"如果把它放回整条长征主线中理解，最值得把握的要点包括：{key_points}"
+    )
+
+
+def build_long_march_story_script() -> str:
+    """生成首页可直接展示的《长征故事》总讲解稿。"""
+    ruijin = get_route_node_data("ruijin_departure") or {}
+    xiangjiang = get_route_node_data("xiangjiang_battle") or {}
+    zunyi = get_route_node_data("zunyi_meeting") or {}
+    chishui = get_route_node_data("sidu_chishui") or {}
+    luding = get_route_node_data("luding_bridge") or {}
+    huining = get_route_node_data("huining_meeting") or {}
+    return (
+        "《长征故事》总讲解稿\n\n"
+        f"长征不是一次普通行军，而是在中国革命面临严重危机时作出的一次伟大战略转移。"
+        f"{ruijin.get('summary', '1934年，中央红军从中央苏区出发，踏上保存革命力量、寻求新局面的艰难征程。')}"
+        f"从瑞金、于都河到突破封锁线，红军在极端复杂的形势下艰难前行，"
+        f"{xiangjiang.get('summary', '湘江战役的巨大牺牲，使部队和党中央深刻认识到原有行动方式已难以继续。')}\n\n"
+        f"正是在这样的生死关头，通道转兵、黎平会议、猴场会议逐步酝酿出新的方向，"
+        f"{zunyi.get('summary', '遵义会议由此成为长征乃至中国革命历史上的重要转折点。')}"
+        f"此后，红军在运动战中不断摆脱围追堵截，"
+        f"{chishui.get('summary', '四渡赤水集中体现了灵活机动、避实击虚的战略智慧。')}"
+        f"{luding.get('summary', '强渡大渡河、飞夺泸定桥则进一步展现了红军在险境中敢打敢拼的英雄气概。')}\n\n"
+        f"翻越雪山、穿越草地以后，长征进入最艰苦也最能体现信念与意志的阶段。"
+        f"{huining.get('summary', '最终，红军在陕甘地区立足，并实现会宁会师，宣告长征取得伟大胜利。')}"
+        "长征留给后人的，不只是一路行军的故事，更是理想信念、实事求是、顾全大局、依靠群众和百折不挠精神的集中体现。"
+    )
+
+
 def load_all_knowledge_items() -> List[Dict[str, Any]]:
     """汇总全部知识卡片。"""
     items: List[Dict[str, Any]] = []
