@@ -62,6 +62,14 @@ def _static_node_explanation(node: Dict[str, Any], role: str) -> str:
     return "\n\n".join(section for section in sections if section.strip())
 
 
+def _prefer_complete_explanation(generated: str, fallback: str, min_chars: int = 420) -> str:
+    """保证节点讲解不会过短。"""
+    cleaned = str(generated or "").strip()
+    if not cleaned or len(cleaned) < min_chars:
+        return fallback
+    return cleaned
+
+
 def fallback_quiz_explanation(node_data: Dict[str, Any]) -> Dict[str, str]:
     """在静态模式下输出完整答题解析。"""
     quiz = node_data.get("quiz", {}) or {}
@@ -70,7 +78,13 @@ def fallback_quiz_explanation(node_data: Dict[str, Any]) -> Dict[str, str]:
         explanation = (
             f"{node_data.get('title', '该节点')}之所以重要，不仅因为其发生在"
             f"{node_data.get('date', '长征途中')}的关键阶段，更因为它直接影响了红军后续的行军方向、"
-            "战略判断与革命力量的保存。理解这一题，核心是把节点的背景、过程与历史意义联系起来。"
+            "战略判断与革命力量的保存。理解这一题，不能只记住表面的结论，更要把节点的背景、过程与历史意义联系起来。"
+        )
+    if len(explanation) < 150:
+        explanation = (
+            f"{explanation} 从历史背景看，{node_data.get('background', '') or node_data.get('summary', '')}"
+            f" 从事件经过看，{node_data.get('process', '') or '红军在复杂形势下完成了关键行动。'}"
+            f" 从历史意义看，{node_data.get('significance', '') or '这一节点推动了长征主线继续向前发展。'}"
         )
     extended_note = quiz.get("extended_note", "").strip()
     if not extended_note:
@@ -78,6 +92,11 @@ def fallback_quiz_explanation(node_data: Dict[str, Any]) -> Dict[str, str]:
         extended_note = (
             "延伸来看，这一节点既是路线推进中的一段经历，也是长征精神形成的重要场景。"
             f"{' 可继续关注：' + '；'.join(key_points[:3]) if key_points else ''}"
+        )
+    if len(extended_note) < 90:
+        extended_note = (
+            f"{extended_note} 继续阅读时，可把这一节点与{'、'.join(node_data.get('figures', [])[:3]) or '相关人物'}"
+            "以及前后相邻节点放在一起理解，这样更容易把握它在整条长征主线中的位置。"
         )
     return {
         "expected_answer": quiz.get("answer", ""),
@@ -163,8 +182,8 @@ def generate_node_explanation(
     next_node = get_next_route_node(node.get("id", ""))
     explanation_text = result.get("content", "").strip()
     use_static = static_mode or not explanation_text or result.get("fallback_used", False) or result.get("provider") == "mock"
-    if use_static:
-        explanation_text = _static_node_explanation(node, role=role)
+    static_explanation = _static_node_explanation(node, role=role)
+    explanation_text = _prefer_complete_explanation("" if use_static else explanation_text, static_explanation, min_chars=420)
     static_details = fallback_quiz_explanation(node)
     sources = [
         {

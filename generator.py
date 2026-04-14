@@ -85,6 +85,16 @@ def _fit_text_range(text: str, min_chars: int, max_chars: int) -> str:
     return f"{window.rstrip('，；、 ')}。"
 
 
+def _prefer_complete_script(generated: str, fallback: str, min_chars: int, max_chars: int) -> str:
+    """优先返回足够完整的讲解文本，避免模型回答过短。"""
+    cleaned = str(generated or "").strip()
+    if not cleaned:
+        return _fit_text_range(fallback, min_chars=min_chars, max_chars=max_chars)
+    if len(cleaned) < min_chars:
+        return _fit_text_range(fallback, min_chars=min_chars, max_chars=max_chars)
+    return _fit_text_range(cleaned, min_chars=min_chars, max_chars=max_chars)
+
+
 def fallback_guide_script(
     topic: str,
     audience: str,
@@ -111,7 +121,7 @@ def fallback_guide_script(
         f"六、讲解提示\n可重点提醒听众关注以下要点：{points or '结合时间、地点、人物和意义进行理解。'}\n\n"
         "七、结语\n从这一节点可以看到，长征并不是单纯的远距离行军，而是在极端艰难条件下进行的一次伟大战略转移，也是中国共产党和红军在实践中不断校正方向、锻炼意志、凝聚精神的重要历程。"
     )
-    return _fit_text_range(script, min_chars=320, max_chars=520)
+    return _fit_text_range(script, min_chars=480, max_chars=880)
 
 
 def fallback_video_script(
@@ -139,7 +149,7 @@ def fallback_video_script(
         f"主体三：突出人物与知识点。可同步出现的人物包括：{'、'.join(node.get('figures', [])[:4]) or '重要领导人与广大红军指战员'}。可叠加的资料提示为：{static_context or '展示节点图片、人物卡片和关键知识点。'}\n\n"
         f"结尾：上升到历史意义。结语可采用这样的表达：{significance or '这一节点不仅改变了长征主线的推进方式，也集中体现了理想信念、战略智慧与革命意志。'}"
     )
-    return _fit_text_range(script, min_chars=320, max_chars=560)
+    return _fit_text_range(script, min_chars=460, max_chars=920)
 
 
 def fallback_learning_summary(role: str, score: int, unlocked_nodes: List[str], hits: List[Dict[str, Any]]) -> str:
@@ -178,18 +188,18 @@ def generate_guide_script(
         result = client.generate_with_context(
             prompt=f"{LONG_MARCH_GUIDE_ROLE_PROMPT}\n\n{prompt}",
             context_blocks=context_payload.get("context_blocks", _context_from_hits(hits)),
-            temperature=0.4,
+            temperature=0.25,
         )
     script = result.get("content", "").strip()
+    fallback_script = fallback_guide_script(topic=topic, audience=audience, duration=duration, node_data=node_data, hits=hits)
     use_static = (
         static_mode
         or not script
-        or len(script) < 260
+        or len(script) < 420
         or result.get("fallback_used", False)
         or result.get("provider") == "mock"
     )
-    if use_static:
-        script = fallback_guide_script(topic=topic, audience=audience, duration=duration, node_data=node_data, hits=hits)
+    script = _prefer_complete_script("" if use_static else script, fallback_script, min_chars=480, max_chars=880)
     sources = _source_cards(hits)
     if node_data:
         sources = build_static_sources_for_node(node_data)[:1] + sources
@@ -234,18 +244,18 @@ def generate_short_video_script(
         result = client.generate_with_context(
             prompt=f"{LONG_MARCH_GUIDE_ROLE_PROMPT}\n\n{prompt}",
             context_blocks=context_payload.get("context_blocks", _context_from_hits(hits)),
-            temperature=0.4,
+            temperature=0.25,
         )
     script = result.get("content", "").strip()
+    fallback_script = fallback_video_script(topic=topic, audience=audience, style=style, node_data=node_data, hits=hits)
     use_static = (
         static_mode
         or not script
-        or len(script) < 260
+        or len(script) < 420
         or result.get("fallback_used", False)
         or result.get("provider") == "mock"
     )
-    if use_static:
-        script = fallback_video_script(topic=topic, audience=audience, style=style, node_data=node_data, hits=hits)
+    script = _prefer_complete_script("" if use_static else script, fallback_script, min_chars=460, max_chars=920)
     sources = _source_cards(hits)
     if node_data:
         sources = build_static_sources_for_node(node_data)[:1] + sources

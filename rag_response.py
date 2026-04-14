@@ -22,6 +22,16 @@ def _fit_text_range(text: str, min_chars: int, max_chars: int) -> str:
     return window.rstrip("，；、 ") + "。"
 
 
+def _prefer_complete_answer(generated: str, fallback: str, min_chars: int, max_chars: int) -> str:
+    """优先返回足够完整的问答文本。"""
+    cleaned = str(generated or "").strip()
+    if not cleaned:
+        return _fit_text_range(fallback, min_chars=min_chars, max_chars=max_chars)
+    if len(cleaned) < min_chars:
+        return _fit_text_range(fallback, min_chars=min_chars, max_chars=max_chars)
+    return _fit_text_range(cleaned, min_chars=min_chars, max_chars=max_chars)
+
+
 def format_source_cards(hits: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """整理前端展示依据所需的信息。"""
     cards: List[Dict[str, Any]] = []
@@ -98,9 +108,9 @@ def fallback_answer(
             sections.append(f"若继续延伸，可进一步结合{spirit_titles}等专题理解这一问题。")
 
     answer = "\n\n".join(part for part in sections if str(part).strip())
-    if len(answer) < 220 and hits:
+    if len(answer) < 280 and hits:
         answer = f"{answer}\n\n资料依据补充：{_summarize_hits(hits)}"
-    return _fit_text_range(answer, min_chars=240, max_chars=420)
+    return _fit_text_range(answer, min_chars=300, max_chars=560)
 
 
 def ask(
@@ -142,27 +152,27 @@ def ask(
                 {"role": "system", "content": LONG_MARCH_GUIDE_ROLE_PROMPT},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.2,
+            temperature=0.15,
             stream=False,
         )
     answer = result.get("content", "").strip()
+    fallback_text = fallback_answer(
+        question=question,
+        matched_node=matched_node,
+        matched_faq=matched_faq,
+        retrieved_hits=hits,
+        context_payload=context_payload,
+        intent=retrieval.get("intent", "general"),
+        target=retrieval.get("target", ""),
+    )
     use_static = (
         static_mode
         or not answer
-        or len(answer) < 180
+        or len(answer) < 260
         or result.get("fallback_used", False)
         or result.get("provider") == "mock"
     )
-    if use_static:
-        answer = fallback_answer(
-            question=question,
-            matched_node=matched_node,
-            matched_faq=matched_faq,
-            retrieved_hits=hits,
-            context_payload=context_payload,
-            intent=retrieval.get("intent", "general"),
-            target=retrieval.get("target", ""),
-        )
+    answer = _prefer_complete_answer("" if use_static else answer, fallback_text, min_chars=300, max_chars=560)
     provider_used = "static" if use_static else result.get("provider", provider_config.get("provider_name", "mock"))
     model_used = "builtin-longmarch-content" if use_static else result.get("model", provider_config.get("model", ""))
     return {
