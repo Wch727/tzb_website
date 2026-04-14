@@ -25,6 +25,7 @@ def record_leaderboard_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
     entries = _load_entries()
     normalized = {
         "user_name": str(entry.get("user_name", "匿名用户") or "匿名用户"),
+        "unit_name": str(entry.get("unit_name", "未填写单位") or "未填写单位"),
         "role_name": str(entry.get("role_name", "") or ""),
         "activity_id": str(entry.get("activity_id", "global") or "global"),
         "activity_name": str(entry.get("activity_name", "全局闯关") or "全局闯关"),
@@ -78,9 +79,50 @@ def get_user_battles(user_name: str, limit: int = 10) -> List[Dict[str, Any]]:
     return rows[:limit]
 
 
+def get_unit_leaderboard(activity_id: str = "", limit: int = 20) -> List[Dict[str, Any]]:
+    """按单位/班级聚合排行榜。"""
+    rows = _load_entries()
+    if activity_id:
+        rows = [item for item in rows if item.get("activity_id") == activity_id]
+    buckets: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        unit_name = str(row.get("unit_name", "未填写单位") or "未填写单位")
+        bucket = buckets.setdefault(
+            unit_name,
+            {
+                "unit_name": unit_name,
+                "total_score": 0,
+                "total_grain": 0,
+                "member_names": set(),
+                "best_rank_title": "",
+            },
+        )
+        bucket["total_score"] += int(row.get("score", 0))
+        bucket["total_grain"] += int(row.get("grain", 0))
+        bucket["member_names"].add(str(row.get("user_name", "") or "匿名用户"))
+        if int(row.get("score", 0)) >= bucket.get("_best_score", -1):
+            bucket["_best_score"] = int(row.get("score", 0))
+            bucket["best_rank_title"] = str(row.get("rank_title", "") or "")
+    ranked = sorted(
+        buckets.values(),
+        key=lambda item: (-int(item.get("total_score", 0)), -int(item.get("total_grain", 0)), item.get("unit_name", "")),
+    )
+    result: List[Dict[str, Any]] = []
+    for index, item in enumerate(ranked[:limit], start=1):
+        row = {
+            "rank": index,
+            "unit_name": item.get("unit_name", ""),
+            "total_score": item.get("total_score", 0),
+            "total_grain": item.get("total_grain", 0),
+            "member_count": len(item.get("member_names", set())),
+            "best_rank_title": item.get("best_rank_title", ""),
+        }
+        result.append(row)
+    return result
+
+
 def export_leaderboard_rows(activity_id: str = "") -> List[Dict[str, Any]]:
     """导出排行榜数据。"""
     if activity_id:
         return get_activity_leaderboard(activity_id, limit=500)
     return get_global_leaderboard(limit=500)
-

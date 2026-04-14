@@ -19,7 +19,7 @@ from admin_dashboard import build_admin_metrics, export_leaderboard_csv, export_
 from auth import admin_login
 from content_store import clear_content_caches, load_faq_items, load_route_nodes_data
 from file_loader import load_file, persist_processed_text
-from leaderboard import get_activity_leaderboard, get_global_leaderboard
+from leaderboard import get_activity_leaderboard, get_global_leaderboard, get_unit_leaderboard
 from rag import get_rag_status, incremental_ingest, rebuild_knowledge_base
 from retrieval_debug import run_retrieval_debug
 from streamlit_ui import render_hero, render_metrics, render_section, render_top_nav, setup_page
@@ -43,6 +43,7 @@ from utils import (
 
 
 ROUTE_NODE_PATH = DATA_DIR / "route_nodes.json"
+FAQ_PATH = DATA_DIR / "faq.csv"
 
 
 def _load_route_node_rows() -> list[dict]:
@@ -63,6 +64,21 @@ def _find_route_node_row(rows: list[dict], node_id: str) -> dict:
         if item.get("id") == node_id:
             return item
     return {}
+
+
+def _load_faq_rows() -> list[dict]:
+    """读取 FAQ 原始数据。"""
+    if not FAQ_PATH.exists():
+        return []
+    frame = pd.read_csv(FAQ_PATH, encoding="utf-8-sig").fillna("")
+    return frame.to_dict(orient="records")
+
+
+def _save_faq_rows(rows: list[dict]) -> None:
+    """保存 FAQ 原始数据。"""
+    frame = pd.DataFrame(rows)
+    frame.to_csv(FAQ_PATH, index=False, encoding="utf-8-sig")
+    clear_content_caches()
 
 
 setup_page("管理员后台", icon="🛡️")
@@ -300,84 +316,119 @@ with activity_tab:
             st.info("当前活动尚无成绩记录。")
 
 with content_tab:
-    render_section("题库与内容管理", "当前版本支持直接编辑主线节点的图文内容与题目，用于最小可演示的题库/内容管理。")
-    raw_rows = _load_route_node_rows()
-    editable_node_ids = [item.get("id", "") for item in raw_rows]
-    selected_node_id = st.selectbox(
-        "选择要编辑的主线节点",
-        editable_node_ids,
-        format_func=lambda item: next((node.get("title", item) for node in raw_rows if node.get("id") == item), item),
-    )
-    selected_row = _find_route_node_row(raw_rows, selected_node_id)
+    render_section("题库与内容管理", "当前版本支持直接编辑主线节点题库和 FAQ，用于最小可演示的内容运营。")
+    route_subtab, faq_subtab = st.tabs(["主线节点题库", "FAQ 问答维护"])
 
-    with st.form("edit_route_node_form"):
-        st.markdown("#### 节点基础信息")
-        title = st.text_input("标题", value=selected_row.get("title", ""))
-        date = st.text_input("时间", value=selected_row.get("date", ""))
-        place = st.text_input("地点", value=selected_row.get("place", ""))
-        route_stage = st.text_input("路线阶段", value=selected_row.get("route_stage", ""))
-        summary = st.text_area("摘要", value=selected_row.get("summary", ""), height=120)
-        background = st.text_area("背景", value=selected_row.get("background", ""), height=180)
-        process = st.text_area("经过", value=selected_row.get("process", ""), height=180)
-        significance = st.text_area("意义", value=selected_row.get("significance", ""), height=160)
-        key_points = st.text_area("关键知识点（每行一个）", value="\n".join(selected_row.get("key_points", []) or []), height=120)
-        figures = st.text_area("关键人物（用顿号分隔）", value="、".join(selected_row.get("figures", []) or []), height=80)
-        st.markdown("#### 互动题配置")
-        quiz = selected_row.get("quiz", {}) or {}
-        question = st.text_area("题目", value=quiz.get("question", ""), height=100)
-        option1 = st.text_input("选项 A", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[0])
-        option2 = st.text_input("选项 B", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[1])
-        option3 = st.text_input("选项 C", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[2])
-        option4 = st.text_input("选项 D", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[3])
-        answer = st.text_input("正确答案", value=quiz.get("answer", ""))
-        explanation = st.text_area("答案解析", value=quiz.get("explanation", ""), height=140)
-        extended_note = st.text_area("延伸知识点", value=quiz.get("extended_note", ""), height=120)
-        save_node_submitted = st.form_submit_button("保存节点与题目修改", use_container_width=True, type="primary")
+    with route_subtab:
+        raw_rows = _load_route_node_rows()
+        editable_node_ids = [item.get("id", "") for item in raw_rows]
+        selected_node_id = st.selectbox(
+            "选择要编辑的主线节点",
+            editable_node_ids,
+            format_func=lambda item: next((node.get("title", item) for node in raw_rows if node.get("id") == item), item),
+        )
+        selected_row = _find_route_node_row(raw_rows, selected_node_id)
 
-    if save_node_submitted:
-        for index, item in enumerate(raw_rows):
-            if item.get("id") != selected_node_id:
-                continue
-            raw_rows[index] = {
-                **item,
-                "title": title.strip(),
-                "date": date.strip(),
-                "place": place.strip(),
-                "route_stage": route_stage.strip(),
-                "summary": summary.strip(),
-                "background": background.strip(),
-                "process": process.strip(),
-                "significance": significance.strip(),
-                "key_points": [line.strip() for line in key_points.splitlines() if line.strip()],
-                "figures": [part.strip() for part in figures.replace("，", "、").split("、") if part.strip()],
-                "quiz": {
-                    "question": question.strip(),
-                    "options": [item for item in [option1.strip(), option2.strip(), option3.strip(), option4.strip()] if item],
-                    "answer": answer.strip(),
-                    "explanation": explanation.strip(),
-                    "extended_note": extended_note.strip(),
-                },
-            }
-            break
-        _save_route_node_rows(raw_rows)
-        st.success("节点内容已保存。若要同步到向量检索，请回到“RAG 导入”执行重建索引。")
-        st.rerun()
+        with st.form("edit_route_node_form"):
+            st.markdown("#### 节点基础信息")
+            title = st.text_input("标题", value=selected_row.get("title", ""))
+            date = st.text_input("时间", value=selected_row.get("date", ""))
+            place = st.text_input("地点", value=selected_row.get("place", ""))
+            route_stage = st.text_input("路线阶段", value=selected_row.get("route_stage", ""))
+            summary = st.text_area("摘要", value=selected_row.get("summary", ""), height=120)
+            background = st.text_area("背景", value=selected_row.get("background", ""), height=180)
+            process = st.text_area("经过", value=selected_row.get("process", ""), height=180)
+            significance = st.text_area("意义", value=selected_row.get("significance", ""), height=160)
+            key_points = st.text_area("关键知识点（每行一个）", value="\n".join(selected_row.get("key_points", []) or []), height=120)
+            figures = st.text_area("关键人物（用顿号分隔）", value="、".join(selected_row.get("figures", []) or []), height=80)
+            st.markdown("#### 互动题配置")
+            quiz = selected_row.get("quiz", {}) or {}
+            question = st.text_area("题目", value=quiz.get("question", ""), height=100)
+            option1 = st.text_input("选项 A", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[0])
+            option2 = st.text_input("选项 B", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[1])
+            option3 = st.text_input("选项 C", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[2])
+            option4 = st.text_input("选项 D", value=(quiz.get("options", ["", "", "", ""]) + ["", "", "", ""])[3])
+            answer = st.text_input("正确答案", value=quiz.get("answer", ""))
+            explanation = st.text_area("答案解析", value=quiz.get("explanation", ""), height=140)
+            extended_note = st.text_area("延伸知识点", value=quiz.get("extended_note", ""), height=120)
+            save_node_submitted = st.form_submit_button("保存节点与题目修改", use_container_width=True, type="primary")
 
-    preview_left, preview_right = st.columns([1, 1.1])
-    with preview_left:
-        st.markdown("#### 节点预览")
-        st.write(selected_row.get("summary", ""))
-        st.caption(f"{selected_row.get('date', '')} · {selected_row.get('place', '')}")
-        st.write(selected_row.get("significance", ""))
-    with preview_right:
-        st.markdown("#### FAQ 预览")
-        faq_rows = load_faq_items()[:8]
-        st.dataframe(pd.DataFrame(faq_rows)[["question", "answer"]], use_container_width=True, hide_index=True)
+        if save_node_submitted:
+            for index, item in enumerate(raw_rows):
+                if item.get("id") != selected_node_id:
+                    continue
+                raw_rows[index] = {
+                    **item,
+                    "title": title.strip(),
+                    "date": date.strip(),
+                    "place": place.strip(),
+                    "route_stage": route_stage.strip(),
+                    "summary": summary.strip(),
+                    "background": background.strip(),
+                    "process": process.strip(),
+                    "significance": significance.strip(),
+                    "key_points": [line.strip() for line in key_points.splitlines() if line.strip()],
+                    "figures": [part.strip() for part in figures.replace("，", "、").split("、") if part.strip()],
+                    "quiz": {
+                        "question": question.strip(),
+                        "options": [item for item in [option1.strip(), option2.strip(), option3.strip(), option4.strip()] if item],
+                        "answer": answer.strip(),
+                        "explanation": explanation.strip(),
+                        "extended_note": extended_note.strip(),
+                    },
+                }
+                break
+            _save_route_node_rows(raw_rows)
+            st.success("节点内容已保存。若要同步到向量检索，请回到“RAG 导入”执行重建索引。")
+            st.rerun()
+
+        preview_left, preview_right = st.columns([1, 1.1])
+        with preview_left:
+            st.markdown("#### 节点预览")
+            st.write(selected_row.get("summary", ""))
+            st.caption(f"{selected_row.get('date', '')} · {selected_row.get('place', '')}")
+            st.write(selected_row.get("significance", ""))
+        with preview_right:
+            st.markdown("#### FAQ 预览")
+            faq_rows = load_faq_items()[:8]
+            st.dataframe(pd.DataFrame(faq_rows)[["question", "answer"]], use_container_width=True, hide_index=True)
+
+    with faq_subtab:
+        faq_rows = _load_faq_rows()
+        if not faq_rows:
+            st.info("当前没有 FAQ 数据。")
+        else:
+            faq_index = st.selectbox(
+                "选择 FAQ 条目",
+                list(range(len(faq_rows))),
+                format_func=lambda idx: faq_rows[idx].get("question", f"FAQ {idx + 1}"),
+            )
+            selected_faq = faq_rows[faq_index]
+            with st.form("edit_faq_form"):
+                faq_question = st.text_area("问题", value=selected_faq.get("question", ""), height=100)
+                faq_answer = st.text_area("答案", value=selected_faq.get("answer", ""), height=160)
+                faq_keywords = st.text_input("关键词（用顿号分隔）", value=selected_faq.get("keywords", ""))
+                faq_type = st.selectbox("类型", ["faq", "event", "spirit"], index=["faq", "event", "spirit"].index(selected_faq.get("type", "faq")) if selected_faq.get("type", "faq") in ["faq", "event", "spirit"] else 0)
+                save_faq_submitted = st.form_submit_button("保存 FAQ 修改", use_container_width=True)
+            if save_faq_submitted:
+                faq_rows[faq_index] = {
+                    **selected_faq,
+                    "question": faq_question.strip(),
+                    "answer": faq_answer.strip(),
+                    "keywords": faq_keywords.strip(),
+                    "type": faq_type,
+                }
+                _save_faq_rows(faq_rows)
+                st.success("FAQ 已保存。")
+                st.rerun()
+            st.markdown("#### FAQ 预览")
+            st.write(selected_faq.get("answer", ""))
 
 with data_tab:
     render_section("数据统计与导出", "至少能够演示活动统计、排行榜查看与结果导出，支撑计划书中的后台运营表述。")
     global_rows = get_global_leaderboard(limit=100)
     activity_rows = get_activity_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
+    unit_rows = get_unit_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
 
     stat_cols = st.columns(4)
     with stat_cols[0]:
@@ -414,6 +465,19 @@ with data_tab:
         )
     else:
         st.info("当前活动暂无排行榜数据。")
+
+    if unit_rows:
+        st.markdown("#### 当前活动单位排行")
+        st.dataframe(pd.DataFrame(unit_rows), use_container_width=True, hide_index=True)
+        st.download_button(
+            "导出当前活动单位排行 CSV",
+            data=export_rows_to_csv(unit_rows),
+            file_name="unit_leaderboard.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+    else:
+        st.info("当前活动暂无单位排行数据。")
 
     route_rows = _load_route_node_rows()
     st.download_button(

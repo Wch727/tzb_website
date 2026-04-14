@@ -6,7 +6,7 @@ import streamlit as st
 
 from activity_manager import build_activity_qr_bytes, build_activity_share_link, get_activity, list_activities
 from game import get_route_node
-from leaderboard import get_activity_leaderboard
+from leaderboard import get_activity_leaderboard, get_unit_leaderboard
 from streamlit_ui import render_cards, render_hero, render_section, render_top_nav, setup_page
 
 
@@ -54,6 +54,7 @@ with left:
     st.caption(f"活动时长：{activity.get('time_range', '')}")
     st.caption(f"活动状态：{activity.get('status', '')}")
     st.caption(f"覆盖节点：{len(activity.get('node_scope', []))} 个")
+    st.caption(f"当前参与身份：{st.session_state.get('user_name', '红色学习者')} · {st.session_state.get('unit_name', '体验组')}")
     if st.button("进入该活动并选择角色", use_container_width=True, type="primary"):
         st.switch_page("pages/2_角色选择.py")
     if st.button("查看该活动排行榜", use_container_width=True):
@@ -99,3 +100,14 @@ if ranking:
         )
 else:
     st.info("当前活动还没有成绩记录。完成一次剧情答题后，这里将自动出现活动排行榜。")
+
+unit_rows = get_unit_leaderboard(current_activity_id, limit=5)
+render_section("单位排行预览", "适合课堂、班级或小组场景，能够更接近真实活动组织方式。")
+if unit_rows:
+    for item in unit_rows:
+        st.markdown(
+            f"{item.get('rank', 0)}. **{item.get('unit_name', '')}** · "
+            f"总分 {item.get('total_score', 0)} · 参与人数 {item.get('member_count', 0)}"
+        )
+else:
+    st.info("当前活动还没有单位排行数据。")

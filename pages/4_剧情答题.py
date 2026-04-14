@@ -44,6 +44,7 @@ if story_state.get("finished"):
     progress = story_state.get("progress", {})
     svg = generate_certificate_svg(
         user_name=st.session_state.get("user_name", "红色学习者"),
+        unit_name=st.session_state.get("unit_name", "体验组"),
         activity_name=story_state.get("activity_name", "长征主线闯关"),
         rank_title=progress.get("rank_title", "红军新兵"),
         score=int(progress.get("red_star_points", 0)),
@@ -51,6 +52,7 @@ if story_state.get("finished"):
     )
     st.session_state["story_state"]["progress"]["last_certificate_svg"] = svg
     render_section("结算页", "展示总积分、军衔、勋章、错题复盘和电子证书。")
+    st.caption(f"参与身份：{st.session_state.get('user_name', '红色学习者')} · {st.session_state.get('unit_name', '体验组')}")
     st.metric("红星积分", progress.get("red_star_points", 0))
     st.metric("虚拟粮草", progress.get("grain", 0))
     st.metric("当前军衔", progress.get("rank_title", "红军新兵"))
@@ -71,6 +73,7 @@ if story_state.get("finished"):
         record_leaderboard_entry(
             {
                 "user_name": st.session_state.get("user_name", "红色学习者"),
+                "unit_name": st.session_state.get("unit_name", "体验组"),
                 "role_name": story_state.get("role_name", "侦察兵"),
                 "activity_id": story_state.get("activity_id", "global"),
                 "activity_name": story_state.get("activity_name", "长征主线闯关"),
@@ -116,7 +119,8 @@ knowledge_bundle = build_related_knowledge_bundle(node)
 render_section(
     "当前关卡",
     f"第 {stage.get('current_step', 1)} / {stage.get('total_steps', 1)} 关 · "
-    f"{story_state.get('activity_name', '长征主线闯关')} · {story_state.get('role_name', '侦察兵')}",
+    f"{story_state.get('activity_name', '长征主线闯关')} · {story_state.get('role_name', '侦察兵')} · "
+    f"{st.session_state.get('unit_name', '体验组')}",
 )
 
 status_cols = st.columns(4)
@@ -152,10 +156,36 @@ with top_right:
     st.markdown(f"**角色任务提示：** {stage.get('role_brief', '')}")
     if stage.get("mission_prompt"):
         st.info(stage.get("mission_prompt", ""))
+    role_task = stage.get("role_task", {}) or {}
+    if role_task:
+        st.markdown("### 本关角色任务卡")
+        st.write(role_task.get("mission_brief", ""))
+        for item in role_task.get("checklist", []):
+            st.markdown(f"- {item}")
+        if role_task.get("reward_hint"):
+            st.caption(f"奖励提示：{role_task.get('reward_hint', '')}")
     st.markdown("### 背景导入")
     st.write(node.get("background", "")[:220] + ("..." if len(node.get("background", "")) > 220 else ""))
     st.markdown("### 剧情旁白")
     st.write(node.get("summary", ""))
+
+render_section("多媒体材料与作答线索", "不同题型会提供不同的观察重点，避免答题只剩下“裸选择”。")
+material_left, material_right = st.columns([1.1, 1])
+with material_left:
+    st.markdown(f"**材料类型：** {stage.get('question_type', '情境选择题')}")
+    if stage.get("material_title"):
+        st.markdown(f"**{stage.get('material_title', '')}**")
+    for point in stage.get("material_points", []):
+        st.markdown(f"- {point}")
+with material_right:
+    if stage.get("question_type") == "看图识史":
+        st.caption("请先观察左侧图片中的场景特征，再结合历史背景作答。")
+    elif stage.get("question_type") == "地图纠错":
+        st.caption("请先观察路线图，再判断哪一种路线理解或结论存在偏差。")
+    elif stage.get("question_type") == "听音辨曲":
+        st.caption("请先播放音频线索，再把诗句与节点环境、精神内涵对应起来。")
+    else:
+        st.caption("请先阅读剧情导入和角色任务卡，再进入题目判断。")
 
 st.markdown("---")
 st.markdown("## 开始作答")
@@ -177,6 +207,8 @@ if last_result and last_result.get("answer_detail"):
         st.success(last_result.get("feedback", "回答正确。"))
     else:
         st.warning(last_result.get("feedback", "回答未命中全部要点。"))
+    if last_result.get("role_feedback"):
+        st.info(last_result.get("role_feedback", ""))
 
     st.markdown(f"### 正确答案解析 · {answered_node.get('title', node.get('title', '当前关卡'))}")
     st.write(detail.get("explanation", ""))

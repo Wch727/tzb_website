@@ -30,6 +30,7 @@ def default_progress(role_name: str = "侦察兵", starter_grain: int = 5, start
         "wrong_book": [],
         "completed_nodes": [],
         "last_certificate_svg": "",
+        "role_mastery_counts": {},
     }
 
 
@@ -62,6 +63,13 @@ def _refresh_medals(progress: Dict[str, Any]) -> None:
         _append_unique(medals, "多媒体闯关先锋")
     if progress.get("red_star_points", 0) >= 180:
         _append_unique(medals, "红星进阶者")
+    role_counts = progress.get("role_mastery_counts", {}) or {}
+    if int(role_counts.get("scout", 0)) >= 2:
+        _append_unique(medals, "战地侦察能手")
+    if int(role_counts.get("medic", 0)) >= 2:
+        _append_unique(medals, "雪线守护者")
+    if int(role_counts.get("signal", 0)) >= 2:
+        _append_unique(medals, "前线通讯尖兵")
     progress["medals"] = medals
 
 
@@ -78,6 +86,7 @@ def record_quiz_result(
     question_type: str,
     bonus_stars: int = 0,
     bonus_grain: int = 0,
+    role_mastery_key: str = "",
 ) -> Dict[str, Any]:
     """记录一次答题结果。"""
     updated = progress.copy()
@@ -85,6 +94,7 @@ def record_quiz_result(
     updated.setdefault("medals", [])
     updated.setdefault("wrong_book", [])
     updated.setdefault("completed_nodes", [])
+    updated.setdefault("role_mastery_counts", {})
     updated["answered_count"] = int(updated.get("answered_count", 0)) + 1
     _append_unique(updated["multimedia_types"], question_type)
 
@@ -93,6 +103,10 @@ def record_quiz_result(
         updated["red_star_points"] = int(updated.get("red_star_points", 0)) + 10 + int(bonus_stars)
         updated["grain"] = int(updated.get("grain", 0)) + 3 + int(bonus_grain)
         _append_unique(updated["completed_nodes"], node_id)
+        if role_mastery_key:
+            mastery = dict(updated.get("role_mastery_counts", {}) or {})
+            mastery[role_mastery_key] = int(mastery.get(role_mastery_key, 0)) + 1
+            updated["role_mastery_counts"] = mastery
     else:
         updated["wrong_count"] = int(updated.get("wrong_count", 0)) + 1
         updated["grain"] = max(0, int(updated.get("grain", 0)) - 1)
@@ -127,5 +141,5 @@ def build_progress_summary(progress: Dict[str, Any]) -> Dict[str, Any]:
         "wrong_count": int(progress.get("wrong_count", 0)),
         "answered_count": int(progress.get("answered_count", 0)),
         "completed_nodes": progress.get("completed_nodes", []),
+        "role_mastery_counts": progress.get("role_mastery_counts", {}),
     }
-

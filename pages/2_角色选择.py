@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from activity_manager import get_activity, list_activities
+from game import load_route_nodes
 from role_system import get_role, list_roles
 from streamlit_ui import render_cards, render_hero, render_section, render_top_nav, setup_page
 
@@ -37,6 +38,20 @@ role_cards = [
 ]
 render_cards(role_cards)
 
+identity_left, identity_right = st.columns(2)
+with identity_left:
+    st.session_state["user_name"] = st.text_input(
+        "参与者姓名",
+        value=st.session_state.get("user_name", "红色学习者"),
+        help="将用于排行榜、战绩展示和电子证书。",
+    )
+with identity_right:
+    st.session_state["unit_name"] = st.text_input(
+        "班级 / 单位 / 小组",
+        value=st.session_state.get("unit_name", "体验组"),
+        help="用于活动排行和单位排行展示。",
+    )
+
 selected_role_id = st.session_state.get("selected_role_id", "scout")
 selected_role_id = st.radio(
     "请选择角色",
@@ -62,7 +77,9 @@ with left:
     if selected_role.get("recommended_nodes"):
         st.markdown("**推荐优先体验节点：**")
         for node_id in selected_role.get("recommended_nodes", []):
-            st.markdown(f"- {node_id}")
+            st.markdown(
+                f"- {next((node.get('title', node_id) for node in load_route_nodes() if node.get('id') == node_id), node_id)}"
+            )
 
 with right:
     st.markdown("### 当前活动任务")
@@ -70,6 +87,7 @@ with right:
     st.caption(f"活动模式：{current_activity.get('mode', '')}")
     st.caption(f"活动时长：{current_activity.get('time_range', '')}")
     st.caption(f"节点范围：{len(current_activity.get('node_scope', []))} 个核心节点")
+    st.caption(f"当前参与身份：{st.session_state.get('user_name', '红色学习者')} · {st.session_state.get('unit_name', '体验组')}")
 
 btn1, btn2 = st.columns(2)
 with btn1:
@@ -78,4 +96,3 @@ with btn1:
 with btn2:
     if st.button("直接开始剧情答题", use_container_width=True):
         st.switch_page("pages/4_剧情答题.py")
-

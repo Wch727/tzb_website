@@ -80,3 +80,46 @@ def build_role_brief(role: Dict[str, Any], node_title: str, node_stage: str) -> 
         f"{role.get('special_hint', '')}"
     )
 
+
+def build_role_task(role: Dict[str, Any], node_title: str, node_stage: str, question_type: str) -> Dict[str, Any]:
+    """生成角色专属任务卡。"""
+    role_id = role.get("role_id", "scout")
+    base = {
+        "mission_title": f"{role.get('name', '侦察兵')}任务卡",
+        "mission_brief": f"你正在执行“{node_title}”关卡任务，本关属于“{node_stage}”阶段。",
+        "checklist": [],
+        "reward_hint": role.get("bonus_text", ""),
+    }
+    if role_id == "scout":
+        base["checklist"] = [
+            "先判断路线节点与战略转折之间的关系。",
+            "关注地形、机动与敌我态势变化。",
+            f"本关题型为“{question_type}”，优先从战术线索中作答。",
+        ]
+    elif role_id == "medic":
+        base["checklist"] = [
+            "先理解红军在极端环境中的保障压力。",
+            "关注军民互助、伤员转运与艰苦环境。",
+            f"本关题型为“{question_type}”，优先从人物处境和生存条件中判断。",
+        ]
+    else:
+        base["checklist"] = [
+            "先梳理会议、命令与队伍协同关系。",
+            "关注关键决策如何改变后续路线与战局。",
+            f"本关题型为“{question_type}”，优先从组织和指挥链条中作答。",
+        ]
+    return base
+
+
+def build_role_feedback(role: Dict[str, Any], correct: bool, question_type: str) -> str:
+    """生成角色专属点评。"""
+    role_name = role.get("name", "侦察兵")
+    if correct:
+        return (
+            f"{role_name}本关判断准确。你不仅完成了“{question_type}”题目，"
+            "也把角色职责和长征历史线索结合起来了。"
+        )
+    return (
+        f"{role_name}本关还有提升空间。建议回到角色任务卡，重新对照本关的"
+        f"“{question_type}”线索与历史背景，再复盘一次。"
+    )

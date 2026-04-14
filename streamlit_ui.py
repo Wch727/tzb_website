@@ -199,7 +199,8 @@ def init_session_state() -> None:
     """初始化前端会话状态。"""
     default_provider = get_default_provider_name()
     defaults = {
-        "user_name": "",
+        "user_name": "红色学习者",
+        "unit_name": "体验组",
         "user_role": "大学生",
         "selected_provider_name": default_provider,
         "selected_topic_label": "综合导览",
@@ -217,7 +218,6 @@ def init_session_state() -> None:
         "current_activity_id": "knowledge-contest",
         "story_state": {},
         "progress_snapshot": {},
-        "user_name": "红色学习者",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
