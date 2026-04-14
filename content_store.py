@@ -115,10 +115,9 @@ def _image_mapping_for_item(item: Dict[str, Any]) -> Dict[str, Any]:
     """根据标题、节点名和地点查找图片映射。"""
     image_map = load_image_map().get("items", {})
     candidates = [
+        item.get("image_key", ""),
         item.get("id", ""),
         item.get("title", ""),
-        item.get("route_stage", ""),
-        item.get("place", ""),
     ]
     for candidate in candidates:
         candidate = str(candidate or "").strip()

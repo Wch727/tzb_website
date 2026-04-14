@@ -17,6 +17,7 @@ from generator import generate_guide_script, generate_short_video_script
 from media import render_audio_player, render_digital_human, render_node_image
 from rag import retrieve_knowledge
 from streamlit_ui import (
+    _clean_html,
     render_curatorial_note,
     render_detail_panels,
     render_ledger_cards,
@@ -69,13 +70,15 @@ def _render_figure_block(node: Dict[str, Any]) -> None:
     chips = []
     for name in figures:
         chips.append(
-            f"""
+            _clean_html(
+                f"""
             <div class="info-card" style="padding:0.85rem 1rem;">
                 <div class="card-label">人物线索</div>
                 <div class="card-title" style="font-size:1rem;">{name}</div>
                 <div class="card-desc">围绕该人物继续理解本节点中的组织决策、战略判断与行动执行。</div>
             </div>
             """
+            )
         )
     st.markdown(f"<div class='card-grid'>{''.join(chips)}</div>", unsafe_allow_html=True)
 

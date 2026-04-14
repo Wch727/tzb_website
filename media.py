@@ -63,8 +63,6 @@ def _candidate_local_images(item: Dict[str, Any]) -> list[Path]:
         image_key,
         item.get("id", ""),
         item.get("title", ""),
-        item.get("route_stage", ""),
-        item.get("place", ""),
     ]:
         candidate_text = str(candidate or "").strip()
         if not candidate_text:

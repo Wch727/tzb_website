@@ -35,15 +35,6 @@ provider_config = build_current_provider_config()
 activity = get_activity(st.session_state.get("current_activity_id", ""))
 allowed_node_ids = set(activity.get("node_scope", []) if activity else [])
 chapters = get_route_chapters()
-if allowed_node_ids:
-    filtered_chapters = []
-    for chapter in chapters:
-        nodes = [node for node in chapter.get("nodes", []) if node.get("id") in allowed_node_ids]
-        if nodes:
-            chapter_copy = chapter.copy()
-            chapter_copy["nodes"] = nodes
-            filtered_chapters.append(chapter_copy)
-    chapters = filtered_chapters
 
 chapter_ids = [item.get("id", "") for item in chapters]
 selected_chapter_id = st.session_state.get("selected_chapter_id", chapter_ids[0] if chapter_ids else "")
@@ -55,6 +46,13 @@ selected_chapter = next((item for item in chapters if item.get("id") == st.sessi
 
 render_section("征程篇章", "先看全线篇章，再进入当前展区。每个篇章都以明确的历史任务和关键节点组织。")
 render_chapter_overview_cards(chapters, active_id=selected_chapter.get("id", ""))
+
+if allowed_node_ids:
+    render_curatorial_note(
+        title="活动高亮范围",
+        body="当前活动仅对部分节点设置了闯关范围，但路线导览仍完整展示整条长征主线。带有“活动重点”提示的节点，更适合从活动入口继续进入互动学习。",
+        label="活动提示",
+    )
 
 chapter_nav_cols = st.columns(max(1, len(chapters)))
 for index, chapter in enumerate(chapters):
@@ -96,6 +94,8 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
         st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
         st.write(node.get("summary", ""))
         st.markdown(f"<div class='small-muted'>{node.get('significance', '')[:110]}...</div>", unsafe_allow_html=True)
+        if node.get("id") in allowed_node_ids:
+            st.markdown("<div class='small-muted'><strong>活动重点：</strong>当前活动可从该节点继续进入闯关。</div>", unsafe_allow_html=True)
         action_left, action_right = st.columns(2)
         with action_left:
             if st.button("查看详情", key=f"chapter_node_{node.get('id')}", width="stretch"):
