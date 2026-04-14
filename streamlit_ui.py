@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import html
 from textwrap import dedent
 from typing import Any, Dict, List
@@ -9,6 +10,7 @@ from typing import Any, Dict, List
 import streamlit as st
 
 from utils import (
+    BASE_DIR,
     get_default_provider_name,
     get_settings,
     get_visible_user_models,
@@ -35,16 +37,38 @@ TOPIC_FILTERS = [
 ]
 
 
+def _background_image_uri() -> str:
+    """读取背景素材并转换为 data URI。"""
+    candidates = [
+        BASE_DIR / "assets" / "images" / "route_map.svg",
+        BASE_DIR / "assets" / "images" / "changzheng_route_map.jpg",
+    ]
+    for path in candidates:
+        if not path.exists():
+            continue
+        mime = "image/svg+xml" if path.suffix.lower() == ".svg" else "image/jpeg"
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        return f"data:{mime};base64,{encoded}"
+    return ""
+
+
 def inject_custom_css() -> None:
     """注入统一的产品化样式。"""
+    background_uri = _background_image_uri()
+    route_overlay = f'url("{background_uri}")' if background_uri else "none"
     st.markdown(
-        """
+        f"""
         <style>
         .stApp {
             background:
                 radial-gradient(circle at top left, rgba(177, 130, 63, 0.18), transparent 26%),
                 radial-gradient(circle at bottom right, rgba(132, 49, 33, 0.14), transparent 24%),
-                linear-gradient(180deg, #f8f2e8 0%, #f1e5d2 55%, #ead9c0 100%);
+                linear-gradient(180deg, rgba(248, 242, 232, 0.98) 0%, rgba(241, 229, 210, 0.96) 55%, rgba(234, 217, 192, 0.96) 100%),
+                {route_overlay};
+            background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+            background-size: auto, auto, auto, min(48vw, 720px) auto;
+            background-position: left top, right bottom, center top, right -36px top 112px;
+            background-attachment: fixed, fixed, fixed, scroll;
             color: #1d1815;
         }
         .block-container {
@@ -60,11 +84,73 @@ def inject_custom_css() -> None:
         .hero-banner {
             padding: 1.6rem 1.8rem;
             border-radius: 26px;
-            background: linear-gradient(135deg, #6f2219 0%, #a03f2f 48%, #c88a49 100%);
+            background: linear-gradient(135deg, rgba(111, 34, 25, 0.96) 0%, rgba(160, 63, 47, 0.95) 48%, rgba(200, 138, 73, 0.92) 100%);
             color: #fff9f0;
             box-shadow: 0 18px 46px rgba(82, 30, 20, 0.18);
             border: 1px solid rgba(255, 245, 230, 0.22);
             margin-bottom: 1rem;
+        }
+        .masthead-shell {
+            margin: 0.2rem 0 1rem;
+            border-radius: 28px;
+            padding: 1rem 1.2rem 1.1rem;
+            background: linear-gradient(180deg, rgba(255, 250, 243, 0.9), rgba(250, 241, 228, 0.82));
+            border: 1px solid rgba(154, 113, 61, 0.18);
+            box-shadow: 0 14px 34px rgba(72, 48, 29, 0.08);
+            backdrop-filter: blur(6px);
+        }
+        .masthead-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.9rem;
+        }
+        .masthead-kicker {
+            color: #8b6b4d;
+            font-size: 0.82rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+        }
+        .masthead-title {
+            color: #4b2119;
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin-bottom: 0.18rem;
+        }
+        .masthead-subtitle {
+            color: #675646;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            max-width: 780px;
+        }
+        .masthead-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .masthead-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.34rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(111, 34, 25, 0.08);
+            border: 1px solid rgba(124, 42, 34, 0.16);
+            color: #6d3528;
+            font-size: 0.84rem;
+        }
+        .masthead-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(124, 42, 34, 0.28), rgba(124, 42, 34, 0));
+            margin: 0.25rem 0 0.9rem;
+        }
+        .nav-section-label {
+            color: #8b6b4d;
+            font-size: 0.84rem;
+            margin-bottom: 0.45rem;
         }
         .hero-title {
             font-size: 2rem;
@@ -491,33 +577,95 @@ def bootstrap_repository_content() -> None:
     st.session_state["_repository_content_ready"] = True
 
 
+def _nav_action(label: str, target: str, current_page: str, current_aliases: List[str] | None = None) -> None:
+    """渲染顶部导航按钮。"""
+    aliases = {current_page}
+    for item in current_aliases or []:
+        aliases.add(item)
+    is_current = label in aliases or target in aliases
+    if st.button(label, key=f"topnav::{target}", width="stretch", type="primary" if is_current else "secondary", disabled=is_current):
+        st.switch_page(target)
+
+
 def render_top_nav(current_page: str) -> None:
     """渲染页内顶部导航。"""
-    row1 = st.columns(5)
+    current_model = get_selected_model_info()
+    current_role = st.session_state.get("selected_role_name", "侦察兵")
+    current_activity = st.session_state.get("current_activity_id", "knowledge-contest")
+    subtitle_map = {
+        "首页": "从主展入口进入路线、人物、精神与互动学习内容。",
+        "角色选择": "以不同角色视角进入长征叙事与任务导览。",
+        "长征路线": "按四大篇章浏览长征主线展项，进入单节点深度阅读。",
+        "剧情答题": "在历史情境中完成互动学习，以题带学。",
+        "知识百问": "围绕长征史问题进入问答、延伸阅读与依据检索。",
+        "讲解工坊": "围绕节点与专题生成讲解稿和短视频脚本。",
+        "活动中心": "查看活动、分享入口、协作方式与参与路径。",
+        "排行榜": "查看个人、小队、单位与活动排行。",
+        "使用设置": "切换导览模式与当前可用模型设置。",
+        "内容运营": "维护内容、活动与知识库运行状态。",
+        "导览速览": "快速走读整站的核心展项与学习路径。",
+        "数据大屏": "用于活动现场投屏，集中展示参与与热度数据。",
+    }
+    chips = [
+        f"<span class='masthead-chip'>当前页面：{html.escape(current_page)}</span>",
+        f"<span class='masthead-chip'>当前角色：{html.escape(current_role)}</span>",
+        f"<span class='masthead-chip'>当前活动：{html.escape(current_activity)}</span>",
+    ]
+    if current_model:
+        chips.append(f"<span class='masthead-chip'>当前模型：{html.escape(current_model.get('display_name', '知识导览模式'))}</span>")
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="masthead-shell">
+                <div class="masthead-top">
+                    <div>
+                        <div class="masthead-kicker">Long March Digital Exhibition</div>
+                        <div class="masthead-title">{html.escape(APP_TITLE)}</div>
+                        <div class="masthead-subtitle">{html.escape(subtitle_map.get(current_page, '沿着长征主线浏览展项、知识与互动学习内容。'))}</div>
+                    </div>
+                    <div class="masthead-meta">{''.join(chips)}</div>
+                </div>
+                <div class="masthead-divider"></div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown("<div class='nav-section-label'>主展导航</div>", unsafe_allow_html=True)
+    row1 = st.columns(6)
     with row1[0]:
-        st.page_link("pages/1_首页.py", label="首页", width="stretch")
+        _nav_action("首页", "pages/1_首页.py", current_page)
     with row1[1]:
-        st.page_link("pages/2_角色选择.py", label="角色选择", width="stretch")
+        _nav_action("长征路线", "pages/3_长征路线.py", current_page)
     with row1[2]:
-        st.page_link("pages/3_长征路线.py", label="长征路线", width="stretch")
+        _nav_action("知识百问", "pages/5_知识库.py", current_page)
     with row1[3]:
-        st.page_link("pages/4_剧情答题.py", label="剧情答题", width="stretch")
+        _nav_action("剧情答题", "pages/4_剧情答题.py", current_page)
     with row1[4]:
-        st.page_link("pages/5_知识库.py", label="知识百问", width="stretch")
-    row2 = st.columns(6)
+        _nav_action("讲解工坊", "pages/11_讲解生成.py", current_page)
+    with row1[5]:
+        _nav_action("活动中心", "pages/6_活动中心.py", current_page)
+
+    st.markdown("<div class='nav-section-label'>辅助入口</div>", unsafe_allow_html=True)
+    row2 = st.columns(5)
     with row2[0]:
-        st.page_link("pages/6_活动中心.py", label="活动中心", width="stretch")
+        _nav_action("角色选择", "pages/2_角色选择.py", current_page)
     with row2[1]:
-        st.page_link("pages/7_排行榜.py", label="排行榜", width="stretch")
+        _nav_action("排行榜", "pages/7_排行榜.py", current_page)
     with row2[2]:
-        st.page_link("pages/8_配置页.py", label="使用设置", width="stretch")
+        _nav_action("导览速览", "pages/10_测试体验.py", current_page)
     with row2[3]:
-        st.page_link("pages/9_管理员后台.py", label="内容运营", width="stretch")
+        _nav_action("数据大屏", "pages/12_数据大屏.py", current_page)
     with row2[4]:
-        st.page_link("pages/10_测试体验.py", label="导览速览", width="stretch")
-    with row2[5]:
-        st.page_link("pages/12_数据大屏.py", label="数据大屏", width="stretch")
-    st.caption(f"当前页面：{current_page}")
+        _nav_action("使用设置", "pages/8_配置页.py", current_page)
+
+    if st.session_state.get("admin_authenticated"):
+        st.markdown("<div class='nav-section-label'>运营入口</div>", unsafe_allow_html=True)
+        admin_cols = st.columns(2)
+        with admin_cols[0]:
+            _nav_action("内容运营", "pages/9_管理员后台.py", current_page)
+        with admin_cols[1]:
+            _nav_action("使用设置", "pages/8_配置页.py", current_page)
 
 
 def render_hero(title: str, subtitle: str, badges: List[str] | None = None) -> None:
