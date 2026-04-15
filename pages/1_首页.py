@@ -58,6 +58,20 @@ def _jump_to_route(route_text: str) -> None:
             return
 
 
+def _split_route_item(route_text: str, fallback_prefix: str) -> tuple[str, str, list[str]]:
+    """拆分路线标题、说明与节点序列。"""
+    title = fallback_prefix
+    body = route_text.strip()
+    for separator in ["：", ":"]:
+        if separator in route_text:
+            left, right = route_text.split(separator, 1)
+            title = left.strip() or fallback_prefix
+            body = right.strip() or route_text.strip()
+            break
+    nodes = _extract_route_titles(route_text)
+    return title, body, nodes
+
+
 def _jump_to_question(question: str) -> None:
     """把推荐问题带入知识百问页。"""
     st.session_state["pending_question"] = question
@@ -325,24 +339,51 @@ with route_right:
         body="如果希望尽快把握长征主线，可先沿四大篇章依次浏览；如果更想先体验互动学习，可从剧情闯关进入，再回到具体节点继续阅读。",
         label="主线提要",
     )
-    st.markdown("### 推荐学习路线")
-    for index, item in enumerate(sample.get("recommended_learning_paths", [])[:4]):
-        render_curatorial_note(
-            title=item.split("：", 1)[0] if "：" in item else f"学习路线 {index + 1}",
-            body=item.split("：", 1)[1] if "：" in item else item,
-            label="导览路线",
-        )
-        if st.button("按此路线浏览", key=f"learn_route_{index}", width="stretch"):
-            _jump_to_route(item)
-    st.markdown("### 今日推荐路线")
-    for index, item in enumerate(sample.get("recommended_route", [])[:4]):
-        render_curatorial_note(
-            title=item.split("：", 1)[0] if "：" in item else f"推荐路线 {index + 1}",
-            body=item.split("：", 1)[1] if "：" in item else item,
-            label="今日路线",
-        )
-        if st.button("从首站进入", key=f"today_route_{index}", width="stretch"):
-            _jump_to_route(item)
+    route_board_left, route_board_right = st.columns(2)
+    with route_board_left:
+        render_section("推荐学习路线", "适合第一次系统进入主题展时，沿主线建立整体认知。")
+        for index, item in enumerate(sample.get("recommended_learning_paths", [])[:4]):
+            route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
+            render_curatorial_note(
+                title=route_title,
+                body=route_body,
+                label="推荐路线",
+            )
+            if route_nodes:
+                render_ledger_cards(
+                    [
+                        {
+                            "label": f"{step + 1:02d}",
+                            "title": node_title,
+                            "desc": "顺着这一站继续进入主线节点。",
+                        }
+                        for step, node_title in enumerate(route_nodes[:5])
+                    ]
+                )
+            if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
+                _jump_to_route(item)
+    with route_board_right:
+        render_section("今日推荐路线", "适合快速体验重点节点，先进入转折与胜利场景。")
+        for index, item in enumerate(sample.get("recommended_route", [])[:4]):
+            route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
+            render_curatorial_note(
+                title=route_title,
+                body=route_body,
+                label="今日导览",
+            )
+            if route_nodes:
+                render_ledger_cards(
+                    [
+                        {
+                            "label": f"{step + 1:02d}",
+                            "title": node_title,
+                            "desc": "从这一站进入，可快速形成章节印象。",
+                        }
+                        for step, node_title in enumerate(route_nodes[:5])
+                    ]
+                )
+            if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
+                _jump_to_route(item)
 
 render_gallery_frame("人物与专题", "在主线之外，从人物与精神专题继续深入，理解长征何以发生、如何转折、为何胜利。")
 render_section("重要人物", "通过关键人物回看决策、组织与战斗过程，能够更完整地理解长征主线。")
@@ -442,7 +483,12 @@ with tab3:
                 label="分段浏览",
             )
             for node in item.get("nodes", [])[:3]:
-                if st.button(f"查看 {node.get('title', '')}", key=f"stage_node_{item.get('title', '')}_{node.get('id', '')}", width="stretch"):
+                render_curatorial_note(
+                    title=node.get("title", ""),
+                    body=node.get("summary", "")[:88] or "点击后可直接进入对应节点展项。",
+                    label=node.get("date", "") or "节点入口",
+                )
+                if st.button(f"进入 {node.get('title', '')}", key=f"stage_node_{item.get('title', '')}_{node.get('id', '')}", width="stretch"):
                     _jump_to_node(node.get("id", ""))
 with tab4:
     render_curatorial_note(
