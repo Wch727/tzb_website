@@ -10,7 +10,7 @@ from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
-from streamlit_ui import render_hero, render_section, render_top_nav, setup_page
+from streamlit_ui import render_detail_panels, render_hero, render_section, render_top_nav, setup_page
 from team_manager import build_team_member_summary, build_team_share_text, get_team, record_team_progress
 
 
@@ -241,6 +241,11 @@ with status_cols[4]:
     st.metric("红军小队", team.get("team_name", "未加入"))
 with status_cols[5]:
     st.metric("支部归属", team.get("branch_name", st.session_state.get("unit_name", "体验组")))
+extra_status = st.columns(2)
+with extra_status[0]:
+    st.metric("连续作战", progress.get("streak", 0))
+with extra_status[1]:
+    st.metric("最佳连胜", progress.get("best_streak", 0))
 
 top_left, top_right = st.columns([1.05, 1.35])
 with top_left:
@@ -263,6 +268,8 @@ with top_right:
     st.markdown(f"## {node.get('title', '')}")
     st.markdown(f"**题型：** {stage.get('question_type', '情境选择题')}")
     st.markdown(f"**角色任务提示：** {stage.get('role_brief', '')}")
+    if stage.get("opening_brief"):
+        st.info(stage.get("opening_brief", ""))
     if stage.get("mission_prompt"):
         st.info(stage.get("mission_prompt", ""))
     role_task = stage.get("role_task", {}) or {}
@@ -285,6 +292,55 @@ with top_right:
             f"小队总分 {team.get('total_score', 0)}，"
             f"队员 {len(team.get('members', []))} 人。"
         )
+
+render_section("作战简报", "每一关都不仅是答题，还包含任务目标、风险提示和奖励预告。")
+render_detail_panels(
+    [
+        {
+            "title": "本关目标",
+            "desc": "；".join(stage.get("mission_goals", [])[:2]) or "先看背景，再判断行动与历史意义。",
+        },
+        {
+            "title": "风险提示",
+            "desc": stage.get("risk_hint", "如果忽略节点背景，很容易把历史判断停留在表层。"),
+        },
+        {
+            "title": "奖励预告",
+            "desc": stage.get("reward_hint", "答对即可获得积分与粮草；策略契合还能获得额外奖励。"),
+        },
+    ]
+)
+
+st.markdown("### 战地日志")
+for idx, log_line in enumerate(stage.get("battle_log", [])[:3], start=1):
+    st.markdown(f"- **记录 {idx}**：{log_line}")
+
+render_section("本关行动策略", "先选行动策略，再进入作答。策略与关卡环境越匹配，奖励越高。")
+tactic_options = stage.get("tactic_options", []) or []
+selected_tactic_id = ""
+if tactic_options:
+    tactic_map = {item.get("id", ""): item for item in tactic_options}
+    selected_tactic_id = st.radio(
+        "请选择本关行动策略",
+        options=[item.get("id", "") for item in tactic_options],
+        format_func=lambda option: tactic_map.get(option, {}).get("title", option),
+        index=0,
+        key=f"tactic::{node.get('id', '')}",
+        horizontal=True,
+    )
+    selected_tactic = tactic_map.get(selected_tactic_id, {})
+    render_detail_panels(
+        [
+            {
+                "title": selected_tactic.get("title", "行动策略"),
+                "desc": selected_tactic.get("desc", "请结合当前关卡环境选择策略。"),
+            },
+            {
+                "title": "推荐策略",
+                "desc": f"{stage.get('recommended_tactic_title', '默认推进')}：{stage.get('recommended_tactic_reason', '')}",
+            },
+        ]
+    )
 
 render_section("多媒体材料与作答线索", "不同题型会提供不同的观察重点，避免答题只剩下“裸选择”。")
 material_left, material_right = st.columns([1.1, 1])
@@ -311,7 +367,7 @@ answer = st.radio("请选择你的答案", stage.get("options", []), index=None,
 
 if st.button("提交答案", width="stretch", type="primary", disabled=not answer):
     old_progress = story_state.get("progress", {}) or {}
-    result = submit_stage_answer(story_state, answer or "")
+    result = submit_stage_answer(story_state, answer or "", tactic_id=selected_tactic_id)
     answer_detail = result.get("answer_detail", {})
     answered_node = result.get("answered_node", {}) or {}
     new_progress = result.get("progress", {}) or {}
@@ -352,6 +408,10 @@ if st.button("提交答案", width="stretch", type="primary", disabled=not answe
         branch_name=team.get("branch_name", st.session_state.get("unit_name", "体验组")) if team else "",
         share_text=share_text,
     )
+    result["reward_delta"] = {
+        "score_delta": score_delta,
+        "grain_delta": grain_delta,
+    }
     st.session_state["story_state"] = result.get("state", story_state)
     st.session_state["story_last_result"] = result
     st.rerun()
@@ -371,6 +431,19 @@ if last_result and last_result.get("answer_detail"):
     st.markdown(f"### 正确答案解析 | {answered_node.get('title', node.get('title', '当前关卡'))}")
     st.write(detail.get("explanation", ""))
     st.markdown(f"**正确答案：** {detail.get('expected_answer', '')}")
+    st.markdown("### 作战结果")
+    st.write(last_result.get("battle_outcome", ""))
+    if last_result.get("after_action_report"):
+        for item in last_result.get("after_action_report", []):
+            st.markdown(f"- {item}")
+    reward_delta = last_result.get("reward_delta", {}) or {}
+    score_delta = int(reward_delta.get("score_delta", 0))
+    grain_delta = int(reward_delta.get("grain_delta", 0))
+    reward_text = f"本关奖励变化：红星积分 {score_delta:+d}，虚拟粮草 {grain_delta:+d}。"
+    if reward_text:
+        st.caption(reward_text)
+    if last_result.get("tactic_match"):
+        st.success("本关行动策略与节点环境匹配，已获得额外战术奖励。")
     st.markdown("### 延伸知识点")
     st.write(detail.get("extended_note", ""))
 

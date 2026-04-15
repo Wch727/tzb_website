@@ -53,6 +53,78 @@ QUESTION_TYPE_OVERRIDES: Dict[str, Dict[str, Any]] = {
     },
 }
 
+TACTIC_LIBRARY: Dict[str, List[Dict[str, Any]]] = {
+    "scout": [
+        {
+            "id": "route_probe",
+            "title": "前出侦察",
+            "desc": "优先判断路线、地形与敌情变化，适合地图、路线和战场识别类关卡。",
+            "match_types": ["地图纠错", "看图识史"],
+            "match_stages": ["突围", "转折", "突破"],
+        },
+        {
+            "id": "concealed_move",
+            "title": "隐蔽机动",
+            "desc": "重视掩护、迂回与避实击虚，适合敌强我弱、需要保存主力的场景。",
+            "match_types": ["情境选择题"],
+            "match_stages": ["突围", "调整"],
+        },
+        {
+            "id": "terrain_lock",
+            "title": "地形锁定",
+            "desc": "先抓关键通道、桥梁和渡口，适合泸定桥、金沙江、大渡河等节点。",
+            "match_types": ["看图识史", "地图纠错"],
+            "match_stages": ["突破", "会师"],
+        },
+    ],
+    "medic": [
+        {
+            "id": "rescue_cover",
+            "title": "伤员掩护",
+            "desc": "优先考虑减轻伤亡、维持队伍秩序，适合艰苦环境和情境判断类关卡。",
+            "match_types": ["情境选择题", "听音辨曲"],
+            "match_stages": ["突围", "会师"],
+        },
+        {
+            "id": "supply_stabilize",
+            "title": "补给稳队",
+            "desc": "先看粮草、体力和队伍承压能力，适合雪山草地等艰难节点。",
+            "match_types": ["情境选择题"],
+            "match_stages": ["会师", "突破"],
+        },
+        {
+            "id": "morale_support",
+            "title": "军心鼓舞",
+            "desc": "强调精神动员和互助支撑，适合体现长征精神的节点。",
+            "match_types": ["听音辨曲", "情境选择题"],
+            "match_stages": ["调整", "会师"],
+        },
+    ],
+    "signal": [
+        {
+            "id": "relay_orders",
+            "title": "快速传令",
+            "desc": "优先保证命令传达和行动统一，适合会议转折、关键决策类节点。",
+            "match_types": ["情境选择题", "看图识史"],
+            "match_stages": ["转折", "调整"],
+        },
+        {
+            "id": "coordination_first",
+            "title": "协同统筹",
+            "desc": "重视前后衔接与队伍配合，适合战役推进和跨节点联动作战。",
+            "match_types": ["地图纠错", "情境选择题"],
+            "match_stages": ["突破", "会师"],
+        },
+        {
+            "id": "decision_focus",
+            "title": "决策聚焦",
+            "desc": "先抓会议和路线调整中的核心判断，适合理解决策转折的关卡。",
+            "match_types": ["看图识史", "情境选择题"],
+            "match_stages": ["转折"],
+        },
+    ],
+}
+
 
 def _node_ids_for_activity(activity_id: str = "") -> List[str]:
     """获取活动对应的节点范围。"""
@@ -119,6 +191,94 @@ def _question_payload(node: Dict[str, Any]) -> Dict[str, Any]:
     return payload
 
 
+def _build_tactic_package(role: Dict[str, Any], node: Dict[str, Any], question_type: str) -> Dict[str, Any]:
+    """生成本关行动策略。"""
+    options = TACTIC_LIBRARY.get(role.get("role_id", "scout"), TACTIC_LIBRARY["scout"])
+    route_stage = str(node.get("route_stage", "") or "")
+    recommended = options[0]
+    for item in options:
+        stage_hit = any(key and key in route_stage for key in item.get("match_stages", []))
+        type_hit = question_type in item.get("match_types", [])
+        if stage_hit or type_hit:
+            recommended = item
+            break
+    return {
+        "options": options,
+        "recommended_id": recommended.get("id", ""),
+        "recommended_title": recommended.get("title", ""),
+        "recommended_reason": recommended.get("desc", ""),
+    }
+
+
+def _build_stage_briefing(node: Dict[str, Any], role: Dict[str, Any], question_type: str) -> Dict[str, Any]:
+    """生成更有剧情感的关卡简报。"""
+    title = node.get("title", "长征节点")
+    route_stage = node.get("route_stage", "主线阶段")
+    summary = str(node.get("summary", "") or "").strip()
+    background = str(node.get("background", "") or "").strip()
+    process = str(node.get("process", "") or "").strip()
+    significance = str(node.get("significance", "") or "").strip()
+    opening = (
+        f"你所在的小队正在进入“{title}”关卡。此时长征处于“{route_stage}”阶段，"
+        f"{summary or '队伍必须在复杂局势中完成判断与推进。'}"
+    )
+    mission_goals = [
+        f"先把握“{title}”发生时的核心处境，而不是只记住结果。",
+        f"结合本关的“{question_type}”线索，判断行动逻辑和历史转折。",
+        f"以{role.get('name', '侦察兵')}身份完成任务，并争取额外战术奖励。",
+    ]
+    battle_log = [
+        background[:90] + ("..." if len(background) > 90 else "") if background else "先看敌我处境和行军环境。",
+        process[:90] + ("..." if len(process) > 90 else "") if process else "再看行动如何推进，关键步骤发生了什么。",
+        significance[:90] + ("..." if len(significance) > 90 else "") if significance else "最后回到整条长征主线，理解这一节点的意义。",
+    ]
+    risk_hint = "如果判断失误，将错过本关的历史转折线索，并影响小队贡献与连续作战节奏。"
+    reward_hint = "答对基础题可获得红星积分与粮草；若行动策略匹配本关特征，还能获得额外奖励。"
+    return {
+        "opening": opening,
+        "mission_goals": mission_goals,
+        "battle_log": battle_log,
+        "risk_hint": risk_hint,
+        "reward_hint": reward_hint,
+    }
+
+
+def _build_battle_outcome(
+    *,
+    node: Dict[str, Any],
+    next_node: Dict[str, Any],
+    role: Dict[str, Any],
+    correct: bool,
+    tactic_match: bool,
+) -> Dict[str, Any]:
+    """生成作战结果反馈。"""
+    node_title = node.get("title", "当前节点")
+    next_title = next_node.get("title", "下一节点") if next_node else "终点会师"
+    role_name = role.get("name", "侦察兵")
+    if correct and tactic_match:
+        summary = f"{role_name}在“{node_title}”关卡中判断准确，且本关行动策略与场景高度匹配，你不仅完成了作答，还为小队争取到了更稳的推进节奏。"
+        bullets = [
+            "你抓住了本关最关键的历史线索，没有把节点理解停留在表层事实。",
+            "战术选择与关卡环境匹配，获得额外红星积分与粮草奖励。",
+            f"队伍可继续向“{next_title}”推进，保持连续作战优势。",
+        ]
+    elif correct:
+        summary = f"{role_name}顺利完成了“{node_title}”关卡作答，历史判断是准确的，但如果行动策略与关卡环境更贴合，还能获得更高奖励。"
+        bullets = [
+            "本关基础判断正确，主线任务已推进。",
+            "战术思路仍有优化空间，下次可结合关卡类型选择更合适的方案。",
+            f"下一步建议把注意力转向“{next_title}”的处境与任务变化。",
+        ]
+    else:
+        summary = f"{role_name}在“{node_title}”关卡未能完全命中关键判断，本关内容已进入错题复盘，建议回到背景和过程线索重新梳理。"
+        bullets = [
+            "本关失误不会阻断主线，但会影响连续作战奖励。",
+            "可先看解析与历史小课堂，再重新理解这一步为何重要。",
+            f"继续前进前，建议把“{node_title}”与“{next_title}”的衔接关系先看清楚。",
+        ]
+    return {"summary": summary, "bullets": bullets}
+
+
 def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
     """获取当前关卡的完整展示数据。"""
     node = get_current_node(state)
@@ -127,6 +287,8 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
     role = get_role(state.get("role_id", "scout"))
     payload = _question_payload(node)
     knowledge_cards = build_related_knowledge_bundle(node)
+    tactic_package = _build_tactic_package(role, node, payload.get("question_type", "情境选择题"))
+    briefing = _build_stage_briefing(node, role, payload.get("question_type", "情境选择题"))
     return {
         "node": node,
         "role": role,
@@ -145,13 +307,22 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
         "material_title": payload.get("material_title", ""),
         "material_points": payload.get("material_points", []),
         "knowledge_cards": knowledge_cards,
+        "tactic_options": tactic_package.get("options", []),
+        "recommended_tactic_id": tactic_package.get("recommended_id", ""),
+        "recommended_tactic_title": tactic_package.get("recommended_title", ""),
+        "recommended_tactic_reason": tactic_package.get("recommended_reason", ""),
+        "opening_brief": briefing.get("opening", ""),
+        "mission_goals": briefing.get("mission_goals", []),
+        "battle_log": briefing.get("battle_log", []),
+        "risk_hint": briefing.get("risk_hint", ""),
+        "reward_hint": briefing.get("reward_hint", ""),
         "progress": build_progress_summary(state.get("progress", {})),
         "current_step": int(state.get("current_index", 0)) + 1,
         "total_steps": len(state.get("node_ids", [])),
     }
 
 
-def submit_stage_answer(state: Dict[str, Any], answer: str) -> Dict[str, Any]:
+def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "") -> Dict[str, Any]:
     """提交当前关卡答案。"""
     node = get_current_node(state)
     if not node:
@@ -162,6 +333,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str) -> Dict[str, Any]:
     correct = answer.strip() == expected_answer.strip()
     role = stage.get("role", {})
     question_type = stage.get("question_type", "情境选择题")
+    tactic_match = bool(tactic_id and tactic_id == stage.get("recommended_tactic_id", ""))
     bonus_stars = 0
     bonus_grain = 0
     if correct:
@@ -189,6 +361,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str) -> Dict[str, Any]:
             "question_type": question_type,
             "correct": correct,
             "selected_answer": answer,
+            "selected_tactic": tactic_id,
         }
     )
     updated_state["progress"] = record_quiz_result(
@@ -204,11 +377,19 @@ def submit_stage_answer(state: Dict[str, Any], answer: str) -> Dict[str, Any]:
         bonus_stars=bonus_stars,
         bonus_grain=bonus_grain,
         role_mastery_key=role_mastery_key,
+        tactic_match=tactic_match,
     )
 
     updated_state["current_index"] = int(state.get("current_index", 0)) + 1
     updated_state["finished"] = updated_state["current_index"] >= len(updated_state.get("node_ids", []))
     next_node = get_current_node(updated_state) if not updated_state["finished"] else {}
+    outcome = _build_battle_outcome(
+        node=node,
+        next_node=next_node,
+        role=role,
+        correct=correct,
+        tactic_match=tactic_match,
+    )
     return {
         "state": updated_state,
         "correct": correct,
@@ -217,12 +398,16 @@ def submit_stage_answer(state: Dict[str, Any], answer: str) -> Dict[str, Any]:
         "next_node": next_node,
         "finished": updated_state["finished"],
         "role_feedback": build_role_feedback(role, correct, question_type),
+        "tactic_match": tactic_match,
+        "selected_tactic": tactic_id,
         "answer_detail": {
             "expected_answer": expected_answer,
             "explanation": stage.get("explanation", ""),
             "extended_note": stage.get("extended_note", ""),
             "question_type": question_type,
         },
+        "battle_outcome": outcome.get("summary", ""),
+        "after_action_report": outcome.get("bullets", []),
         "knowledge_cards": stage.get("knowledge_cards", []),
         "progress": build_progress_summary(updated_state.get("progress", {})),
     }

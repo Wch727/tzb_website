@@ -31,6 +31,9 @@ def default_progress(role_name: str = "侦察兵", starter_grain: int = 5, start
         "completed_nodes": [],
         "last_certificate_svg": "",
         "role_mastery_counts": {},
+        "streak": 0,
+        "best_streak": 0,
+        "tactic_success_count": 0,
     }
 
 
@@ -70,6 +73,10 @@ def _refresh_medals(progress: Dict[str, Any]) -> None:
         _append_unique(medals, "雪线守护者")
     if int(role_counts.get("signal", 0)) >= 2:
         _append_unique(medals, "前线通讯尖兵")
+    if int(progress.get("best_streak", 0)) >= 3:
+        _append_unique(medals, "连续作战尖兵")
+    if int(progress.get("tactic_success_count", 0)) >= 5:
+        _append_unique(medals, "战术判断能手")
     progress["medals"] = medals
 
 
@@ -87,6 +94,7 @@ def record_quiz_result(
     bonus_stars: int = 0,
     bonus_grain: int = 0,
     role_mastery_key: str = "",
+    tactic_match: bool = False,
 ) -> Dict[str, Any]:
     """记录一次答题结果。"""
     updated = progress.copy()
@@ -95,6 +103,9 @@ def record_quiz_result(
     updated.setdefault("wrong_book", [])
     updated.setdefault("completed_nodes", [])
     updated.setdefault("role_mastery_counts", {})
+    updated.setdefault("streak", 0)
+    updated.setdefault("best_streak", 0)
+    updated.setdefault("tactic_success_count", 0)
     updated["answered_count"] = int(updated.get("answered_count", 0)) + 1
     _append_unique(updated["multimedia_types"], question_type)
 
@@ -102,14 +113,21 @@ def record_quiz_result(
         updated["correct_count"] = int(updated.get("correct_count", 0)) + 1
         updated["red_star_points"] = int(updated.get("red_star_points", 0)) + 10 + int(bonus_stars)
         updated["grain"] = int(updated.get("grain", 0)) + 3 + int(bonus_grain)
+        updated["streak"] = int(updated.get("streak", 0)) + 1
+        updated["best_streak"] = max(int(updated.get("best_streak", 0)), int(updated.get("streak", 0)))
         _append_unique(updated["completed_nodes"], node_id)
         if role_mastery_key:
             mastery = dict(updated.get("role_mastery_counts", {}) or {})
             mastery[role_mastery_key] = int(mastery.get(role_mastery_key, 0)) + 1
             updated["role_mastery_counts"] = mastery
+        if tactic_match:
+            updated["red_star_points"] = int(updated.get("red_star_points", 0)) + 2
+            updated["grain"] = int(updated.get("grain", 0)) + 1
+            updated["tactic_success_count"] = int(updated.get("tactic_success_count", 0)) + 1
     else:
         updated["wrong_count"] = int(updated.get("wrong_count", 0)) + 1
         updated["grain"] = max(0, int(updated.get("grain", 0)) - 1)
+        updated["streak"] = 0
         updated["wrong_book"] = [
             item for item in updated["wrong_book"] if item.get("node_id") != node_id
         ]
@@ -142,4 +160,7 @@ def build_progress_summary(progress: Dict[str, Any]) -> Dict[str, Any]:
         "answered_count": int(progress.get("answered_count", 0)),
         "completed_nodes": progress.get("completed_nodes", []),
         "role_mastery_counts": progress.get("role_mastery_counts", {}),
+        "streak": int(progress.get("streak", 0)),
+        "best_streak": int(progress.get("best_streak", 0)),
+        "tactic_success_count": int(progress.get("tactic_success_count", 0)),
     }
