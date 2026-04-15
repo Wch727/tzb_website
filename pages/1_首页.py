@@ -14,6 +14,7 @@ from streamlit_ui import (
     render_detail_panels,
     render_exhibition_hero,
     render_feature_ribbon,
+    render_formal_script,
     render_gallery_frame,
     render_ledger_cards,
     render_metrics,
@@ -187,7 +188,15 @@ with story_left:
         body=selected_story.get("subtitle", "沿着长征主线继续进入这段历史。"),
         label="故事讲述",
     )
-    st.write(selected_story.get("script", sample.get("long_march_story_script", "")))
+    render_formal_script(
+        selected_story.get("script", sample.get("long_march_story_script", "")),
+        title=selected_story.get("title", "长征故事"),
+        label="故事讲述词",
+        meta=[
+            selected_story.get("subtitle", ""),
+            f"对应篇章：{selected_story.get('chapter_id', '总览') or '总览'}",
+        ],
+    )
     story_action_left, story_action_mid, story_action_right = st.columns(3)
     with story_action_left:
         audio_path = render_audio_player(
@@ -405,9 +414,19 @@ with tab2:
         body="从整条征程到关键节点，讲解内容可帮助观众更连贯地理解长征的背景、经过与历史意义。",
         label="讲解样例",
     )
-    st.write(sample.get("long_march_story_script", ""))
+    render_formal_script(
+        sample.get("long_march_story_script", ""),
+        title="长征故事总讲解",
+        label="主题总讲解",
+        meta=["适用场景：展厅导览", "讲述范围：长征主线总览"],
+    )
     st.divider()
-    st.write(sample.get("example_guide_script", ""))
+    render_formal_script(
+        sample.get("example_guide_script", ""),
+        title="重点节点讲解示例",
+        label="示范讲解词",
+        meta=["适用场景：重点展项讲解", "表达方式：正式讲述"],
+    )
 with tab3:
     render_curatorial_note(
         title="分阶段学习路线",

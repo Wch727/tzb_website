@@ -21,6 +21,7 @@ from streamlit_ui import (
     _clean_html,
     render_curatorial_note,
     render_detail_panels,
+    render_formal_script,
     render_ledger_cards,
     render_runtime_notice,
     render_section,
@@ -244,14 +245,32 @@ def render_node_detail(
         displayed_guide_sources = guide_result.get("sources", []) or source_cards
 
     render_section("节点讲解", "围绕历史背景、事件经过和历史意义，阅读本节点的完整讲解内容。")
-    st.write(displayed_guide_script)
+    render_formal_script(
+        displayed_guide_script,
+        title=f"{node.get('title', '长征节点')}讲解词",
+        label="本节点讲解词",
+        meta=[
+            f"时间：{node.get('date', '未标注')}",
+            f"地点：{node.get('place', '未标注')}",
+            f"主线位置：{node.get('route_stage', '未标注')}",
+        ],
+    )
     render_sources(displayed_guide_sources, title="本次讲解依据")
 
     video_result = st.session_state.get(f"video_result::{node_id}")
     if video_result:
         render_runtime_notice(video_result)
         render_section("节点短视频脚本", "围绕本节点整理为适合口播与传播的脚本内容。")
-        st.write(video_result.get("script", ""))
+        render_formal_script(
+            video_result.get("script", ""),
+            title=f"{node.get('title', '长征节点')}传播讲述稿",
+            label="节点短视频脚本",
+            meta=[
+                f"节点：{node.get('title', '长征节点')}",
+                "场景：口播传播",
+                "风格：正式叙述",
+            ],
+        )
         render_sources(video_result.get("sources", []), title="本次脚本依据")
 
     narration_text = _node_narration_text(

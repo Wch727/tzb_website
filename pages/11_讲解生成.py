@@ -9,6 +9,7 @@ from generator import generate_guide_script, generate_short_video_script
 from media import render_audio_player, render_digital_human, render_node_image
 from streamlit_ui import (
     build_current_provider_config,
+    render_formal_script,
     render_model_banner,
     render_runtime_notice,
     render_section,
@@ -78,7 +79,16 @@ with tab1:
     if result:
         render_runtime_notice(result)
         st.markdown("#### 讲解稿结果")
-        st.write(result.get("script", ""))
+        render_formal_script(
+            result.get("script", ""),
+            title=f"{st.session_state.get('guide_page_topic', '长征主题')}讲解词",
+            label="正式讲解词",
+            meta=[
+                f"讲解主题：{st.session_state.get('guide_page_topic', '长征主题')}",
+                f"讲解对象：{audience}",
+                f"讲解时长：{duration}",
+            ],
+        )
         audio_path = render_audio_player(
             text=result.get("script", ""),
             cache_key=f"guide-page-{st.session_state.get('guide_page_topic', 'topic')}",
@@ -116,7 +126,16 @@ with tab2:
     if result:
         render_runtime_notice(result)
         st.markdown("#### 短视频脚本结果")
-        st.write(result.get("script", ""))
+        render_formal_script(
+            result.get("script", ""),
+            title=f"{st.session_state.get('video_page_topic', '长征主题')}视频讲述稿",
+            label="短视频脚本",
+            meta=[
+                f"脚本主题：{st.session_state.get('video_page_topic', '长征主题')}",
+                f"目标受众：{audience}",
+                f"呈现风格：{style}",
+            ],
+        )
         audio_path = render_audio_player(
             text=result.get("script", ""),
             cache_key=f"video-page-{st.session_state.get('video_page_topic', 'topic')}",

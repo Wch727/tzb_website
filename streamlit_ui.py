@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import html
 import mimetypes
+import re
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List
@@ -207,6 +208,79 @@ def inject_custom_css() -> None:
             border-radius: 22px;
             padding: 1rem 1.1rem;
             box-shadow: 0 10px 28px rgba(72, 48, 29, 0.08);
+        }
+        .script-sheet {
+            position: relative;
+            border-radius: 24px;
+            padding: 1.35rem 1.45rem 1.25rem;
+            margin: 0.4rem 0 0.95rem;
+            background:
+                linear-gradient(180deg, rgba(255, 251, 244, 0.97) 0%, rgba(250, 242, 231, 0.94) 100%);
+            border: 1px solid rgba(150, 109, 66, 0.22);
+            box-shadow: 0 16px 34px rgba(68, 45, 29, 0.10);
+            overflow: hidden;
+        }
+        .script-sheet::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(147, 90, 55, 0.06) 0, rgba(147, 90, 55, 0.06) 1px, transparent 1px, transparent 100%);
+            background-size: 100% 2.15rem;
+            opacity: 0.18;
+            pointer-events: none;
+        }
+        .script-kicker {
+            position: relative;
+            color: #91663f;
+            font-size: 0.84rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }
+        .script-title {
+            position: relative;
+            color: #4d241d;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .script-meta {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-bottom: 0.95rem;
+        }
+        .script-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.26rem 0.72rem;
+            border-radius: 999px;
+            background: rgba(122, 64, 40, 0.08);
+            border: 1px solid rgba(122, 64, 40, 0.12);
+            color: #75402c;
+            font-size: 0.83rem;
+        }
+        .script-block {
+            position: relative;
+            margin-bottom: 0.95rem;
+        }
+        .script-section-title {
+            color: #6b3023;
+            font-size: 1.02rem;
+            font-weight: 700;
+            margin-bottom: 0.32rem;
+        }
+        .script-paragraph {
+            color: #332a23;
+            line-height: 1.95;
+            font-size: 1rem;
+            text-indent: 2em;
+            margin: 0;
+        }
+        .script-paragraph + .script-paragraph {
+            margin-top: 0.4rem;
         }
         .card-label, .source-label {
             color: #7b6147;
@@ -992,6 +1066,84 @@ def render_detail_panels(items: List[Dict[str, str]]) -> None:
         )
     if cards:
         st.markdown(f"<div class='detail-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
+def render_formal_script(
+    script: str,
+    *,
+    title: str = "",
+    label: str = "正式讲解词",
+    meta: List[str] | None = None,
+) -> None:
+    """将讲解内容统一渲染为正式讲解词样式。"""
+    content = (script or "").strip()
+    if not content:
+        st.info("当前暂无可展示的讲解内容。")
+        return
+
+    blocks = [part.strip() for part in re.split(r"\n\s*\n", content) if part.strip()]
+    resolved_title = title.strip()
+    if blocks:
+        first_line = blocks[0].replace("：", "").replace(":", "").strip()
+        if not resolved_title and len(first_line) <= 26 and any(
+            marker in first_line for marker in ["讲解稿", "讲解词", "讲述稿", "脚本"]
+        ):
+            resolved_title = blocks.pop(0)
+
+    section_patterns = (
+        r"^[一二三四五六七八九十]+、",
+        r"^[（(][一二三四五六七八九十0-9]+[)）]",
+        r"^第[一二三四五六七八九十0-9]+部分",
+        r"^第[一二三四五六七八九十0-9]+段",
+        r"^(开场引入|历史背景|事件经过|历史意义|结尾升华|开场|主体|结尾|镜头[一二三四五六七八九十0-9]+)",
+    )
+
+    html_blocks: List[str] = []
+    for block in blocks:
+        lines = [line.strip() for line in block.splitlines() if line.strip()]
+        if not lines:
+            continue
+        first = lines[0]
+        is_section = any(re.match(pattern, first) for pattern in section_patterns)
+        if is_section:
+            paragraphs = "".join(
+                f"<p class='script-paragraph'>{html.escape(line)}</p>" for line in lines[1:] if line
+            )
+            html_blocks.append(
+                _clean_html(
+                    f"""
+                    <div class="script-block">
+                        <div class="script-section-title">{html.escape(first)}</div>
+                        {paragraphs or f"<p class='script-paragraph'>{html.escape(block)}</p>"}
+                    </div>
+                    """
+                )
+            )
+        else:
+            paragraphs = "".join(f"<p class='script-paragraph'>{html.escape(line)}</p>" for line in lines)
+            html_blocks.append(f"<div class='script-block'>{paragraphs}</div>")
+
+    meta_markup = ""
+    if meta:
+        chips = "".join(
+            f"<span class='script-meta-chip'>{html.escape(item)}</span>" for item in meta if item and item.strip()
+        )
+        if chips:
+            meta_markup = f"<div class='script-meta'>{chips}</div>"
+
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="script-sheet">
+                <div class="script-kicker">{html.escape(label)}</div>
+                <div class="script-title">{html.escape(resolved_title or '长征主题讲解')}</div>
+                {meta_markup}
+                {''.join(html_blocks)}
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def render_feature_ribbon(items: List[Dict[str, str]]) -> None:

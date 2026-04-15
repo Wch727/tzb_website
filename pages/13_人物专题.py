@@ -14,6 +14,7 @@ from media import render_node_image
 from streamlit_ui import (
     render_curatorial_note,
     render_detail_panels,
+    render_formal_script,
     render_gallery_frame,
     render_ledger_cards,
     render_section,
@@ -67,7 +68,15 @@ render_ledger_cards(
 )
 
 render_section("人物讲解", "围绕人物经历、长征中的作用和历史贡献展开讲解。")
-st.write(story_script)
+render_formal_script(
+    story_script,
+    title=f"{figure.get('title', '重要人物')}人物讲解词",
+    label="人物专题讲解词",
+    meta=[
+        figure.get("role", "重要人物"),
+        "资料依据：官方党史资料",
+    ],
+)
 
 render_section("专题信息板", "从人物经历、长征角色与历史贡献三个维度理解该人物。")
 render_detail_panels(

@@ -14,6 +14,7 @@ from rag import ask
 from sample_content import load_home_sample_content
 from streamlit_ui import (
     build_current_provider_config,
+    render_formal_script,
     render_model_banner,
     render_runtime_notice,
     render_section,
@@ -99,7 +100,16 @@ with tab3:
     guide_result = st.session_state.get("test_page_guide")
     if guide_result:
         render_runtime_notice(guide_result)
-        st.write(guide_result.get("script", ""))
+        render_formal_script(
+            guide_result.get("script", ""),
+            title=f"{selected_node.get('title', '长征节点')}讲解词",
+            label="快速讲解词",
+            meta=[
+                f"讲解主题：{selected_node.get('title', '长征节点')}",
+                f"地点：{selected_node.get('place', '未标注')}",
+                "适用场景：导览速览",
+            ],
+        )
         render_sources(guide_result.get("sources", []), title="本次讲解依据")
         st.markdown("#### 推荐继续体验")
         for node in sample.get("featured_nodes", [])[:3]:
@@ -115,7 +125,15 @@ with tab4:
     current_story = next((track for track in story_tracks if track.get("id") == story_id), story_tracks[0] if story_tracks else {})
     st.markdown(f"### {current_story.get('title', '长征故事')}")
     st.caption(current_story.get("subtitle", ""))
-    st.write(current_story.get("script", ""))
+    render_formal_script(
+        current_story.get("script", ""),
+        title=current_story.get("title", "长征故事"),
+        label="故事讲述词",
+        meta=[
+            current_story.get("subtitle", ""),
+            f"关联篇章：{current_story.get('lead_node_id', '总览讲述')}",
+        ],
+    )
     audio_path = render_audio_player(
         text=current_story.get("script", ""),
         cache_key=f"quick-story::{current_story.get('id', 'overall_story')}",
