@@ -23,7 +23,7 @@ from utils import (
     resolve_provider_config,
 )
 
-APP_TITLE = "《长征史》交互式导览与闯关学习系统"
+APP_TITLE = "长征精神·沉浸式云端答题互动平台"
 ROLE_OPTIONS = ["大学生", "研学团成员", "普通参观者"]
 CONTENT_MODE_OPTIONS = [
     ("auto", "自动判断"),

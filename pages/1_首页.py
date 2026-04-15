@@ -89,7 +89,7 @@ selected_story_id = st.session_state.get("home_story_track_id", default_story_id
 selected_story = next((item for item in story_tracks if item.get("id") == selected_story_id), story_tracks[0] if story_tracks else {})
 
 render_exhibition_hero(
-    title="《长征史》交互式导览与闯关学习系统",
+    title="长征精神·沉浸式云端答题互动平台",
     subtitle=(
         "以长征主线为展陈骨架，把路线导览、知识百问、讲解生成与互动答题组织成一个更接近数字展馆入口的线上主题展。"
     ),
