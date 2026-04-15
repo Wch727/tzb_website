@@ -44,6 +44,29 @@ def _node_narration_text(node: Dict[str, Any], explanation: str = "", guide_scri
     )
 
 
+def _build_node_exhibit_script(node: Dict[str, Any]) -> str:
+    """将节点的静态厚内容组织成可直接展示的展项正文。"""
+    sections: list[str] = []
+    summary = str(node.get("summary", "") or "").strip()
+    background = str(node.get("background", "") or "").strip()
+    process = str(node.get("process", "") or "").strip()
+    significance = str(node.get("significance", "") or "").strip()
+    key_points = node.get("key_points", []) or []
+
+    if summary:
+        sections.append(f"展项简述\n\n{summary}")
+    if background:
+        sections.append(f"历史背景\n\n{background}")
+    if process:
+        sections.append(f"事件经过\n\n{process}")
+    if significance:
+        sections.append(f"历史意义\n\n{significance}")
+    if key_points:
+        sections.append("关键认识\n\n" + "；".join(str(item).strip() for item in key_points if str(item).strip()))
+
+    return "\n\n".join(section for section in sections if section.strip())
+
+
 def _source_cards_from_retrieval(node: Dict[str, Any], retrieval: Dict[str, Any]) -> List[Dict[str, Any]]:
     """整理节点详情使用到的依据卡片。"""
     source_cards = [
@@ -165,7 +188,7 @@ def render_node_detail(
             f"**地点**：{node.get('place', '未标注')}  \n"
             f"**主线位置**：{node.get('route_stage', '未标注')}"
         )
-        st.markdown("### 展项简述")
+        st.markdown("### 节点导读")
         st.write(node.get("summary", "暂无摘要说明。"))
         if related_questions:
             st.markdown("### 本节点可继续追问")
@@ -189,7 +212,19 @@ def render_node_detail(
         ]
     )
 
-    render_section("展项信息板", "先理解处境，再还原过程，最后把历史意义放回整条长征主线中。")
+    render_section("展项正文", "先理解背景，再还原过程，最后把这一节点的意义放回整条长征主线中。")
+    render_formal_script(
+        _build_node_exhibit_script(node),
+        title=f"{node.get('title', '长征节点')}展项解读",
+        label="节点展项正文",
+        meta=[
+            f"时间：{node.get('date', '未标注')}",
+            f"地点：{node.get('place', '未标注')}",
+            f"主线位置：{node.get('route_stage', '未标注')}",
+        ],
+    )
+
+    render_section("展项信息板", "把背景、经过和意义拆开展示，便于课堂讲解、答辩展示和对照阅读。")
     render_detail_panels(
         [
             {
