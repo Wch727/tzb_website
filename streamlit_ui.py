@@ -77,42 +77,42 @@ def inject_custom_css() -> None:
         <style>
         .stApp {
             background:
-                radial-gradient(circle at top left, rgba(177, 130, 63, 0.18), transparent 26%),
-                radial-gradient(circle at bottom right, rgba(132, 49, 33, 0.14), transparent 24%),
-                linear-gradient(180deg, rgba(248, 242, 232, 0.98) 0%, rgba(241, 229, 210, 0.96) 55%, rgba(234, 217, 192, 0.96) 100%),
+                radial-gradient(circle at top left, rgba(128, 18, 52, 0.14), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(162, 32, 65, 0.12), transparent 24%),
+                linear-gradient(180deg, rgba(250, 246, 242, 0.99) 0%, rgba(245, 236, 231, 0.98) 58%, rgba(238, 226, 221, 0.97) 100%),
                 __ROUTE_OVERLAY__;
             background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
             background-size: auto, auto, auto, min(48vw, 720px) auto;
             background-position: left top, right bottom, center top, right -36px top 112px;
             background-attachment: fixed, fixed, fixed, scroll;
-            color: #1d1815;
+            color: #211815;
         }
         .block-container {
             padding-top: 1rem;
             padding-bottom: 3rem;
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #203546 0%, #29485e 100%);
+            background: linear-gradient(180deg, #5b0f2b 0%, #7b1736 100%);
         }
         [data-testid="stSidebar"] * {
-            color: #f8f2e8;
+            color: #fff6f3;
         }
         .hero-banner {
             padding: 1.6rem 1.8rem;
             border-radius: 26px;
-            background: linear-gradient(135deg, rgba(111, 34, 25, 0.96) 0%, rgba(160, 63, 47, 0.95) 48%, rgba(200, 138, 73, 0.92) 100%);
-            color: #fff9f0;
-            box-shadow: 0 18px 46px rgba(82, 30, 20, 0.18);
-            border: 1px solid rgba(255, 245, 230, 0.22);
+            background: linear-gradient(135deg, rgba(92, 13, 41, 0.98) 0%, rgba(132, 22, 56, 0.96) 52%, rgba(168, 41, 73, 0.94) 100%);
+            color: #fff7f4;
+            box-shadow: 0 18px 46px rgba(78, 16, 33, 0.22);
+            border: 1px solid rgba(255, 238, 234, 0.16);
             margin-bottom: 1rem;
         }
         .masthead-shell {
             margin: 0.2rem 0 1rem;
             border-radius: 28px;
             padding: 1rem 1.2rem 1.1rem;
-            background: linear-gradient(180deg, rgba(255, 250, 243, 0.9), rgba(250, 241, 228, 0.82));
-            border: 1px solid rgba(154, 113, 61, 0.18);
-            box-shadow: 0 14px 34px rgba(72, 48, 29, 0.08);
+            background: linear-gradient(180deg, rgba(255, 251, 249, 0.92), rgba(249, 240, 236, 0.88));
+            border: 1px solid rgba(129, 25, 53, 0.12);
+            box-shadow: 0 14px 34px rgba(78, 16, 33, 0.08);
             backdrop-filter: blur(6px);
         }
         .masthead-top {
@@ -124,20 +124,20 @@ def inject_custom_css() -> None:
             margin-bottom: 0.9rem;
         }
         .masthead-kicker {
-            color: #8b6b4d;
+            color: #8a2947;
             font-size: 0.82rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
             margin-bottom: 0.2rem;
         }
         .masthead-title {
-            color: #4b2119;
+            color: #5b112d;
             font-size: 1.55rem;
             font-weight: 700;
             margin-bottom: 0.18rem;
         }
         .masthead-subtitle {
-            color: #675646;
+            color: #6e5555;
             font-size: 0.95rem;
             line-height: 1.75;
             max-width: 780px;
@@ -153,18 +153,18 @@ def inject_custom_css() -> None:
             align-items: center;
             padding: 0.34rem 0.8rem;
             border-radius: 999px;
-            background: rgba(111, 34, 25, 0.08);
-            border: 1px solid rgba(124, 42, 34, 0.16);
-            color: #6d3528;
+            background: rgba(128, 18, 52, 0.08);
+            border: 1px solid rgba(128, 18, 52, 0.16);
+            color: #7b1736;
             font-size: 0.84rem;
         }
         .masthead-divider {
             height: 1px;
-            background: linear-gradient(90deg, rgba(124, 42, 34, 0.28), rgba(124, 42, 34, 0));
+            background: linear-gradient(90deg, rgba(128, 18, 52, 0.26), rgba(128, 18, 52, 0));
             margin: 0.25rem 0 0.9rem;
         }
         .nav-section-label {
-            color: #8b6b4d;
+            color: #8a2947;
             font-size: 0.84rem;
             margin-bottom: 0.45rem;
         }
@@ -189,8 +189,8 @@ def inject_custom_css() -> None:
             align-items: center;
             padding: 0.3rem 0.75rem;
             border-radius: 999px;
-            background: rgba(255, 249, 240, 0.14);
-            border: 1px solid rgba(255, 249, 240, 0.25);
+            background: rgba(255, 246, 244, 0.12);
+            border: 1px solid rgba(255, 241, 238, 0.18);
             font-size: 0.86rem;
         }
         .card-grid {
@@ -203,11 +203,11 @@ def inject_custom_css() -> None:
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         }
         .info-card, .source-card, .status-card {
-            background: rgba(255, 251, 245, 0.9);
-            border: 1px solid rgba(154, 113, 61, 0.22);
+            background: rgba(255, 252, 250, 0.92);
+            border: 1px solid rgba(139, 38, 66, 0.14);
             border-radius: 22px;
             padding: 1rem 1.1rem;
-            box-shadow: 0 10px 28px rgba(72, 48, 29, 0.08);
+            box-shadow: 0 10px 28px rgba(78, 16, 33, 0.08);
         }
         .script-sheet {
             position: relative;
@@ -215,9 +215,9 @@ def inject_custom_css() -> None:
             padding: 1.35rem 1.45rem 1.25rem;
             margin: 0.4rem 0 0.95rem;
             background:
-                linear-gradient(180deg, rgba(255, 251, 244, 0.97) 0%, rgba(250, 242, 231, 0.94) 100%);
-            border: 1px solid rgba(150, 109, 66, 0.22);
-            box-shadow: 0 16px 34px rgba(68, 45, 29, 0.10);
+                linear-gradient(180deg, rgba(255, 252, 249, 0.98) 0%, rgba(248, 240, 237, 0.95) 100%);
+            border: 1px solid rgba(139, 38, 66, 0.18);
+            box-shadow: 0 16px 34px rgba(78, 16, 33, 0.10);
             overflow: hidden;
         }
         .script-sheet::before {
@@ -225,14 +225,14 @@ def inject_custom_css() -> None:
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(90deg, rgba(147, 90, 55, 0.06) 0, rgba(147, 90, 55, 0.06) 1px, transparent 1px, transparent 100%);
+                linear-gradient(90deg, rgba(128, 18, 52, 0.05) 0, rgba(128, 18, 52, 0.05) 1px, transparent 1px, transparent 100%);
             background-size: 100% 2.15rem;
             opacity: 0.18;
             pointer-events: none;
         }
         .script-kicker {
             position: relative;
-            color: #91663f;
+            color: #8a2947;
             font-size: 0.84rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
@@ -240,7 +240,7 @@ def inject_custom_css() -> None:
         }
         .script-title {
             position: relative;
-            color: #4d241d;
+            color: #5b112d;
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
@@ -257,9 +257,9 @@ def inject_custom_css() -> None:
             align-items: center;
             padding: 0.26rem 0.72rem;
             border-radius: 999px;
-            background: rgba(122, 64, 40, 0.08);
-            border: 1px solid rgba(122, 64, 40, 0.12);
-            color: #75402c;
+            background: rgba(128, 18, 52, 0.08);
+            border: 1px solid rgba(128, 18, 52, 0.12);
+            color: #7b1736;
             font-size: 0.83rem;
         }
         .script-block {
@@ -267,7 +267,7 @@ def inject_custom_css() -> None:
             margin-bottom: 0.95rem;
         }
         .script-section-title {
-            color: #6b3023;
+            color: #7d1738;
             font-size: 1.02rem;
             font-weight: 700;
             margin-bottom: 0.32rem;
@@ -316,41 +316,41 @@ def inject_custom_css() -> None:
         .metric-box {
             border-radius: 18px;
             padding: 0.9rem 1rem;
-            background: rgba(255, 252, 247, 0.85);
-            border: 1px solid rgba(141, 101, 57, 0.18);
+            background: rgba(255, 252, 250, 0.88);
+            border: 1px solid rgba(139, 38, 66, 0.14);
         }
         .metric-name {
-            color: #7a6147;
+            color: #8a2947;
             font-size: 0.88rem;
         }
         .metric-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #69241b;
+            color: #7b1736;
         }
         .notice-card {
             border-radius: 20px;
             padding: 1rem 1.1rem;
-            background: rgba(255, 249, 239, 0.82);
-            border: 1px solid rgba(166, 130, 85, 0.24);
+            background: rgba(255, 248, 246, 0.88);
+            border: 1px solid rgba(139, 38, 66, 0.18);
             margin: 0.8rem 0 1rem;
         }
         .curator-note {
             border-radius: 24px;
             padding: 1.1rem 1.2rem;
-            background: linear-gradient(135deg, rgba(255, 248, 236, 0.95), rgba(250, 240, 223, 0.92));
-            border: 1px solid rgba(166, 130, 85, 0.28);
-            box-shadow: 0 10px 26px rgba(72, 48, 29, 0.08);
+            background: linear-gradient(135deg, rgba(255, 250, 247, 0.96), rgba(248, 240, 237, 0.94));
+            border: 1px solid rgba(139, 38, 66, 0.20);
+            box-shadow: 0 10px 26px rgba(78, 16, 33, 0.08);
             margin: 0.6rem 0 1rem;
         }
         .curator-label {
-            color: #8b6b4d;
+            color: #8a2947;
             font-size: 0.82rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
         .curator-title {
-            color: #4b2119;
+            color: #5b112d;
             font-size: 1.15rem;
             font-weight: 700;
             margin: 0.25rem 0 0.4rem;
@@ -367,30 +367,30 @@ def inject_custom_css() -> None:
             margin: 0.9rem 0 1.2rem;
         }
         .chapter-card {
-            background: rgba(255, 252, 247, 0.92);
-            border: 1px solid rgba(154, 113, 61, 0.22);
+            background: rgba(255, 252, 250, 0.94);
+            border: 1px solid rgba(139, 38, 66, 0.16);
             border-radius: 24px;
             padding: 1rem 1.1rem;
-            box-shadow: 0 12px 30px rgba(72, 48, 29, 0.08);
+            box-shadow: 0 12px 30px rgba(78, 16, 33, 0.08);
         }
         .chapter-card.active {
-            border-color: rgba(124, 42, 34, 0.48);
-            box-shadow: 0 18px 34px rgba(82, 30, 20, 0.12);
-            background: linear-gradient(180deg, rgba(255, 248, 239, 0.96), rgba(248, 238, 225, 0.92));
+            border-color: rgba(128, 18, 52, 0.42);
+            box-shadow: 0 18px 34px rgba(78, 16, 33, 0.12);
+            background: linear-gradient(180deg, rgba(255, 247, 244, 0.97), rgba(247, 236, 233, 0.94));
         }
         .chapter-badge {
             display: inline-flex;
             align-items: center;
             padding: 0.22rem 0.65rem;
             border-radius: 999px;
-            background: rgba(111, 34, 25, 0.1);
-            color: #7c2a22;
+            background: rgba(128, 18, 52, 0.10);
+            color: #7b1736;
             font-size: 0.8rem;
             font-weight: 600;
             margin-bottom: 0.55rem;
         }
         .chapter-title {
-            color: #4b2119;
+            color: #5b112d;
             font-size: 1.08rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
@@ -436,21 +436,21 @@ def inject_custom_css() -> None:
             margin: 0.85rem 0 1.2rem;
         }
         .feature-shell {
-            background: linear-gradient(180deg, rgba(255, 251, 245, 0.94), rgba(248, 239, 225, 0.9));
-            border: 1px solid rgba(154, 113, 61, 0.2);
+            background: linear-gradient(180deg, rgba(255, 252, 250, 0.95), rgba(247, 239, 236, 0.92));
+            border: 1px solid rgba(139, 38, 66, 0.16);
             border-radius: 24px;
             padding: 1rem 1.05rem;
-            box-shadow: 0 14px 34px rgba(72, 48, 29, 0.08);
+            box-shadow: 0 14px 34px rgba(78, 16, 33, 0.08);
         }
         .feature-kicker {
-            color: #8b6b4d;
+            color: #8a2947;
             font-size: 0.8rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             margin-bottom: 0.32rem;
         }
         .feature-headline {
-            color: #4b2119;
+            color: #5b112d;
             font-size: 1.08rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
@@ -463,13 +463,13 @@ def inject_custom_css() -> None:
         .gallery-frame {
             border-radius: 28px;
             padding: 1rem 1.05rem;
-            background: linear-gradient(180deg, rgba(255, 250, 243, 0.88), rgba(247, 236, 219, 0.84));
-            border: 1px solid rgba(154, 113, 61, 0.16);
-            box-shadow: 0 14px 34px rgba(72, 48, 29, 0.06);
+            background: linear-gradient(180deg, rgba(255, 251, 248, 0.90), rgba(246, 237, 234, 0.88));
+            border: 1px solid rgba(139, 38, 66, 0.14);
+            box-shadow: 0 14px 34px rgba(78, 16, 33, 0.06);
             margin: 0.85rem 0 1.2rem;
         }
         .gallery-title {
-            color: #4b2119;
+            color: #5b112d;
             font-size: 1.08rem;
             font-weight: 700;
             margin-bottom: 0.18rem;
