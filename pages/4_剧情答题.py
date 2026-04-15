@@ -8,7 +8,7 @@ from certificate import generate_certificate_svg
 from dashboard_data import record_answer_event, record_participation_event, record_share_event
 from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
-from media import render_audio_player, render_node_image
+from media import render_audio_player, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
 from streamlit_ui import render_hero, render_section, render_top_nav, setup_page
 from team_manager import build_team_member_summary, build_team_share_text, get_team, record_team_progress
@@ -154,7 +154,7 @@ if story_state.get("finished"):
         st.session_state[record_key] = True
 
     st.markdown("### 电子证书")
-    st.image(svg.encode("utf-8"), width="stretch")
+    render_svg_artwork(svg, "电子结业证书")
     st.download_button(
         "下载电子证书（SVG）",
         data=svg.encode("utf-8"),

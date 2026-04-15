@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import re
 from pathlib import Path
 from typing import Any, Dict
 
@@ -173,6 +174,24 @@ def generate_placeholder_svg(title: str, subtitle: str = "长征史展项", item
     """.strip()
 
 
+def render_svg_artwork(svg_markup: str, caption: str = "") -> None:
+    """以内联 SVG 方式渲染图像，避免 st.image 对 SVG 字节流识别失败。"""
+    if not svg_markup:
+        return
+    normalized = re.sub(
+        r"<svg\b",
+        "<svg style=\"width:100%;height:auto;display:block;border-radius:22px;overflow:hidden;box-shadow:0 14px 34px rgba(72,48,29,0.08);\"",
+        svg_markup,
+        count=1,
+    )
+    st.markdown(
+        f"<div style='width:100%;margin:0.35rem 0 0.2rem;'>{normalized}</div>",
+        unsafe_allow_html=True,
+    )
+    if caption:
+        st.caption(caption)
+
+
 def render_node_image(node: Dict[str, Any], caption: str = "") -> None:
     """展示节点图片，缺图时使用占位图。"""
     resolved = resolve_image(node)
@@ -188,12 +207,10 @@ def render_node_image(node: Dict[str, Any], caption: str = "") -> None:
         except Exception:
             pass
 
-    st.image(
-        resolved.get("svg", generate_placeholder_svg(node.get("title", "长征史"), node.get("place", ""), node.get("type", "event"))).encode("utf-8"),
-        width="stretch",
+    render_svg_artwork(
+        resolved.get("svg", generate_placeholder_svg(node.get("title", "长征史"), node.get("place", ""), node.get("type", "event"))),
+        final_caption,
     )
-    if final_caption:
-        st.caption(final_caption)
     if get_settings().get("debug_image_resolver") and resolved.get("expected_filename"):
         st.caption(f"图片调试：期待文件名 {resolved['expected_filename']} | 当前模式 {resolved.get('mode', 'generated')}")
 
@@ -230,7 +247,7 @@ def render_digital_human(section_text: str, avatar_path: str, audio_path: str = 
             else:
                 st.image(str(resolved), width="stretch")
         else:
-            st.image(generate_placeholder_svg("数字讲解员", "长征史导览").encode("utf-8"), width="stretch")
+            render_svg_artwork(generate_placeholder_svg("数字讲解员", "长征史导览"), "数字讲解员")
     with col2:
         st.markdown(
             """
