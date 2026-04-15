@@ -321,12 +321,18 @@ for index, chapter in enumerate(chapters):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.switch_page("pages/3_长征路线.py")
 
-route_left, route_right = st.columns([1.15, 0.95])
-with route_left:
-    render_gallery_frame("路线导览总板", "先看路线全貌，再进入推荐线路与具体节点，整体观感会更完整。")
+render_gallery_frame("路线导览总板", "先看四大篇章，再按推荐线路进入代表节点，整体浏览会更顺。")
+overview_left, overview_right = st.columns([1.05, 0.95])
+with overview_left:
     route_map_path = sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg")
     if route_map_path:
         st.image(route_map_path, caption="中国工农红军长征路线图", width="stretch")
+with overview_right:
+    render_curatorial_note(
+        title="推荐浏览顺序",
+        body="建议先沿四大篇章浏览，建立长征主线印象；如果时间有限，可直接从转折与胜利节点切入，再回到前后章节继续补足脉络。",
+        label="主线提要",
+    )
     render_detail_panels(
         [
             {
@@ -345,57 +351,53 @@ with route_left:
                 width="stretch",
             ):
                 _jump_to_chapter(chapter.get("id", ""), chapter.get("nodes", [{}])[0].get("id", ""))
-with route_right:
-    render_curatorial_note(
-        title="推荐浏览顺序",
-        body="如果希望尽快把握长征主线，可先沿四大篇章依次浏览；如果更想先体验互动学习，可从剧情闯关进入，再回到具体节点继续阅读。",
-        label="主线提要",
-    )
-    route_board_left, route_board_right = st.columns(2)
-    with route_board_left:
-        render_section("推荐学习路线", "适合第一次系统进入主题展时，沿主线建立整体认知。")
-        for index, item in enumerate(sample.get("recommended_learning_paths", [])[:4]):
-            route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
-            render_curatorial_note(
-                title=route_title,
-                body=route_body,
-                label="推荐路线",
+
+render_section("导览入口", "从推荐学习路线或今日推荐路线进入，都可以直接跳到对应节点。")
+route_board_left, route_board_right = st.columns(2)
+with route_board_left:
+    render_section("推荐学习路线", "适合第一次系统进入主题展时，沿主线建立整体认知。")
+    for index, item in enumerate(sample.get("recommended_learning_paths", [])[:4]):
+        route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
+        render_curatorial_note(
+            title=route_title,
+            body=route_body,
+            label="推荐路线",
+        )
+        if route_nodes:
+            render_ledger_cards(
+                [
+                    {
+                        "label": f"{step + 1:02d}",
+                        "title": node_title,
+                        "desc": "顺着这一站继续进入主线节点。",
+                    }
+                    for step, node_title in enumerate(route_nodes[:4])
+                ]
             )
-            if route_nodes:
-                render_ledger_cards(
-                    [
-                        {
-                            "label": f"{step + 1:02d}",
-                            "title": node_title,
-                            "desc": "顺着这一站继续进入主线节点。",
-                        }
-                        for step, node_title in enumerate(route_nodes[:4])
-                    ]
-                )
-            if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
-                _jump_to_route(item)
-    with route_board_right:
-        render_section("今日推荐路线", "适合快速体验重点节点，先进入转折与胜利场景。")
-        for index, item in enumerate(sample.get("recommended_route", [])[:4]):
-            route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
-            render_curatorial_note(
-                title=route_title,
-                body=route_body,
-                label="今日导览",
+        if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
+            _jump_to_route(item)
+with route_board_right:
+    render_section("今日推荐路线", "适合快速体验重点节点，先进入转折与胜利场景。")
+    for index, item in enumerate(sample.get("recommended_route", [])[:4]):
+        route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
+        render_curatorial_note(
+            title=route_title,
+            body=route_body,
+            label="今日导览",
+        )
+        if route_nodes:
+            render_ledger_cards(
+                [
+                    {
+                        "label": f"{step + 1:02d}",
+                        "title": node_title,
+                        "desc": "从这一站进入，可快速形成章节印象。",
+                    }
+                    for step, node_title in enumerate(route_nodes[:4])
+                ]
             )
-            if route_nodes:
-                render_ledger_cards(
-                    [
-                        {
-                            "label": f"{step + 1:02d}",
-                            "title": node_title,
-                            "desc": "从这一站进入，可快速形成章节印象。",
-                        }
-                        for step, node_title in enumerate(route_nodes[:4])
-                    ]
-                )
-            if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
-                _jump_to_route(item)
+        if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
+            _jump_to_route(item)
 
 render_gallery_frame("人物与专题", "在主线之外，从人物与精神专题继续深入，理解长征何以发生、如何转折、为何胜利。")
 render_section("重要人物", "通过关键人物回看决策、组织与战斗过程，能够更完整地理解长征主线。")
