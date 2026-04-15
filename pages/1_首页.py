@@ -323,16 +323,28 @@ for index, chapter in enumerate(chapters):
 
 route_left, route_right = st.columns([1.15, 0.95])
 with route_left:
-    render_ledger_cards(
+    render_gallery_frame("路线导览总板", "先看路线全貌，再进入推荐线路与具体节点，整体观感会更完整。")
+    route_map_path = sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg")
+    if route_map_path:
+        st.image(route_map_path, caption="中国工农红军长征路线图", width="stretch")
+    render_detail_panels(
         [
             {
-                "label": chapter.get("badge", "篇章"),
                 "title": chapter.get("title", ""),
-                "desc": " · ".join(node.get("title", "") for node in chapter.get("nodes", [])[:4]),
+                "desc": f"{chapter.get('subtitle', '')} 代表节点：{'、'.join(node.get('title', '') for node in chapter.get('nodes', [])[:3])}",
             }
-            for chapter in chapters
+            for chapter in chapters[:4]
         ]
     )
+    chapter_jump_cols = st.columns(2)
+    for index, chapter in enumerate(chapters[:4]):
+        with chapter_jump_cols[index % 2]:
+            if st.button(
+                f"进入{chapter.get('title', '')}",
+                key=f"route_overview_jump_{chapter.get('id', index)}",
+                width="stretch",
+            ):
+                _jump_to_chapter(chapter.get("id", ""), chapter.get("nodes", [{}])[0].get("id", ""))
 with route_right:
     render_curatorial_note(
         title="推荐浏览顺序",
@@ -357,7 +369,7 @@ with route_right:
                             "title": node_title,
                             "desc": "顺着这一站继续进入主线节点。",
                         }
-                        for step, node_title in enumerate(route_nodes[:5])
+                        for step, node_title in enumerate(route_nodes[:4])
                     ]
                 )
             if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
@@ -379,7 +391,7 @@ with route_right:
                             "title": node_title,
                             "desc": "从这一站进入，可快速形成章节印象。",
                         }
-                        for step, node_title in enumerate(route_nodes[:5])
+                        for step, node_title in enumerate(route_nodes[:4])
                     ]
                 )
             if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
