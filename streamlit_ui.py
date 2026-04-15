@@ -71,20 +71,10 @@ def _asset_to_data_uri(path_like: Any) -> str:
 
 def inject_custom_css() -> None:
     """注入统一的产品化样式。"""
-    background_uri = _background_image_uri()
-    route_overlay = f'url("{background_uri}")' if background_uri else "none"
     css = """
         <style>
         .stApp {
-            background:
-                radial-gradient(circle at top left, rgba(128, 18, 52, 0.14), transparent 28%),
-                radial-gradient(circle at bottom right, rgba(162, 32, 65, 0.12), transparent 24%),
-                linear-gradient(180deg, rgba(250, 246, 242, 0.99) 0%, rgba(245, 236, 231, 0.98) 58%, rgba(238, 226, 221, 0.97) 100%),
-                __ROUTE_OVERLAY__;
-            background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
-            background-size: auto, auto, auto, min(48vw, 720px) auto;
-            background-position: left top, right bottom, center top, right -36px top 112px;
-            background-attachment: fixed, fixed, fixed, scroll;
+            background: #f5eeeb;
             color: #211815;
         }
         .block-container {
@@ -672,7 +662,7 @@ def inject_custom_css() -> None:
         }
         </style>
         """
-    st.markdown(css.replace("__ROUTE_OVERLAY__", route_overlay), unsafe_allow_html=True)
+    st.markdown(css, unsafe_allow_html=True)
 
 
 def _clean_html(markup: str) -> str:
