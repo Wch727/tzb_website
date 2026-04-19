@@ -342,30 +342,11 @@ def inject_custom_css() -> None:
             height: 4px;
             background: linear-gradient(90deg, rgba(123, 23, 54, 0.95), rgba(181, 87, 112, 0.68));
         }
-        .game-status-head {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 0.8rem;
-            margin-bottom: 0.75rem;
-        }
         .game-status-kicker {
             color: #8a2947;
             font-size: 0.8rem;
             letter-spacing: 0.04em;
-        }
-        .game-status-symbol {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, rgba(123, 23, 54, 0.16), rgba(183, 91, 115, 0.1));
-            color: #7b1736;
-            font-size: 1.2rem;
-            font-weight: 700;
-            flex-shrink: 0;
+            margin-bottom: 0.75rem;
         }
         .game-status-value {
             color: #4b2119;
@@ -1051,10 +1032,7 @@ def render_game_status_board(items: List[Dict[str, str]]) -> None:
             _clean_html(
                 f"""
                 <div class="game-status-card">
-                    <div class="game-status-head">
-                        <div class="game-status-kicker">{html.escape(str(item.get('kicker', '状态')))}</div>
-                        <div class="game-status-symbol">{html.escape(str(item.get('symbol', '•')))}</div>
-                    </div>
+                    <div class="game-status-kicker">{html.escape(str(item.get('kicker', '状态')))}</div>
                     <div class="game-status-value">{html.escape(str(item.get('value', '')))}</div>
                     <div class="game-status-label">{html.escape(str(item.get('label', '')))}</div>
                     <div class="game-status-note">{html.escape(str(item.get('note', '')))}</div>
