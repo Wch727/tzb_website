@@ -10,7 +10,14 @@ from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
-from streamlit_ui import render_detail_panels, render_hero, render_section, render_top_nav, setup_page
+from streamlit_ui import (
+    render_detail_panels,
+    render_formal_script,
+    render_hero,
+    render_section,
+    render_top_nav,
+    setup_page,
+)
 from team_manager import build_team_member_summary, build_team_share_text, get_team, record_team_progress
 
 
@@ -477,6 +484,35 @@ if last_result and last_result.get("answer_detail"):
     if review_manual:
         render_section("战后复盘手册", "把这道题真正变成一次战役复盘，而不是只看对错。")
         render_detail_panels(review_manual)
+    chapter_completion = last_result.get("chapter_completion", {}) or {}
+    if chapter_completion:
+        render_section("阶段总结", "每完成一个长征篇章，都要停下来回望这一路是怎样走过来的。")
+        render_detail_panels(
+            [
+                {
+                    "title": "完成篇章",
+                    "desc": f"{chapter_completion.get('badge', '篇章结算')} · {chapter_completion.get('title', '主线篇章')}",
+                },
+                {
+                    "title": "阶段奖励",
+                    "desc": chapter_completion.get("reward_text", "阶段奖励已发放。"),
+                },
+                {
+                    "title": "已完成篇章数",
+                    "desc": f"{chapter_completion.get('completed_count', 0)} / 4",
+                },
+                {
+                    "title": "下一阶段",
+                    "desc": chapter_completion.get("next_subtitle", "继续沿主线推进。"),
+                },
+            ]
+        )
+        render_formal_script(
+            chapter_completion.get("script", ""),
+            title=f"{chapter_completion.get('title', '长征篇章')}阶段讲述",
+            label="阶段讲述稿",
+            meta=[chapter_completion.get("badge", "篇章结算"), "阶段总结"],
+        )
     st.markdown("### 延伸知识点")
     st.write(detail.get("extended_note", ""))
 

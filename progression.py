@@ -34,6 +34,7 @@ def default_progress(role_name: str = "侦察兵", starter_grain: int = 5, start
         "streak": 0,
         "best_streak": 0,
         "tactic_success_count": 0,
+        "completed_chapters": [],
     }
 
 
@@ -77,6 +78,10 @@ def _refresh_medals(progress: Dict[str, Any]) -> None:
         _append_unique(medals, "连续作战尖兵")
     if int(progress.get("tactic_success_count", 0)) >= 5:
         _append_unique(medals, "战术判断能手")
+    if len(progress.get("completed_chapters", [])) >= 1:
+        _append_unique(medals, "篇章突破者")
+    if len(progress.get("completed_chapters", [])) >= 4:
+        _append_unique(medals, "长征全线贯通者")
     progress["medals"] = medals
 
 
@@ -95,6 +100,7 @@ def record_quiz_result(
     bonus_grain: int = 0,
     role_mastery_key: str = "",
     tactic_match: bool = False,
+    chapter_completion_id: str = "",
 ) -> Dict[str, Any]:
     """记录一次答题结果。"""
     updated = progress.copy()
@@ -106,6 +112,7 @@ def record_quiz_result(
     updated.setdefault("streak", 0)
     updated.setdefault("best_streak", 0)
     updated.setdefault("tactic_success_count", 0)
+    updated.setdefault("completed_chapters", [])
     updated["answered_count"] = int(updated.get("answered_count", 0)) + 1
     _append_unique(updated["multimedia_types"], question_type)
 
@@ -142,6 +149,9 @@ def record_quiz_result(
             }
         )
 
+    if chapter_completion_id:
+        _append_unique(updated["completed_chapters"], chapter_completion_id)
+
     updated["rank_title"] = get_rank_title(int(updated.get("red_star_points", 0)))
     _refresh_medals(updated)
     return updated
@@ -163,4 +173,5 @@ def build_progress_summary(progress: Dict[str, Any]) -> Dict[str, Any]:
         "streak": int(progress.get("streak", 0)),
         "best_streak": int(progress.get("best_streak", 0)),
         "tactic_success_count": int(progress.get("tactic_success_count", 0)),
+        "completed_chapters": progress.get("completed_chapters", []),
     }

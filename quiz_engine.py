@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from activity_manager import get_activity
-from content_store import get_chapter_for_node, get_route_node_data, load_route_nodes_data
+from content_store import build_chapter_story_script, get_chapter_for_node, get_route_node_data, load_route_nodes_data
 from knowledge_cards import build_related_knowledge_bundle
 from progression import build_progress_summary, default_progress, record_quiz_result
 from role_system import build_role_brief, build_role_feedback, build_role_task, get_role
@@ -339,6 +339,32 @@ def _build_stage_meta(
     }
 
 
+def _build_chapter_completion(
+    chapter: Dict[str, Any],
+    next_chapter: Dict[str, Any],
+    progress: Dict[str, Any],
+) -> Dict[str, Any]:
+    """生成篇章结算信息。"""
+    chapter_id = str(chapter.get("id", "") or "")
+    chapter_title = str(chapter.get("title", "") or "主线篇章")
+    next_title = str(next_chapter.get("title", "") or "会师终章")
+    completed_count = len(progress.get("completed_chapters", []))
+    return {
+        "chapter_id": chapter_id,
+        "title": chapter_title,
+        "badge": str(chapter.get("badge", "") or "篇章结算"),
+        "script": build_chapter_story_script(chapter_id),
+        "reward_text": "阶段奖励：红星积分 +3，虚拟粮草 +2。",
+        "completed_count": completed_count,
+        "next_title": next_title,
+        "next_subtitle": (
+            f"下一阶段将进入“{next_title}”，建议带着本篇章的关键结论继续推进。"
+            if next_chapter
+            else "当前已完成全部长征主线篇章，接下来可进入最终结算与全线回顾。"
+        ),
+    }
+
+
 def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
     """获取当前关卡的完整展示数据。"""
     node = get_current_node(state)
@@ -402,6 +428,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
     expected_answer = str(stage.get("expected_answer", "") or "")
     correct = answer.strip() == expected_answer.strip()
     role = stage.get("role", {})
+    current_chapter = stage.get("chapter", {}) or {}
     question_type = stage.get("question_type", "情境选择题")
     tactic_match = bool(tactic_id and tactic_id == stage.get("recommended_tactic_id", ""))
     bonus_stars = 0
@@ -434,6 +461,18 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
             "selected_tactic": tactic_id,
         }
     )
+    next_index = int(state.get("current_index", 0)) + 1
+    node_ids = list(state.get("node_ids", []))
+    predicted_next_node = get_route_node_data(node_ids[next_index]) if next_index < len(node_ids) else {}
+    next_chapter = get_chapter_for_node(predicted_next_node) if predicted_next_node else {}
+    chapter_completed = bool(
+        current_chapter
+        and current_chapter.get("id")
+        and (not predicted_next_node or next_chapter.get("id") != current_chapter.get("id"))
+    )
+    if chapter_completed:
+        bonus_stars += 3
+        bonus_grain += 2
     updated_state["progress"] = record_quiz_result(
         state.get("progress", {}),
         node_id=node.get("id", ""),
@@ -448,11 +487,13 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         bonus_grain=bonus_grain,
         role_mastery_key=role_mastery_key,
         tactic_match=tactic_match,
+        chapter_completion_id=str(current_chapter.get("id", "")) if chapter_completed else "",
     )
 
-    updated_state["current_index"] = int(state.get("current_index", 0)) + 1
+    updated_state["current_index"] = next_index
     updated_state["finished"] = updated_state["current_index"] >= len(updated_state.get("node_ids", []))
     next_node = get_current_node(updated_state) if not updated_state["finished"] else {}
+    next_chapter = get_chapter_for_node(next_node) if next_node else {}
     outcome = _build_battle_outcome(
         node=node,
         next_node=next_node,
@@ -460,6 +501,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         correct=correct,
         tactic_match=tactic_match,
     )
+    progress_summary = build_progress_summary(updated_state.get("progress", {}))
     review_manual = [
         {
             "title": "你的判断",
@@ -482,6 +524,11 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
             "desc": stage.get("next_hint", "完成复盘后继续沿主线推进。"),
         },
     ]
+    chapter_completion = (
+        _build_chapter_completion(current_chapter, next_chapter, progress_summary)
+        if chapter_completed
+        else {}
+    )
     return {
         "state": updated_state,
         "correct": correct,
@@ -501,6 +548,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         "battle_outcome": outcome.get("summary", ""),
         "after_action_report": outcome.get("bullets", []),
         "review_manual": review_manual,
+        "chapter_completion": chapter_completion,
         "knowledge_cards": stage.get("knowledge_cards", []),
-        "progress": build_progress_summary(updated_state.get("progress", {})),
+        "progress": progress_summary,
     }
