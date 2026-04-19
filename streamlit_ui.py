@@ -318,6 +318,74 @@ def inject_custom_css() -> None:
             font-weight: 700;
             color: #7b1736;
         }
+        .game-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.9rem;
+            margin: 0.7rem 0 1.1rem;
+        }
+        .game-status-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            padding: 1rem 1.05rem 0.95rem;
+            background: linear-gradient(180deg, rgba(255, 252, 250, 0.96), rgba(247, 238, 234, 0.93));
+            border: 1px solid rgba(139, 38, 66, 0.18);
+            box-shadow: 0 12px 30px rgba(78, 16, 33, 0.08);
+            min-height: 148px;
+        }
+        .game-status-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(123, 23, 54, 0.95), rgba(181, 87, 112, 0.68));
+        }
+        .game-status-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.8rem;
+            margin-bottom: 0.75rem;
+        }
+        .game-status-kicker {
+            color: #8a2947;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+        }
+        .game-status-symbol {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(123, 23, 54, 0.16), rgba(183, 91, 115, 0.1));
+            color: #7b1736;
+            font-size: 1.2rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .game-status-value {
+            color: #4b2119;
+            font-size: 1.9rem;
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+        .game-status-label {
+            color: #7b1736;
+            font-size: 0.94rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .game-status-note {
+            color: #6a5952;
+            font-size: 0.86rem;
+            line-height: 1.65;
+        }
         .notice-card {
             border-radius: 20px;
             padding: 1rem 1.1rem;
@@ -973,6 +1041,29 @@ def render_metrics(items: List[Dict[str, str]]) -> None:
             )
         )
     st.markdown(f"<div class='metric-strip'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
+def render_game_status_board(items: List[Dict[str, str]]) -> None:
+    """渲染更像网页 HUD 的状态面板。"""
+    cards: List[str] = []
+    for item in items:
+        cards.append(
+            _clean_html(
+                f"""
+                <div class="game-status-card">
+                    <div class="game-status-head">
+                        <div class="game-status-kicker">{html.escape(str(item.get('kicker', '状态')))}</div>
+                        <div class="game-status-symbol">{html.escape(str(item.get('symbol', '•')))}</div>
+                    </div>
+                    <div class="game-status-value">{html.escape(str(item.get('value', '')))}</div>
+                    <div class="game-status-label">{html.escape(str(item.get('label', '')))}</div>
+                    <div class="game-status-note">{html.escape(str(item.get('note', '')))}</div>
+                </div>
+                """
+            )
+        )
+    if cards:
+        st.markdown(f"<div class='game-status-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
 
 
 def render_cards(items: List[Dict[str, str]], timeline: bool = False) -> None:

@@ -13,6 +13,7 @@ from quiz_engine import create_story_state, get_stage_package, submit_stage_answ
 from streamlit_ui import (
     render_detail_panels,
     render_formal_script,
+    render_game_status_board,
     render_hero,
     render_section,
     render_top_nav,
@@ -92,15 +93,38 @@ if story_state.get("finished"):
         f"参与身份：{st.session_state.get('user_name', '红色学习者')} | "
         f"{st.session_state.get('unit_name', '体验组')} | {story_state.get('role_name', '侦察兵')}"
     )
-    metrics = st.columns(4)
-    with metrics[0]:
-        st.metric("红星积分", progress.get("red_star_points", 0))
-    with metrics[1]:
-        st.metric("虚拟粮草", progress.get("grain", 0))
-    with metrics[2]:
-        st.metric("当前军衔", progress.get("rank_title", "红军新兵"))
-    with metrics[3]:
-        st.metric("已获勋章", len(progress.get("medals", [])))
+    render_game_status_board(
+        [
+            {
+                "kicker": "成长状态",
+                "symbol": "★",
+                "value": progress.get("red_star_points", 0),
+                "label": "红星积分",
+                "note": "记录你在长征闯关中的历史判断与推进表现。",
+            },
+            {
+                "kicker": "补给状态",
+                "symbol": "粮",
+                "value": progress.get("grain", 0),
+                "label": "虚拟粮草",
+                "note": "用于表现连续作战中的补给与行动稳定度。",
+            },
+            {
+                "kicker": "身份状态",
+                "symbol": "军",
+                "value": progress.get("rank_title", "红军新兵"),
+                "label": "当前军衔",
+                "note": "随积分提升而晋升，体现你的主线成长轨迹。",
+            },
+            {
+                "kicker": "荣誉状态",
+                "symbol": "章",
+                "value": len(progress.get("medals", [])),
+                "label": "已获勋章",
+                "note": "记录你在主线关卡、篇章推进与战术判断中的成就。",
+            },
+        ]
+    )
 
     if team:
         team_box, member_box = st.columns([1, 1.05])
@@ -255,24 +279,66 @@ render_detail_panels(
     ]
 )
 
-status_cols = st.columns(6)
-with status_cols[0]:
-    st.metric("红星积分", progress.get("red_star_points", 0))
-with status_cols[1]:
-    st.metric("虚拟粮草", progress.get("grain", 0))
-with status_cols[2]:
-    st.metric("当前军衔", progress.get("rank_title", "红军新兵"))
-with status_cols[3]:
-    st.metric("已获勋章", len(progress.get("medals", [])))
-with status_cols[4]:
-    st.metric("红军小队", team.get("team_name", "未加入"))
-with status_cols[5]:
-    st.metric("支部归属", team.get("branch_name", st.session_state.get("unit_name", "体验组")))
-extra_status = st.columns(2)
-with extra_status[0]:
-    st.metric("连续作战", progress.get("streak", 0))
-with extra_status[1]:
-    st.metric("最佳连胜", progress.get("best_streak", 0))
+render_game_status_board(
+    [
+        {
+            "kicker": "作战积分",
+            "symbol": "★",
+            "value": progress.get("red_star_points", 0),
+            "label": "红星积分",
+            "note": "每完成一关都会累积，用于衡量你在主线中的综合表现。",
+        },
+        {
+            "kicker": "战地补给",
+            "symbol": "粮",
+            "value": progress.get("grain", 0),
+            "label": "虚拟粮草",
+            "note": "连续推进、正确判断和战术加成都会影响当前补给值。",
+        },
+        {
+            "kicker": "身份军衔",
+            "symbol": "军",
+            "value": progress.get("rank_title", "红军新兵"),
+            "label": "当前军衔",
+            "note": "军衔会随着积分提升而变化，体现你在征程中的成长。",
+        },
+        {
+            "kicker": "荣誉记录",
+            "symbol": "章",
+            "value": len(progress.get("medals", [])),
+            "label": "已获勋章",
+            "note": "勋章来自主线推进、篇章突破、连胜与战术判断等关键表现。",
+        },
+        {
+            "kicker": "协作单位",
+            "symbol": "队",
+            "value": team.get("team_name", "未加入"),
+            "label": "红军小队",
+            "note": "当前作答会同步计入小队贡献榜，用于活动协作与支部对抗。",
+        },
+        {
+            "kicker": "组织归属",
+            "symbol": "旗",
+            "value": team.get("branch_name", st.session_state.get("unit_name", "体验组")),
+            "label": "支部归属",
+            "note": "当前单位会参与活动排行、支部对抗与数据大屏展示。",
+        },
+        {
+            "kicker": "作战节奏",
+            "symbol": "连",
+            "value": progress.get("streak", 0),
+            "label": "连续作战",
+            "note": "答题连续命中越多，越能体现主线推进中的稳定判断。",
+        },
+        {
+            "kicker": "个人纪录",
+            "symbol": "冠",
+            "value": progress.get("best_streak", 0),
+            "label": "最佳连胜",
+            "note": "记录你迄今为止保持的最高连续命中成绩。",
+        },
+    ]
+)
 
 top_left, top_right = st.columns([1.05, 1.35])
 with top_left:
