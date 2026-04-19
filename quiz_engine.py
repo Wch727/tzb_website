@@ -133,6 +133,49 @@ BOSS_NODE_IDS = {
     "huining_meeting",
 }
 
+BOSS_STAGE_OVERRIDES: Dict[str, Dict[str, Any]] = {
+    "xiangjiang_battle": {
+        "label": "章节攻坚关",
+        "title": "湘江血战：生死突围",
+        "lead": "这是长征初期最惨烈的一场硬仗。队伍必须在巨大牺牲中保住主力，才能继续把革命火种带向前方。",
+        "focus": "这一关要看清的，不只是战斗本身，而是湘江血战怎样把战略转折逼到了历史关口。",
+        "orders": ["先判断为什么湘江会成为生死关口。", "再理解巨大牺牲为何推动后续路线调整。", "把湘江放回遵义会议前夜来理解。"],
+        "stakes": "如果看不清这一关，就很难理解长征为什么必须从被动突围走向战略转折。",
+    },
+    "zunyi_meeting": {
+        "label": "章节攻坚关",
+        "title": "遵义会议：转折前夜",
+        "lead": "这里不是一场普通会议，而是长征从危局中转向主动的重要起点。许多后续胜利，都要从这里追溯。",
+        "focus": "这一关重点不在记住会议名称，而在理解为什么它能成为中国革命历史上的伟大转折。",
+        "orders": ["先看湘江之后的危局。", "再看会议改变了什么。", "最后把它与四渡赤水等后续行动连起来。"],
+        "stakes": "如果对这次会议理解太薄，后面所有“为什么能扭转局势”的问题都会变得空泛。",
+    },
+    "sidu_chishui": {
+        "label": "章节攻坚关",
+        "title": "四渡赤水：机动制胜",
+        "lead": "这是长征途中最能体现战略机动的一段。红军并不是盲目转移，而是在复杂围追堵截中主动调动敌军。",
+        "focus": "这一关要理解的核心，是‘机动’怎样成为摆脱被动、争取主动的关键智慧。",
+        "orders": ["先看红军为什么不能硬碰硬。", "再看路线变化为什么不是混乱，而是主动设计。", "最后把‘运动战’和全局胜负联系起来。"],
+        "stakes": "如果只把四渡赤水看成路线来回变化，就会错过这段历史最核心的战略价值。",
+    },
+    "luding_bridge": {
+        "label": "章节攻坚关",
+        "title": "飞夺泸定桥：抢占天险",
+        "lead": "这不是一座普通的桥，而是一条生死通道。谁掌握了它，谁就掌握了北上的主动权。",
+        "focus": "这一关要看清泸定桥为什么既是战术险关，也是整条长征主线上的关键突破口。",
+        "orders": ["先判断桥梁与河谷地形的险要程度。", "再理解为什么必须争分夺秒。", "最后把它与大渡河整体突破联系起来。"],
+        "stakes": "如果忽略这道天险背后的全局意义，就无法真正理解飞夺泸定桥为何成为经典战例。",
+    },
+    "huining_meeting": {
+        "label": "终章攻坚关",
+        "title": "会宁会师：长征胜利",
+        "lead": "当队伍走到这里，长征不再只是一次艰难行军，而已经成为中国革命走向新阶段的伟大转折。",
+        "focus": "这一关重点不是记住会师地点，而是理解会宁会师为什么意味着长征胜利完成。",
+        "orders": ["先回望整条主线经历了哪些生死关口。", "再理解会师对于保存革命力量的意义。", "最后把长征胜利与长征精神联系起来。"],
+        "stakes": "如果看不到会师背后的历史意义，就很难真正把长征理解为一次伟大的战略胜利。",
+    },
+}
+
 
 def _node_ids_for_activity(activity_id: str = "") -> List[str]:
     """获取活动对应的节点范围。"""
@@ -322,6 +365,49 @@ def _build_stage_story_pack(
     }
 
 
+def _build_boss_stage_pack(
+    node: Dict[str, Any],
+    role: Dict[str, Any],
+    chapter: Dict[str, Any],
+) -> Dict[str, Any]:
+    """为关键大关生成专属过场信息。"""
+    node_id = str(node.get("id", "") or "")
+    if node_id not in BOSS_NODE_IDS:
+        return {}
+    override = BOSS_STAGE_OVERRIDES.get(node_id, {})
+    title = str(node.get("title", "") or "关键节点")
+    route_stage = str(node.get("route_stage", "") or chapter.get("title", "主线篇章"))
+    role_name = str(role.get("name", "") or "侦察兵")
+    summary = str(node.get("summary", "") or "").strip()
+    return {
+        "label": str(override.get("label", "章节攻坚关")),
+        "title": str(override.get("title", title)),
+        "lead": str(
+            override.get(
+                "lead",
+                f"“{title}”是长征主线中的关键大关。此时队伍已进入“{route_stage}”阶段，必须完成更高强度的判断与推进。"
+            )
+        ),
+        "focus": str(
+            override.get(
+                "focus",
+                summary or f"这一关不只是答题，更要看清“{title}”在长征主线中的决定性意义。"
+            )
+        ),
+        "orders": list(override.get("orders", [])) or [
+            f"以{role_name}身份先理解本关局势，再进入作答。",
+            f"把“{title}”放回“{route_stage}”阶段来判断。",
+            "不要只记结论，更要看清它为什么能改变主线推进。",
+        ],
+        "stakes": str(
+            override.get(
+                "stakes",
+                f"如果这一关理解过浅，后续整条主线的转折与推进逻辑都会变得单薄。"
+            )
+        ),
+    }
+
+
 def _build_battle_outcome(
     *,
     node: Dict[str, Any],
@@ -483,6 +569,7 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
         payload.get("question_type", "情境选择题"),
         stage_meta.get("chapter", {}),
     )
+    boss_pack = _build_boss_stage_pack(node, role, stage_meta.get("chapter", {}))
     return {
         "node": node,
         "role": role,
@@ -523,6 +610,7 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
         "story_panels": story_pack.get("story_panels", []),
         "story_opening": story_pack.get("story_opening", ""),
         "story_next_hook": story_pack.get("story_next_hook", ""),
+        "boss_stage": boss_pack,
         "progress": build_progress_summary(state.get("progress", {})),
         "current_step": int(state.get("current_index", 0)) + 1,
         "total_steps": len(state.get("node_ids", [])),

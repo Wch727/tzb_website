@@ -11,6 +11,7 @@ from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
 from streamlit_ui import (
+    render_boss_stage_intro,
     render_detail_panels,
     render_formal_script,
     render_game_status_board,
@@ -278,6 +279,8 @@ render_detail_panels(
         },
     ]
 )
+if stage.get("boss_stage"):
+    render_boss_stage_intro(stage.get("boss_stage", {}))
 
 render_game_status_board(
     [
@@ -358,8 +361,6 @@ with top_left:
     st.caption(f"地点：{node.get('place', '未标注')}")
 
 with top_right:
-    if stage.get("is_boss_stage"):
-        st.warning("当前为章节攻坚关，请先完整阅读关卡背景、作战简报和行动策略，再进入作答。")
     st.markdown(f"## {node.get('title', '')}")
     if stage.get("prologue"):
         st.markdown(f"**过场导语：** {stage.get('prologue', '')}")

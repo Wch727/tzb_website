@@ -468,6 +468,73 @@ def inject_custom_css() -> None:
             line-height: 1.8;
             font-size: 0.94rem;
         }
+        .boss-intro {
+            margin: 0.75rem 0 1.2rem;
+            padding: 1.15rem 1.2rem 1.05rem;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(115, 16, 41, 0.96), rgba(152, 35, 63, 0.9));
+            color: #fff8f4;
+            box-shadow: 0 18px 42px rgba(84, 12, 31, 0.22);
+            border: 1px solid rgba(255, 240, 230, 0.12);
+        }
+        .boss-intro-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 236, 225, 0.76);
+            margin-bottom: 0.35rem;
+        }
+        .boss-intro-title {
+            font-size: 2rem;
+            line-height: 1.15;
+            font-weight: 800;
+            margin-bottom: 0.55rem;
+            color: #fff9f6;
+        }
+        .boss-intro-lead {
+            font-size: 1.02rem;
+            line-height: 1.9;
+            color: rgba(255, 245, 239, 0.95);
+            margin-bottom: 0.9rem;
+        }
+        .boss-intro-focus {
+            border-left: 3px solid rgba(255, 228, 205, 0.55);
+            padding-left: 0.95rem;
+            margin-bottom: 0.95rem;
+            color: rgba(255, 243, 237, 0.92);
+            line-height: 1.85;
+        }
+        .boss-order-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 0.9rem;
+        }
+        .boss-order-card {
+            border-radius: 18px;
+            padding: 0.85rem 0.95rem;
+            background: rgba(255, 248, 243, 0.1);
+            border: 1px solid rgba(255, 235, 224, 0.15);
+        }
+        .boss-order-title {
+            color: #ffe1cc;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+        }
+        .boss-order-desc {
+            color: #fff7f2;
+            line-height: 1.7;
+            font-size: 0.92rem;
+        }
+        .boss-intro-stakes {
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 234, 224, 0.18);
+            color: rgba(255, 243, 237, 0.88);
+            line-height: 1.8;
+            font-size: 0.92rem;
+        }
         .feature-ribbon {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1125,6 +1192,39 @@ def render_detail_panels(items: List[Dict[str, str]]) -> None:
         )
     if cards:
         st.markdown(f"<div class='detail-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+
+
+def render_boss_stage_intro(data: Dict[str, Any]) -> None:
+    """渲染大关专属过场。"""
+    if not data:
+        return
+    orders_html = "".join(
+        _clean_html(
+            f"""
+            <div class="boss-order-card">
+                <div class="boss-order-title">任务 {index}</div>
+                <div class="boss-order-desc">{html.escape(str(item))}</div>
+            </div>
+            """
+        )
+        for index, item in enumerate(data.get("orders", []), start=1)
+        if str(item).strip()
+    )
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="boss-intro">
+                <div class="boss-intro-label">{html.escape(str(data.get('label', '章节攻坚关')))}</div>
+                <div class="boss-intro-title">{html.escape(str(data.get('title', '关键大关')))}</div>
+                <div class="boss-intro-lead">{html.escape(str(data.get('lead', '')))}</div>
+                <div class="boss-intro-focus">{html.escape(str(data.get('focus', '')))}</div>
+                <div class="boss-order-grid">{orders_html}</div>
+                <div class="boss-intro-stakes">{html.escape(str(data.get('stakes', '')))}</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def render_formal_script(
