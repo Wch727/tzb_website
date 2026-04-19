@@ -12,6 +12,7 @@ from media import render_audio_player, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
 from streamlit_ui import (
     render_boss_stage_intro,
+    render_boss_stage_outcome,
     render_detail_panels,
     render_formal_script,
     render_game_status_board,
@@ -541,6 +542,8 @@ if last_result and last_result.get("answer_detail"):
         st.warning(last_result.get("feedback", "回答未命中全部要点。"))
     if last_result.get("role_feedback"):
         st.info(last_result.get("role_feedback", ""))
+    if last_result.get("boss_stage_outcome"):
+        render_boss_stage_outcome(last_result.get("boss_stage_outcome", {}))
 
     st.markdown(f"### 正确答案解析 | {answered_node.get('title', node.get('title', '当前关卡'))}")
     st.write(detail.get("explanation", ""))

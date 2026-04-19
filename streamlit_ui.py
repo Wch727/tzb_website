@@ -535,6 +535,45 @@ def inject_custom_css() -> None:
             line-height: 1.8;
             font-size: 0.92rem;
         }
+        .boss-outcome {
+            margin: 0.85rem 0 1.25rem;
+            padding: 1rem 1.1rem 0.95rem;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 250, 248, 0.96), rgba(245, 233, 228, 0.94));
+            border: 1px solid rgba(139, 38, 66, 0.15);
+            box-shadow: 0 14px 32px rgba(78, 16, 33, 0.08);
+        }
+        .boss-outcome-label {
+            color: #8a2947;
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.28rem;
+        }
+        .boss-outcome-title {
+            color: #5b112d;
+            font-size: 1.35rem;
+            line-height: 1.2;
+            font-weight: 800;
+            margin-bottom: 0.45rem;
+        }
+        .boss-outcome-lead {
+            color: #4c433d;
+            line-height: 1.85;
+            font-size: 0.98rem;
+            margin-bottom: 0.78rem;
+        }
+        .boss-outcome-focus {
+            color: #5a5047;
+            line-height: 1.8;
+            border-left: 3px solid rgba(123, 23, 54, 0.25);
+            padding-left: 0.9rem;
+            margin-bottom: 0.78rem;
+        }
+        .boss-outcome-closing {
+            color: #6d554f;
+            line-height: 1.78;
+        }
         .feature-ribbon {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1220,6 +1259,26 @@ def render_boss_stage_intro(data: Dict[str, Any]) -> None:
                 <div class="boss-intro-focus">{html.escape(str(data.get('focus', '')))}</div>
                 <div class="boss-order-grid">{orders_html}</div>
                 <div class="boss-intro-stakes">{html.escape(str(data.get('stakes', '')))}</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def render_boss_stage_outcome(data: Dict[str, Any]) -> None:
+    """渲染大关答题后的专属结算语。"""
+    if not data:
+        return
+    st.markdown(
+        _clean_html(
+            f"""
+            <div class="boss-outcome">
+                <div class="boss-outcome-label">{html.escape(str(data.get('label', '章节攻坚关')))}</div>
+                <div class="boss-outcome-title">{html.escape(str(data.get('title', '关键大关')))} · 战役复盘</div>
+                <div class="boss-outcome-lead">{html.escape(str(data.get('lead', '')))}</div>
+                <div class="boss-outcome-focus">{html.escape(str(data.get('focus', '')))}</div>
+                <div class="boss-outcome-closing">{html.escape(str(data.get('closing', '')))}</div>
             </div>
             """
         ),

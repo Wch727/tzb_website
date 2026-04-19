@@ -408,6 +408,41 @@ def _build_boss_stage_pack(
     }
 
 
+def _build_boss_stage_outcome(
+    node: Dict[str, Any],
+    next_node: Dict[str, Any],
+    correct: bool,
+    tactic_match: bool,
+) -> Dict[str, Any]:
+    """为关键大关生成专属结算语。"""
+    node_id = str(node.get("id", "") or "")
+    if node_id not in BOSS_NODE_IDS:
+        return {}
+    override = BOSS_STAGE_OVERRIDES.get(node_id, {})
+    title = str(node.get("title", "") or "关键大关")
+    next_title = str(next_node.get("title", "") or "下一节点")
+    significance = str(node.get("significance", "") or "").strip()
+    if correct and tactic_match:
+        lead = f"你已经攻下“{title}”这一关键大关，而且行动判断与战术选择同时命中，队伍由此获得更稳定的推进节奏。"
+        focus = significance or "这意味着你不仅记住了结论，更真正理解了这一关为什么会改变整条主线的走向。"
+        closing = f"完成这道大关后，主线将继续转入“{next_title}”，而这一胜利会成为后续推进的关键基础。"
+    elif correct:
+        lead = f"“{title}”这道关键大关已经完成，历史判断总体正确，主线得以继续向前。"
+        focus = significance or "你已经抓住了这道大关的核心意义，但在战术层面的理解还可以进一步贴近当时的局势。"
+        closing = f"接下来队伍将进入“{next_title}”，建议带着这关的历史结论继续往后看。"
+    else:
+        lead = f"“{title}”这道关键大关没有完全攻下，但这正说明它本身就是长征主线中最值得反复理解的转折节点。"
+        focus = significance or "这类大关的价值，不在于背出一个答案，而在于把它放回整条长征主线里重新理解。"
+        closing = f"整理完复盘后，队伍仍将向“{next_title}”推进，但最好先把这道大关真正看透。"
+    return {
+        "label": str(override.get("label", "章节攻坚关")),
+        "title": str(override.get("title", title)),
+        "lead": lead,
+        "focus": focus,
+        "closing": closing,
+    }
+
+
 def _build_battle_outcome(
     *,
     node: Dict[str, Any],
@@ -747,6 +782,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         "battle_outcome": outcome.get("summary", ""),
         "after_action_report": outcome.get("bullets", []),
         "continuation_story": _build_continuation_story(node, next_node, role, correct),
+        "boss_stage_outcome": _build_boss_stage_outcome(node, next_node, correct, tactic_match),
         "review_manual": review_manual,
         "chapter_completion": chapter_completion,
         "knowledge_cards": stage.get("knowledge_cards", []),
