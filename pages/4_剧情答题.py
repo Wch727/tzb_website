@@ -377,11 +377,8 @@ with top_right:
             st.markdown(f"- {item}")
         if role_task.get("reward_hint"):
             st.caption(f"奖励提示：{role_task.get('reward_hint', '')}")
-    st.markdown("### 背景导入")
-    background = str(node.get("background", "") or "")
-    st.write(background[:220] + ("..." if len(background) > 220 else ""))
-    st.markdown("### 剧情旁白")
-    st.write(node.get("summary", ""))
+    st.markdown("### 本关故事导入")
+    st.write(stage.get("story_opening", "") or node.get("summary", ""))
     if team:
         st.markdown("### 小队协作状态")
         st.write(
@@ -389,6 +386,20 @@ with top_right:
             f"小队总分 {team.get('total_score', 0)}，"
             f"队员 {len(team.get('members', []))} 人。"
         )
+
+render_section("关前故事", "先进入当时的行军情境，再完成本关判断。每一道题都要放回长征主线中去理解。")
+render_formal_script(
+    stage.get("story_script", ""),
+    title=f"{node.get('title', '长征节点')} · 关前故事",
+    label="关前讲述",
+    meta=[
+        stage.get("campaign_title", "长征主线"),
+        stage.get("stage_badge", "主线推进关"),
+        stage.get("question_type", "情境选择题"),
+    ],
+)
+if stage.get("story_panels"):
+    render_detail_panels(stage.get("story_panels", []))
 
 render_section("作战简报", "每一关都不仅是答题，还包含任务目标、风险提示和奖励预告。")
 render_detail_panels(
@@ -550,6 +561,14 @@ if last_result and last_result.get("answer_detail"):
     if review_manual:
         render_section("战后复盘手册", "把这道题真正变成一次战役复盘，而不是只看对错。")
         render_detail_panels(review_manual)
+    if last_result.get("continuation_story"):
+        render_section("行军续报", "答题之后，继续沿主线看这场判断将把队伍带向哪里。")
+        render_formal_script(
+            last_result.get("continuation_story", ""),
+            title=f"{answered_node.get('title', node.get('title', '当前关卡'))} · 行军续报",
+            label="关后讲述",
+            meta=["主线推进", answered_node.get("route_stage", "长征节点")],
+        )
     chapter_completion = last_result.get("chapter_completion", {}) or {}
     if chapter_completion:
         render_section("阶段总结", "每完成一个长征篇章，都要停下来回望这一路是怎样走过来的。")

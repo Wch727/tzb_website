@@ -251,6 +251,77 @@ def _build_stage_briefing(node: Dict[str, Any], role: Dict[str, Any], question_t
     }
 
 
+def _build_stage_story_pack(
+    state: Dict[str, Any],
+    node: Dict[str, Any],
+    role: Dict[str, Any],
+    question_type: str,
+    chapter: Dict[str, Any],
+) -> Dict[str, Any]:
+    """为关卡补充更有行军叙事感的故事层。"""
+    title = str(node.get("title", "") or "长征节点")
+    route_stage = str(node.get("route_stage", "") or chapter.get("title", "主线推进"))
+    date = str(node.get("date", "") or "长征途中")
+    place = str(node.get("place", "") or "行军沿线")
+    role_name = str(role.get("name", "") or "侦察兵")
+    summary = str(node.get("summary", "") or "").strip()
+    background = str(node.get("background", "") or "").strip()
+    process = str(node.get("process", "") or "").strip()
+    significance = str(node.get("significance", "") or "").strip()
+    figures = [str(item).strip() for item in node.get("figures", []) if str(item).strip()]
+    figure_text = "、".join(figures[:4]) if figures else "红军指战员与党的重要领导人"
+    current_step = int(state.get("current_index", 0)) + 1
+    total_steps = len(state.get("node_ids", []))
+    node_ids = list(state.get("node_ids", []))
+    next_node = {}
+    if current_step < total_steps:
+        next_node = get_route_node_data(node_ids[current_step]) or {}
+    next_title = str(next_node.get("title", "") or "下一阶段主线节点")
+
+    opening = (
+        f"{date}，队伍推进到{place}一带。你以{role_name}身份进入“{title}”这一关。"
+        f"这是长征“{route_stage}”阶段中的第 {current_step} 关，整条主线仍在持续向前。"
+    )
+    situation = (
+        background
+        or "红军正处在敌强我弱、补给紧张、行军环境艰难的局势之中，每一次判断都关系到主力能否继续前进。"
+    )
+    scene = (
+        process
+        or "队伍在复杂地形和严密封锁之间寻找生路，既要保存有生力量，又要迅速打开新的战略空间。"
+    )
+    decision = (
+        f"在这一关里，你要理解的不只是“发生了什么”，更要看清为什么必须这样行动。"
+        f"围绕{figure_text}等人物的判断与组织，红军在此作出了关键抉择。"
+    )
+    meaning = (
+        significance
+        or "把这一节点放回整条长征主线中，它既是一次具体行动，也是理解长征为什么能够由被动转向主动的重要线索。"
+    )
+    next_hook = f"一旦完成本关，主线将继续向“{next_title}”推进，新的风险与新的机会也会随之出现。"
+    story_script = (
+        f"《{title}》关前故事\n\n"
+        f"开场导入\n{opening}\n\n"
+        f"行军处境\n{situation}\n\n"
+        f"现场推进\n{scene}\n\n"
+        f"关键抉择\n{decision}\n\n"
+        f"这一关的意义\n{meaning}\n\n"
+        f"继续前进\n{next_hook}"
+    )
+    story_panels = [
+        {"title": "这一刻身在何处", "desc": f"{date} · {place} · {route_stage}"},
+        {"title": "队伍面临什么局势", "desc": situation},
+        {"title": "这一关真正要看什么", "desc": f"以“{question_type}”为线索，把节点放回主线推进中理解。"},
+        {"title": "接下来会走向哪里", "desc": next_hook},
+    ]
+    return {
+        "story_script": story_script,
+        "story_panels": story_panels,
+        "story_opening": opening,
+        "story_next_hook": next_hook,
+    }
+
+
 def _build_battle_outcome(
     *,
     node: Dict[str, Any],
@@ -285,6 +356,35 @@ def _build_battle_outcome(
             f"继续前进前，建议把“{node_title}”与“{next_title}”的衔接关系先看清楚。",
         ]
     return {"summary": summary, "bullets": bullets}
+
+
+def _build_continuation_story(
+    node: Dict[str, Any],
+    next_node: Dict[str, Any],
+    role: Dict[str, Any],
+    correct: bool,
+) -> str:
+    """生成作答后的行军续报。"""
+    title = str(node.get("title", "") or "当前节点")
+    next_title = str(next_node.get("title", "") or "下一节点")
+    role_name = str(role.get("name", "") or "侦察兵")
+    process = str(node.get("process", "") or "").strip()
+    significance = str(node.get("significance", "") or "").strip()
+    if correct:
+        return (
+            f"《{title}》行军续报\n\n"
+            f"本关完成后，{role_name}所在小队顺利通过了“{title}”这一节点的关键判断。"
+            f"{process or '这意味着队伍没有停留在表层事实，而是真正理解了这一阶段行动为什么必须如此推进。'}\n\n"
+            f"继续放回主线看，{significance or '这一关的意义，在于它帮助队伍稳住方向，把一次局部行动转化为整条长征主线上的连续推进。'}\n\n"
+            f"接下来，队伍将把注意力转向“{next_title}”。新的行军处境已经展开，前方仍然需要判断、组织与坚持。"
+        )
+    return (
+        f"《{title}》行军续报\n\n"
+        f"这一关的判断没有完全命中关键点，但队伍不会因此停下。"
+        f"{process or '长征中的许多转折，本就不是靠记住一个结果就能看懂，而是要回到当时的局势、路线与行动逻辑中重新理解。'}\n\n"
+        f"只要把这一步重新看清，{significance or '就能更好地理解这关为什么会成为后续主线推进的重要铺垫。'}\n\n"
+        f"整理完本关复盘后，继续把目光投向“{next_title}”，主线仍会向前推进。"
+    )
 
 
 def _build_stage_meta(
@@ -376,6 +476,13 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
     tactic_package = _build_tactic_package(role, node, payload.get("question_type", "情境选择题"))
     briefing = _build_stage_briefing(node, role, payload.get("question_type", "情境选择题"))
     stage_meta = _build_stage_meta(state, node, role, payload.get("question_type", "情境选择题"))
+    story_pack = _build_stage_story_pack(
+        state,
+        node,
+        role,
+        payload.get("question_type", "情境选择题"),
+        stage_meta.get("chapter", {}),
+    )
     return {
         "node": node,
         "role": role,
@@ -412,6 +519,10 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
         "battle_log": briefing.get("battle_log", []),
         "risk_hint": briefing.get("risk_hint", ""),
         "reward_hint": briefing.get("reward_hint", ""),
+        "story_script": story_pack.get("story_script", ""),
+        "story_panels": story_pack.get("story_panels", []),
+        "story_opening": story_pack.get("story_opening", ""),
+        "story_next_hook": story_pack.get("story_next_hook", ""),
         "progress": build_progress_summary(state.get("progress", {})),
         "current_step": int(state.get("current_index", 0)) + 1,
         "total_steps": len(state.get("node_ids", [])),
@@ -547,6 +658,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         },
         "battle_outcome": outcome.get("summary", ""),
         "after_action_report": outcome.get("bullets", []),
+        "continuation_story": _build_continuation_story(node, next_node, role, correct),
         "review_manual": review_manual,
         "chapter_completion": chapter_completion,
         "knowledge_cards": stage.get("knowledge_cards", []),
