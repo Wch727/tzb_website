@@ -227,6 +227,26 @@ render_section(
     f"{story_state.get('activity_name', '长征主线闯关')} | {story_state.get('role_name', '侦察兵')} | "
     f"{st.session_state.get('unit_name', '体验组')}",
 )
+render_detail_panels(
+    [
+        {
+            "title": "所属篇章",
+            "desc": stage.get("campaign_title", "长征主线"),
+        },
+        {
+            "title": "关卡定位",
+            "desc": stage.get("stage_badge", "主线推进关"),
+        },
+        {
+            "title": "难度等级",
+            "desc": f"{'★' * int(stage.get('difficulty_stars', 3))} {stage.get('difficulty_label', '主线学习关')}",
+        },
+        {
+            "title": "推进提醒",
+            "desc": stage.get("next_hint", "完成本关后继续沿主线推进。"),
+        },
+    ]
+)
 
 status_cols = st.columns(6)
 with status_cols[0]:
@@ -265,7 +285,11 @@ with top_left:
     st.caption(f"地点：{node.get('place', '未标注')}")
 
 with top_right:
+    if stage.get("is_boss_stage"):
+        st.warning("当前为章节攻坚关，请先完整阅读关卡背景、作战简报和行动策略，再进入作答。")
     st.markdown(f"## {node.get('title', '')}")
+    if stage.get("prologue"):
+        st.markdown(f"**过场导语：** {stage.get('prologue', '')}")
     st.markdown(f"**题型：** {stage.get('question_type', '情境选择题')}")
     st.markdown(f"**角色任务提示：** {stage.get('role_brief', '')}")
     if stage.get("opening_brief"):
@@ -310,6 +334,11 @@ render_detail_panels(
         },
     ]
 )
+
+if stage.get("squad_orders"):
+    st.markdown("### 小队命令")
+    for idx, item in enumerate(stage.get("squad_orders", []), start=1):
+        st.markdown(f"- **命令 {idx}**：{item}")
 
 st.markdown("### 战地日志")
 for idx, log_line in enumerate(stage.get("battle_log", [])[:3], start=1):
@@ -444,6 +473,10 @@ if last_result and last_result.get("answer_detail"):
         st.caption(reward_text)
     if last_result.get("tactic_match"):
         st.success("本关行动策略与节点环境匹配，已获得额外战术奖励。")
+    review_manual = last_result.get("review_manual", []) or []
+    if review_manual:
+        render_section("战后复盘手册", "把这道题真正变成一次战役复盘，而不是只看对错。")
+        render_detail_panels(review_manual)
     st.markdown("### 延伸知识点")
     st.write(detail.get("extended_note", ""))
 

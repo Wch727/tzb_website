@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from activity_manager import get_activity
-from content_store import get_route_node_data, load_route_nodes_data
+from content_store import get_chapter_for_node, get_route_node_data, load_route_nodes_data
 from knowledge_cards import build_related_knowledge_bundle
 from progression import build_progress_summary, default_progress, record_quiz_result
 from role_system import build_role_brief, build_role_feedback, build_role_task, get_role
@@ -123,6 +123,14 @@ TACTIC_LIBRARY: Dict[str, List[Dict[str, Any]]] = {
             "match_stages": ["转折"],
         },
     ],
+}
+
+BOSS_NODE_IDS = {
+    "xiangjiang_battle",
+    "zunyi_meeting",
+    "sidu_chishui",
+    "luding_bridge",
+    "huining_meeting",
 }
 
 
@@ -279,6 +287,58 @@ def _build_battle_outcome(
     return {"summary": summary, "bullets": bullets}
 
 
+def _build_stage_meta(
+    state: Dict[str, Any],
+    node: Dict[str, Any],
+    role: Dict[str, Any],
+    question_type: str,
+) -> Dict[str, Any]:
+    """补充章节、难度与过场信息。"""
+    chapter = get_chapter_for_node(node)
+    node_id = str(node.get("id", "") or "")
+    is_boss_stage = node_id in BOSS_NODE_IDS
+    current_step = int(state.get("current_index", 0)) + 1
+    total_steps = len(state.get("node_ids", []))
+
+    difficulty_stars = 2
+    if question_type in ["地图纠错", "看图识史"]:
+        difficulty_stars += 1
+    if is_boss_stage:
+        difficulty_stars += 1
+    if str(node.get("route_stage", "") or "") in ["转折", "突破", "会师"]:
+        difficulty_stars += 1
+    difficulty_stars = min(difficulty_stars, 5)
+
+    key_points = list(node.get("key_points", []) or [])
+    squad_orders = key_points[:3] if key_points else [
+        "先判断节点在主线中的位置，再进入题目。",
+        "留意人物、地点与路线变化之间的关系。",
+        "把答案放回整条长征进程中理解。",
+    ]
+    next_hint = ""
+    related_nodes = list(node.get("related_nodes", []) or [])
+    if related_nodes:
+        next_hint = f"完成本关后，可继续关注 {related_nodes[0]} 与当前节点的衔接关系。"
+    elif chapter.get("nodes"):
+        next_hint = f"完成本关后，建议继续沿“{chapter.get('title', '主线篇章')}”推进。"
+
+    return {
+        "chapter": chapter,
+        "stage_badge": "章节攻坚关" if is_boss_stage else "主线推进关",
+        "is_boss_stage": is_boss_stage,
+        "difficulty_stars": difficulty_stars,
+        "difficulty_label": "高强度关卡" if difficulty_stars >= 4 else "主线学习关",
+        "campaign_title": f"{chapter.get('badge', '展项单元')} · {chapter.get('title', '长征主线')}",
+        "prologue": (
+            f"第 {current_step} 关 / 共 {total_steps} 关。"
+            f"你正以{role.get('name', '侦察兵')}身份进入“{node.get('title', '长征节点')}”战役单元，"
+            f"本关属于“{chapter.get('title', '主线篇章')}”篇章。"
+        ),
+        "squad_orders": squad_orders,
+        "next_hint": next_hint,
+    }
+
+
 def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
     """获取当前关卡的完整展示数据。"""
     node = get_current_node(state)
@@ -289,6 +349,7 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
     knowledge_cards = build_related_knowledge_bundle(node)
     tactic_package = _build_tactic_package(role, node, payload.get("question_type", "情境选择题"))
     briefing = _build_stage_briefing(node, role, payload.get("question_type", "情境选择题"))
+    stage_meta = _build_stage_meta(state, node, role, payload.get("question_type", "情境选择题"))
     return {
         "node": node,
         "role": role,
@@ -311,6 +372,15 @@ def get_stage_package(state: Dict[str, Any]) -> Dict[str, Any]:
         "recommended_tactic_id": tactic_package.get("recommended_id", ""),
         "recommended_tactic_title": tactic_package.get("recommended_title", ""),
         "recommended_tactic_reason": tactic_package.get("recommended_reason", ""),
+        "chapter": stage_meta.get("chapter", {}),
+        "stage_badge": stage_meta.get("stage_badge", "主线推进关"),
+        "is_boss_stage": stage_meta.get("is_boss_stage", False),
+        "difficulty_stars": stage_meta.get("difficulty_stars", 3),
+        "difficulty_label": stage_meta.get("difficulty_label", "主线学习关"),
+        "campaign_title": stage_meta.get("campaign_title", "长征主线"),
+        "prologue": stage_meta.get("prologue", ""),
+        "squad_orders": stage_meta.get("squad_orders", []),
+        "next_hint": stage_meta.get("next_hint", ""),
         "opening_brief": briefing.get("opening", ""),
         "mission_goals": briefing.get("mission_goals", []),
         "battle_log": briefing.get("battle_log", []),
@@ -390,6 +460,28 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         correct=correct,
         tactic_match=tactic_match,
     )
+    review_manual = [
+        {
+            "title": "你的判断",
+            "desc": f"你选择了：{answer or '未作答'}",
+        },
+        {
+            "title": "标准答案",
+            "desc": expected_answer or "当前未配置标准答案。",
+        },
+        {
+            "title": "战术复盘",
+            "desc": (
+                "所选行动策略与本关环境匹配，战术加成已生效。"
+                if tactic_match
+                else f"本关更推荐采用“{stage.get('recommended_tactic_title', '默认推进')}”思路。"
+            ),
+        },
+        {
+            "title": "继续推进",
+            "desc": stage.get("next_hint", "完成复盘后继续沿主线推进。"),
+        },
+    ]
     return {
         "state": updated_state,
         "correct": correct,
@@ -408,6 +500,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         },
         "battle_outcome": outcome.get("summary", ""),
         "after_action_report": outcome.get("bullets", []),
+        "review_manual": review_manual,
         "knowledge_cards": stage.get("knowledge_cards", []),
         "progress": build_progress_summary(updated_state.get("progress", {})),
     }
