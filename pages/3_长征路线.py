@@ -46,7 +46,7 @@ st.session_state["selected_chapter_id"] = selected_chapter_id
 
 selected_chapter = next((item for item in chapters if item.get("id") == st.session_state.get("selected_chapter_id")), chapters[0] if chapters else {})
 
-render_section("征程篇章", "先看全线篇章，再进入当前展区。每个篇章都以明确的历史任务和关键节点组织。")
+render_section("征程篇章", "四大篇章共同构成长征主线，各篇章分别呈现不同阶段的任务、转折与推进方向。")
 render_chapter_overview_cards(chapters, active_id=selected_chapter.get("id", ""))
 render_feature_ribbon(
     [
@@ -75,7 +75,7 @@ for index, chapter in enumerate(chapters):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.rerun()
 
-render_gallery_frame("当前篇章", "围绕本篇章的关键节点、时间与地点展开浏览，再进入具体历史情境。")
+render_gallery_frame("所在篇章", "围绕本篇章的关键节点、时间与地点展开浏览，再进入具体历史情境。")
 chapter_left, chapter_right = st.columns([1.1, 0.95])
 with chapter_left:
     render_curatorial_note(
@@ -100,7 +100,7 @@ with chapter_right:
             caption=f"{selected_chapter.get('title', '')}篇章入口展项",
         )
         st.markdown(
-            f"<div class='small-muted'>推荐首先进入：{lead_node.get('title', '')}。该节点通常最能概括本篇章的历史任务与转折意义。</div>",
+            f"<div class='small-muted'>本篇章可先从 {lead_node.get('title', '')} 进入，由此把握这一阶段的历史任务与转折意义。</div>",
             unsafe_allow_html=True,
         )
 
@@ -114,7 +114,7 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
         st.write(node.get("summary", ""))
         st.markdown(f"<div class='small-muted'>{node.get('significance', '')[:110]}...</div>", unsafe_allow_html=True)
         if node.get("id") in allowed_node_ids:
-            st.markdown("<div class='small-muted'><strong>本期互动节点：</strong>可从这里直接进入闯关学习。</div>", unsafe_allow_html=True)
+            st.markdown("<div class='small-muted'><strong>互动节点：</strong>由此进入本段征程的闯关学习。</div>", unsafe_allow_html=True)
         action_left, action_right = st.columns(2)
         with action_left:
             if st.button("查看详情", key=f"chapter_node_{node.get('id')}", width="stretch"):
@@ -142,7 +142,7 @@ selected_node = get_route_node(selected_node_id)
 if selected_node:
     render_section(
         "节点展项详情",
-        f"当前进入“{selected_chapter.get('title', '主线篇章')}”篇章中的重点节点，可继续查看讲解、史料依据与互动学习内容。",
+        f"以下展项位于“{selected_chapter.get('title', '主线篇章')}”篇章之中，可继续查看讲解、史料依据与互动学习内容。",
     )
     render_node_detail(
         node=selected_node,

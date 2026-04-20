@@ -1516,7 +1516,7 @@ def render_model_banner() -> None:
     elif provider_config.get("api_key_source") == "environment":
         readiness_text = "当前已接入可用模型密钥。"
     elif provider_config.get("api_key_source") == "session":
-        readiness_text = "当前正在使用你在本次访问中输入的个人密钥。"
+        readiness_text = "当前正在使用本次访问会话中提供的个人密钥。"
     st.markdown(
         _clean_html(
             f"""
@@ -1527,7 +1527,7 @@ def render_model_banner() -> None:
             <br/>
             <span class="small-muted">当前内容模式：{html.escape(provider_config.get('mode_label', '知识导览模式'))}</span>
             <br/>
-            <span class="small-muted">使用策略：{html.escape(allow_key_text)}，你当前看到的是平台已开放的模型范围。</span>
+            <span class="small-muted">使用策略：{html.escape(allow_key_text)}，当前展示范围以平台已开放模型为准。</span>
             <br/>
             <span class="small-muted">{html.escape(provider_config.get('mode_reason', readiness_text))}</span>
             <br/>

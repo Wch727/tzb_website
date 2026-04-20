@@ -102,7 +102,7 @@ if story_state.get("finished"):
                 "symbol": "★",
                 "value": progress.get("red_star_points", 0),
                 "label": "红星积分",
-                "note": "记录你在长征闯关中的历史判断与推进表现。",
+                "note": "记录长征闯关中的历史判断与推进表现。",
             },
             {
                 "kicker": "补给状态",
@@ -115,15 +115,15 @@ if story_state.get("finished"):
                 "kicker": "身份状态",
                 "symbol": "军",
                 "value": progress.get("rank_title", "红军新兵"),
-                "label": "当前军衔",
-                "note": "随积分提升而晋升，体现你的主线成长轨迹。",
+                "label": "军衔等级",
+                "note": "随积分提升而晋升，呈现主线成长轨迹。",
             },
             {
                 "kicker": "荣誉状态",
                 "symbol": "章",
                 "value": len(progress.get("medals", [])),
                 "label": "已获勋章",
-                "note": "记录你在主线关卡、篇章推进与战术判断中的成就。",
+                "note": "记录主线关卡、篇章推进与战术判断中的阶段成就。",
             },
         ]
     )
@@ -147,7 +147,7 @@ if story_state.get("finished"):
             current_member = next((item for item in member_rows if item.get("user_name") == current_user), {})
             if current_member:
                 st.write(
-                    f"你的累计贡献分：{current_member.get('contribution_score', 0)}，"
+                    f"累计贡献分：{current_member.get('contribution_score', 0)}，"
                     f"粮草：{current_member.get('contribution_grain', 0)}，"
                     f"作答：{current_member.get('answered_count', 0)} 次。"
                 )
@@ -160,7 +160,7 @@ if story_state.get("finished"):
         for item in progress.get("wrong_book", []):
             with st.expander(item.get("title", "错题"), expanded=False):
                 st.write(f"题目：{item.get('question', '')}")
-                st.write(f"你的答案：{item.get('selected_answer', '')}")
+                st.write(f"所选答案：{item.get('selected_answer', '')}")
                 st.write(f"正确答案：{item.get('expected_answer', '')}")
                 st.write(f"解析：{item.get('explanation', '')}")
 
@@ -290,7 +290,7 @@ render_game_status_board(
             "symbol": "★",
             "value": progress.get("red_star_points", 0),
             "label": "红星积分",
-            "note": "每完成一关都会累积，用于衡量你在主线中的综合表现。",
+            "note": "每完成一关都会累积，用于衡量主线推进中的综合表现。",
         },
         {
             "kicker": "战地补给",
@@ -303,8 +303,8 @@ render_game_status_board(
             "kicker": "身份军衔",
             "symbol": "军",
             "value": progress.get("rank_title", "红军新兵"),
-            "label": "当前军衔",
-            "note": "军衔会随着积分提升而变化，体现你在征程中的成长。",
+            "label": "军衔等级",
+            "note": "军衔会随着积分提升而变化，呈现征程中的成长轨迹。",
         },
         {
             "kicker": "荣誉记录",
@@ -339,7 +339,7 @@ render_game_status_board(
             "symbol": "冠",
             "value": progress.get("best_streak", 0),
             "label": "最佳连胜",
-            "note": "记录你迄今为止保持的最高连续命中成绩。",
+            "note": "记录本次征程保持过的最高连续命中成绩。",
         },
     ]
 )
@@ -384,7 +384,7 @@ with top_right:
     if team:
         st.markdown("### 小队协作状态")
         st.write(
-            f"你当前正在为 **{team.get('team_name', '')}** 作战，"
+            f"本次作答将为 **{team.get('team_name', '')}** 累积战绩，"
             f"小队总分 {team.get('total_score', 0)}，"
             f"队员 {len(team.get('members', []))} 人。"
         )
@@ -396,7 +396,7 @@ if figures:
     for index, figure_name in enumerate(figures):
         with figure_cols[index % len(figure_cols)]:
             st.markdown(f"**{figure_name}**")
-            st.caption("点击进入人物专题，继续阅读人物经历、长征中的作用与历史贡献。")
+            st.caption("人物专题页收录人物经历、长征中的作用与历史贡献。")
             if st.button(
                 f"进入{figure_name}专题",
                 key=f"quiz_figure::{node.get('id', '')}::{figure_name}",
@@ -429,7 +429,7 @@ render_detail_panels(
         },
         {
             "title": "风险提示",
-            "desc": stage.get("risk_hint", "如果忽略节点背景，很容易把历史判断停留在表层。"),
+            "desc": stage.get("risk_hint", "节点背景越清晰，历史判断越容易落到关键处。"),
         },
         {
             "title": "奖励预告",
@@ -495,7 +495,7 @@ with material_right:
 st.markdown("---")
 st.markdown("## 开始作答")
 st.write(stage.get("question", "暂无题目。"))
-answer = st.radio("请选择你的答案", stage.get("options", []), index=None, key=f"story_answer_{node.get('id', '')}")
+answer = st.radio("作答选项", stage.get("options", []), index=None, key=f"story_answer_{node.get('id', '')}")
 
 if st.button("提交答案", width="stretch", type="primary", disabled=not answer):
     old_progress = story_state.get("progress", {}) or {}
@@ -627,7 +627,7 @@ if last_result and last_result.get("answer_detail"):
         st.markdown("### 小队协作反馈")
         st.write(
             f"本次作答已经同步计入 **{team.get('team_name', st.session_state.get('current_team_name', '红军小队'))}**。"
-            f"你的小队可在活动中心、排行榜和数据大屏中实时看到更新结果。"
+            f"小队战绩可在活动中心、排行榜和数据大屏中同步呈现。"
         )
 
     st.markdown("### 历史小课堂")

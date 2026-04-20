@@ -320,7 +320,7 @@ with story_right:
             },
         ]
     )
-    render_section("继续阅读", "听完这一段后，可直接进入对应问题、篇章或代表性节点继续浏览。")
+    render_section("延伸阅读", "沿着这一段故事继续深入，可转入相关问题、篇章与代表性节点。")
     for index, question in enumerate(selected_story.get("questions", [])[:3]):
         if st.button(question, key=f"home_story_question::{selected_story.get('id', '')}::{index}", width="stretch"):
             _jump_to_question(question)
@@ -413,7 +413,7 @@ with route_shell_left:
         st.switch_page("pages/3_长征路线.py")
 
 with route_shell_mid:
-    render_section("推荐学习路线", "适合第一次系统进入主题展时，沿主线建立整体认知。")
+    render_section("推荐学习路线", "沿主线梳理长征征程，从整体历史脉络进入主题展。")
     for index, item in enumerate(sample.get("recommended_learning_paths", [])[:3]):
         route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
         _render_route_entry_card(route_title, route_body, route_nodes, "推荐路线")
@@ -421,7 +421,7 @@ with route_shell_mid:
             _jump_to_route(item)
 
 with route_shell_right:
-    render_section("今日推荐路线", "适合快速体验重点节点，先进入转折与胜利场景。")
+    render_section("今日推荐路线", "聚焦关键转折与胜利场景，适合形成对长征主线的核心印象。")
     for index, item in enumerate(sample.get("recommended_route", [])[:3]):
         route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
         _render_route_entry_card(route_title, route_body, route_nodes, "今日导览")
@@ -469,7 +469,7 @@ render_feature_ribbon(
         {
             "label": "速览入口",
             "title": "从重点入口进入",
-            "desc": "如果想先试一遍主线、讲解和问答，可直接进入快速导览与互动体验区。",
+            "desc": "可从导览速览进入主线浏览、讲解阅读与互动问答的综合体验。",
         },
     ]
 )
@@ -487,7 +487,7 @@ with tab1:
         with question_cols[index % 2]:
             render_curatorial_note(
                 title=question,
-                body="点击后可直接进入知识百问页，查看回答依据与延伸阅读。",
+                body="由此进入知识百问页，可继续查看回答依据与延伸阅读。",
                 label="推荐问题",
             )
             if st.button("进入这个问题", key=f"home_question_{index}", width="stretch"):
@@ -514,7 +514,7 @@ with tab2:
 with tab3:
     render_curatorial_note(
         title="分阶段学习路线",
-        body="如果希望沿着主线逐步深入，可先从每个篇章最具代表性的节点进入，再继续展开阅读与互动学习。",
+        body="可先从各篇章代表节点进入，再顺着篇章内部的展项继续展开阅读与互动学习。",
         label="学习路线",
     )
     stage_cols = st.columns(2)
@@ -528,7 +528,7 @@ with tab3:
             for node in item.get("nodes", [])[:3]:
                 render_curatorial_note(
                     title=node.get("title", ""),
-                    body=node.get("summary", "")[:88] or "点击后可直接进入对应节点展项。",
+                    body=node.get("summary", "")[:88] or "由此进入对应节点展项。",
                     label=node.get("date", "") or "节点入口",
                 )
                 if st.button(f"进入 {node.get('title', '')}", key=f"stage_node_{item.get('title', '')}_{node.get('id', '')}", width="stretch"):
@@ -536,7 +536,7 @@ with tab3:
 with tab4:
     render_curatorial_note(
         title="快速进入主题展",
-        body="如果想先试一遍主线浏览、展项阅读、知识问答和互动学习，可以从这里直接进入。",
+        body="由此进入，可快速浏览主线展项、知识问答与互动学习内容。",
         label="快速入口",
     )
     quick_cols = st.columns(3)
