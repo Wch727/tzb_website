@@ -389,6 +389,23 @@ with top_right:
             f"队员 {len(team.get('members', []))} 人。"
         )
 
+figures = node.get("figures", []) or []
+if figures:
+    render_section("本关关键人物", "从人物专题继续进入本关，可以把这一关中的决策、组织与行动放回具体人物身上理解。")
+    figure_cols = st.columns(min(4, len(figures)))
+    for index, figure_name in enumerate(figures):
+        with figure_cols[index % len(figure_cols)]:
+            st.markdown(f"**{figure_name}**")
+            st.caption("点击进入人物专题，继续阅读人物经历、长征中的作用与历史贡献。")
+            if st.button(
+                f"进入{figure_name}专题",
+                key=f"quiz_figure::{node.get('id', '')}::{figure_name}",
+                width="stretch",
+            ):
+                st.session_state["selected_figure_name"] = figure_name
+                st.session_state["_scroll_to_top_once"] = True
+                st.switch_page("pages/13_人物专题.py")
+
 render_section("关前故事", "先进入当时的行军情境，再完成本关判断。每一道题都要放回长征主线中去理解。")
 render_formal_script(
     stage.get("story_script", ""),
@@ -529,6 +546,7 @@ if st.button("提交答案", width="stretch", type="primary", disabled=not answe
     }
     st.session_state["story_state"] = result.get("state", story_state)
     st.session_state["story_last_result"] = result
+    st.session_state["_scroll_to_top_once"] = True
     st.rerun()
 
 last_result = st.session_state.get("story_last_result")

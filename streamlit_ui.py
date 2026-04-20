@@ -11,6 +11,7 @@ from textwrap import dedent
 from typing import Any, Dict, List
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from activity_manager import get_activity
 from utils import (
@@ -820,6 +821,31 @@ def inject_custom_css() -> None:
     st.markdown(css, unsafe_allow_html=True)
 
 
+def scroll_page_to_top() -> None:
+    """在页面重渲染后把视角拉回顶部。"""
+    components.html(
+        """
+        <script>
+        const parentWindow = window.parent;
+        try {
+          parentWindow.scrollTo({ top: 0, behavior: "instant" });
+          const appView = parentWindow.document.querySelector("[data-testid='stAppViewContainer']");
+          if (appView) {
+            appView.scrollTo({ top: 0, behavior: "instant" });
+          }
+          const mainSection = parentWindow.document.querySelector("section.main");
+          if (mainSection) {
+            mainSection.scrollTo({ top: 0, behavior: "instant" });
+          }
+        } catch (error) {
+          parentWindow.scrollTo(0, 0);
+        }
+        </script>
+        """,
+        height=0,
+    )
+
+
 def _clean_html(markup: str) -> str:
     """清理多行 HTML 的缩进，避免被 Markdown 误判为代码块。"""
     return dedent(markup).strip()
@@ -881,6 +907,8 @@ def setup_page(page_title: str, icon: str = "🏔️") -> None:
     init_session_state()
     bootstrap_repository_content()
     sync_activity_from_query()
+    if st.session_state.pop("_scroll_to_top_once", False):
+        scroll_page_to_top()
     render_minimal_sidebar()
 
 

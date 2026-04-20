@@ -92,25 +92,24 @@ def _render_figure_block(node: Dict[str, Any]) -> None:
     if not figures:
         return
     render_section("关键人物", "从关键人物进入本节点，有助于理解其中的决策、组织与行动。")
-    chips = []
-    for name in figures:
-        chips.append(
-            _clean_html(
-                f"""
-            <div class="info-card" style="padding:0.85rem 1rem;">
-                <div class="card-label">人物线索</div>
-                <div class="card-title" style="font-size:1rem;">{name}</div>
-                <div class="card-desc">围绕该人物继续理解本节点中的组织决策、战略判断与行动执行。</div>
-            </div>
-            """
-            )
-        )
-    st.markdown(f"<div class='card-grid'>{''.join(chips)}</div>", unsafe_allow_html=True)
     cols = st.columns(min(4, len(figures)))
     for index, name in enumerate(figures):
         with cols[index % len(cols)]:
+            st.markdown(
+                _clean_html(
+                    f"""
+                    <div class="info-card" style="padding:0.95rem 1rem; min-height: 170px;">
+                        <div class="card-label">人物专题</div>
+                        <div class="card-title" style="font-size:1.05rem;">{name}</div>
+                        <div class="card-desc">继续围绕该人物阅读相关经历、长征中的作用与历史贡献。</div>
+                    </div>
+                    """
+                ),
+                unsafe_allow_html=True,
+            )
             if st.button(f"查看{name}专题", key=f"figure_detail::{node.get('id', '')}::{name}", width="stretch"):
                 st.session_state["selected_figure_name"] = name
+                st.session_state["_scroll_to_top_once"] = True
                 st.switch_page("pages/13_人物专题.py")
 
 
