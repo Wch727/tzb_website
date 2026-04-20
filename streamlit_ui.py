@@ -1055,18 +1055,18 @@ def render_top_nav(current_page: str) -> None:
         "讲解工坊": "围绕节点与专题生成讲解稿和短视频脚本。",
         "活动中心": "查看活动、分享入口、协作方式与参与路径。",
         "排行榜": "查看个人、小队、单位与活动排行。",
-        "使用设置": "切换导览模式与当前可用模型设置。",
+        "使用设置": "调整导览模式、模型选择与访问会话设置。",
         "内容运营": "维护内容、活动与知识库运行状态。",
         "导览速览": "从重点问题、展项与讲解入口快速进入长征主线。",
-        "数据大屏": "用于活动现场投屏，集中展示参与与热度数据。",
+        "数据大屏": "集中呈现参与情况、热度变化与榜单数据。",
     }
     chips = [
-        f"<span class='masthead-chip'>当前身份：{html.escape(current_role)}</span>",
+        f"<span class='masthead-chip'>身份：{html.escape(current_role)}</span>",
     ]
     if current_activity_name:
-        chips.append(f"<span class='masthead-chip'>当前活动：{html.escape(current_activity_name)}</span>")
+        chips.append(f"<span class='masthead-chip'>活动：{html.escape(current_activity_name)}</span>")
     if current_model and current_page in {"知识百问", "讲解工坊", "使用设置"}:
-        chips.append(f"<span class='masthead-chip'>当前模型：{html.escape(current_model.get('display_name', '知识导览模式'))}</span>")
+        chips.append(f"<span class='masthead-chip'>模型：{html.escape(current_model.get('display_name', '知识导览模式'))}</span>")
     st.markdown(
         _clean_html(
             f"""
@@ -1506,28 +1506,28 @@ def render_model_banner() -> None:
     """渲染当前模型说明。"""
     model_info = get_selected_model_info()
     provider_config = build_current_provider_config()
-    description = model_info.get("description") or "当前模型由平台统一开放，用于导览问答、讲解生成与学习辅助。"
+    description = model_info.get("description") or "该模型用于导览问答、讲解生成与学习辅助。"
     allow_key_text = "允许输入个人 API Key" if model_info.get("allow_user_key") else "使用管理员统一配置"
-    readiness_text = "当前模型可用于智能讲解与内容生成。"
+    readiness_text = "该模型可用于智能讲解与内容生成。"
     if provider_config.get("provider_name") != "mock" and provider_config.get("api_key_source") == "missing":
-        readiness_text = "当前未检测到可用模型密钥，系统将自动切换到知识导览模式。"
+        readiness_text = "未检测到可用模型密钥，系统将自动切换到知识导览模式。"
     elif provider_config.get("api_key_source") == "streamlit_secrets":
-        readiness_text = "当前已接入平台统一配置的模型密钥。"
+        readiness_text = "已接入平台统一配置的模型密钥。"
     elif provider_config.get("api_key_source") == "environment":
-        readiness_text = "当前已接入可用模型密钥。"
+        readiness_text = "已接入可用模型密钥。"
     elif provider_config.get("api_key_source") == "session":
-        readiness_text = "当前正在使用本次访问会话中提供的个人密钥。"
+        readiness_text = "正在使用本次访问会话中提供的个人密钥。"
     st.markdown(
         _clean_html(
             f"""
         <div class="notice-card">
-            <strong>当前模型：</strong>{html.escape(model_info.get('display_name', '知识导览模式'))}
+            <strong>模型：</strong>{html.escape(model_info.get('display_name', '知识导览模式'))}
             <br/>
             <span class="small-muted">模型标识：{html.escape(model_info.get('model', '未配置'))}</span>
             <br/>
-            <span class="small-muted">当前内容模式：{html.escape(provider_config.get('mode_label', '知识导览模式'))}</span>
+            <span class="small-muted">内容模式：{html.escape(provider_config.get('mode_label', '知识导览模式'))}</span>
             <br/>
-            <span class="small-muted">使用策略：{html.escape(allow_key_text)}，当前展示范围以平台已开放模型为准。</span>
+            <span class="small-muted">接入方式：{html.escape(allow_key_text)}，展示范围以平台已开放模型为准。</span>
             <br/>
             <span class="small-muted">{html.escape(provider_config.get('mode_reason', readiness_text))}</span>
             <br/>
@@ -1542,7 +1542,7 @@ def render_model_banner() -> None:
 def render_runtime_notice(result: Dict[str, Any]) -> None:
     """展示模型运行时提示。"""
     if result.get("mode_label"):
-        st.info(f"当前讲解模式：{result['mode_label']}")
+        st.info(f"讲解模式：{result['mode_label']}")
     if result.get("warning"):
         st.warning(result["warning"])
 
@@ -1550,7 +1550,7 @@ def render_runtime_notice(result: Dict[str, Any]) -> None:
 def render_sources(sources: List[Dict[str, Any]], title: str = "本次回答依据") -> None:
     """渲染依据来源卡片。"""
     if not sources:
-        st.info("当前没有可展示的依据片段。")
+        st.info("暂无可展示的依据片段。")
         return
     with st.expander(title, expanded=False):
         cards = []

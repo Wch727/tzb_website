@@ -102,7 +102,7 @@ setup_page("内容运营", icon="🛡️")
 render_top_nav("内容运营")
 render_hero(
     title="内容运营",
-    subtitle="这里用于维护史料内容、活动范围、知识检索、题目配置、数据统计与开放策略，支撑整站持续更新。",
+    subtitle="用于维护史料内容、活动范围、知识检索、题目配置、数据统计与开放策略，支撑整站持续更新。",
     badges=["资料管理", "活动管理", "内容维护", "数据导出"],
 )
 
@@ -131,7 +131,7 @@ if not st.session_state.get("admin_authenticated"):
 profile = st.session_state.get("admin_profile", {})
 top_left, top_right = st.columns([3, 1])
 with top_left:
-    st.success(f"当前运营账号：{profile.get('display_name', profile.get('username', 'admin'))}")
+    st.success(f"运营账号：{profile.get('display_name', profile.get('username', 'admin'))}")
 with top_right:
     if st.button("退出登录", width="stretch"):
         st.session_state["admin_authenticated"] = False
@@ -155,7 +155,7 @@ file_tab, rag_tab, activity_tab, content_tab, data_tab, status_tab = st.tabs(
 )
 
 with file_tab:
-    render_section("资料上传与文件列表", "支持 txt、md、pdf、docx、json、csv 上传。站点以内置史料为主，这里可继续补充导览资料与学习内容。")
+    render_section("资料上传与文件列表", "支持 txt、md、pdf、docx、json、csv 上传。站点以内置史料为主，此处用于补充导览资料与学习内容。")
     st.info(get_settings().get("repository_content_notice", "正式展示内容以仓库内置内容为准。"))
     uploaded_files = st.file_uploader(
         "上传知识文件",
@@ -193,10 +193,10 @@ with file_tab:
                     st.success(f"{row['filename']} 已删除。")
                     st.rerun()
     else:
-        st.info("当前还没有上传文件。")
+        st.info("尚无上传文件。")
 
 with rag_tab:
-    render_section("知识库更新与检索调试", "可在这里执行增量导入、重建索引，并检查知识卡与资料片段的命中情况。")
+    render_section("知识库更新与检索调试", "可执行增量导入、重建索引，并检查知识卡与资料片段的命中情况。")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("执行增量导入", width="stretch", type="primary"):
@@ -326,7 +326,7 @@ with activity_tab:
             if qr_bytes:
                 st.image(qr_bytes, caption="活动二维码", width=200)
             else:
-                st.info("当前环境未安装二维码依赖，已保留分享链接。")
+                st.info("二维码依赖未安装，已保留分享链接。")
 
         with st.form("update_activity_form"):
             new_description = st.text_area("修改活动说明", value=selected_activity.get("description", ""))
@@ -366,31 +366,31 @@ with activity_tab:
         if ranking_rows:
             st.dataframe(pd.DataFrame(ranking_rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动尚无成绩记录。")
+            st.info("活动成绩尚未形成。")
 
         team_rows = get_team_leaderboard(selected_activity_id, limit=10)
         st.markdown("#### 红军小队排行榜预览")
         if team_rows:
             st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动尚无红军小队战绩。")
+            st.info("红军小队战绩尚未形成。")
 
         branch_rows = get_branch_pk_board(selected_activity_id, limit=10)
         st.markdown("#### 支部对抗预览")
         if branch_rows:
             st.dataframe(pd.DataFrame(branch_rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动尚无支部对抗数据。")
+            st.info("支部对抗数据尚未形成。")
 
         team_list_rows = list_teams(selected_activity_id)
-        st.markdown("#### 当前活动小队列表")
+        st.markdown("#### 活动小队列表")
         if team_list_rows:
             st.dataframe(pd.DataFrame(team_list_rows), width="stretch", hide_index=True)
         else:
             st.info("当前活动还没有创建小队。")
 
 with content_tab:
-    render_section("题库与内容管理", "当前支持直接维护主线节点、常见问答、人物专题和长征精神专题，便于持续补充展陈内容。")
+    render_section("题库与内容管理", "支持直接维护主线节点、常见问答、人物专题和长征精神专题，便于持续补充展陈内容。")
     route_subtab, faq_subtab, figure_subtab, spirit_subtab = st.tabs(["主线节点题库", "FAQ 问答维护", "人物专题维护", "长征精神维护"])
 
     with route_subtab:
@@ -643,7 +643,7 @@ with content_tab:
             )
 
 with data_tab:
-    render_section("数据统计与导出", "集中查看活动统计、排行榜结果与导出数据，用于教学组织、活动复盘与内容运营。")
+    render_section("数据统计与导出", "集中查看活动统计、排行榜结果与导出数据，服务于教学组织、活动复盘与内容运营。")
     global_rows = get_global_leaderboard(limit=100)
     activity_rows = get_activity_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
     unit_rows = get_unit_leaderboard(st.session_state.get("current_activity_id", ""), limit=100)
@@ -670,7 +670,7 @@ with data_tab:
             answer_heat_df = pd.DataFrame(answer_heat).set_index("time_label")
             st.line_chart(answer_heat_df)
         else:
-            st.info("当前暂无答题热度数据。")
+            st.info("暂无答题热度数据。")
     with bigscreen_right:
         st.markdown("#### 大屏节点热度预览")
         node_heat = dashboard_payload.get("node_heat", [])
@@ -678,7 +678,7 @@ with data_tab:
             node_heat_df = pd.DataFrame(node_heat).set_index("node_title")
             st.bar_chart(node_heat_df[["answer_count"]])
         else:
-            st.info("当前暂无节点热度数据。")
+            st.info("暂无节点热度数据。")
 
     st.page_link("pages/12_数据大屏.py", label="打开数据大屏页", width="stretch")
 
@@ -696,7 +696,7 @@ with data_tab:
         st.info("暂无全局排行榜数据。")
 
     if activity_rows:
-        st.markdown("#### 当前活动排行榜数据")
+        st.markdown("#### 活动排行榜数据")
         st.dataframe(pd.DataFrame(activity_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动排行榜 CSV",
@@ -706,10 +706,10 @@ with data_tab:
             width="stretch",
         )
     else:
-        st.info("当前活动暂无排行榜数据。")
+        st.info("活动排行榜数据尚未形成。")
 
     if unit_rows:
-        st.markdown("#### 当前活动单位排行")
+        st.markdown("#### 活动单位排行")
         st.dataframe(pd.DataFrame(unit_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动单位排行 CSV",
@@ -719,10 +719,10 @@ with data_tab:
             width="stretch",
         )
     else:
-        st.info("当前活动暂无单位排行数据。")
+        st.info("活动单位排行尚未形成。")
 
     if team_rows:
-        st.markdown("#### 当前活动红军小队排行")
+        st.markdown("#### 活动红军小队排行")
         st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动小队排行 CSV",
@@ -732,10 +732,10 @@ with data_tab:
             width="stretch",
         )
     else:
-        st.info("当前活动暂无小队排行数据。")
+        st.info("小队排行尚未形成。")
 
     if branch_rows:
-        st.markdown("#### 当前活动支部对抗榜")
+        st.markdown("#### 活动支部对抗榜")
         st.dataframe(pd.DataFrame(branch_rows), width="stretch", hide_index=True)
         st.download_button(
             "导出当前活动支部对抗 CSV",
@@ -745,7 +745,7 @@ with data_tab:
             width="stretch",
         )
     else:
-        st.info("当前活动暂无支部对抗数据。")
+        st.info("支部对抗数据尚未形成。")
 
     route_rows = _load_route_node_rows()
     st.download_button(
@@ -777,7 +777,7 @@ with data_tab:
     )
 
 with status_tab:
-    render_section("系统状态", "查看当前知识库样例、Provider 配置情况以及可对外开放的模型数量。")
+    render_section("系统状态", "查看知识库样例、Provider 配置情况以及可对外开放的模型数量。")
     provider_configs = list_provider_configs(include_disabled=True)
     provider_rows = [
         {

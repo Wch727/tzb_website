@@ -32,7 +32,7 @@ model_info = get_selected_model_info()
 route_nodes = load_route_nodes()
 sample = load_home_sample_content()
 
-render_section("长征百问", "把推荐问题、节点相关问题、问答依据和延伸阅读放在同一页中，形成更强的学习闭环。")
+render_section("长征百问", "以问题为线索串联节点、人物、事件与精神专题，形成完整的阅读脉络。")
 render_model_banner()
 
 tab1, tab2, tab3 = st.tabs(["智能导览问答", "图文知识卡片", "学习复盘"])
@@ -53,18 +53,18 @@ with tab1:
 
     quick_left, quick_right = st.columns([1, 1])
     with quick_left:
-        render_section("推荐问题", "从高频问题开始进入长征知识脉络。")
+        render_section("推荐问题", "从高频问题切入长征史的核心脉络。")
         for index, question in enumerate(get_recommended_questions(limit=6)):
             if st.button(question, key=f"knowledge_hot_{index}", width="stretch"):
                 st.session_state["pending_question"] = question
     with quick_right:
-        render_section("节点相关问题", "当你已经在浏览某个节点时，可以沿着该节点继续发问。")
+        render_section("节点相关问题", "围绕所选节点延展相关问题，进一步展开阅读。")
         if selected_node:
             for index, question in enumerate(build_node_related_questions(selected_node, limit=4)):
                 if st.button(question, key=f"knowledge_node_q_{index}", width="stretch"):
                     st.session_state["pending_question"] = question
         else:
-            st.info("先从路线页选择一个节点，这里会自动出现该节点的相关追问。")
+            st.info("选定一个主线节点后，这里将同步显示与之相关的问题。")
 
     messages = st.session_state.get("qa_messages", [])
     for message in messages:
@@ -72,7 +72,7 @@ with tab1:
             st.markdown(message.get("content", ""))
             if message["role"] == "assistant":
                 if message.get("provider_used") == "static":
-                    st.caption(f"当前回答来源：静态知识模式 | 识别意图：{message.get('intent', 'general')}")
+                    st.caption(f"回答来源：知识导览模式 | 识别意图：{message.get('intent', 'general')}")
                 elif message.get("provider_used"):
                     st.caption(
                         f"回答模型：{message.get('provider_used')} / {message.get('model_used', '未标注')} | "
@@ -107,7 +107,7 @@ with tab1:
         st.rerun()
 
 with tab2:
-    render_section("图文知识卡片", "内置人物、事件、地点、精神专题和常见问答内容，即使不启用模型也能完成完整学习。")
+    render_section("图文知识卡片", "围绕人物、事件、地点、精神专题与常见问题建立的图文知识目录。")
     category = st.selectbox("知识分类", ["全部", "路线节点", "重大事件", "重要人物", "重要地点", "长征精神", "常见问答"])
     keyword = st.text_input("关键词搜索", placeholder="例如：遵义、泸定桥、毛泽东")
     cards = get_knowledge_cards(category=category, keyword=keyword)
@@ -134,14 +134,14 @@ with tab2:
         )
 
 with tab3:
-    render_section("学习复盘", "把作答中的薄弱点重新拉回到知识理解上，而不是只留下对错结果。")
+    render_section("学习复盘", "把作答记录重新放回历史情境与知识理解之中。")
     wrong_book = st.session_state.get("story_state", {}).get("progress", {}).get("wrong_book", [])
     if wrong_book:
         for item in wrong_book:
             with st.expander(item.get("title", "错题"), expanded=False):
                 st.write(f"题目：{item.get('question', '')}")
-                st.write(f"你的答案：{item.get('selected_answer', '')}")
+                st.write(f"所选答案：{item.get('selected_answer', '')}")
                 st.write(f"正确答案：{item.get('expected_answer', '')}")
                 st.write(f"解析：{item.get('explanation', '')}")
     else:
-        st.info("当前还没有错题记录。完成剧情答题后，这里会自动显示复盘内容。")
+        st.info("暂未形成复盘记录；完成剧情答题后，相关内容将汇入此处。")

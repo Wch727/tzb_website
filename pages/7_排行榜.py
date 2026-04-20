@@ -35,7 +35,7 @@ def _render_rank_board(current_activity_id: str) -> None:
     )
 
     with tab1:
-        render_section("全服实时排行榜", "展示近期学习表现最突出的用户与队伍，适合课堂、活动和集中展示场景。")
+        render_section("全服实时排行榜", "集中呈现近期学习表现突出的个人与队伍。")
         rows = get_live_leaderboard(activity_id="", limit=20, hours=72)
         if rows:
             st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
@@ -43,22 +43,22 @@ def _render_rank_board(current_activity_id: str) -> None:
             st.info("暂无全服实时成绩记录。")
 
     with tab2:
-        render_section("活动个人榜", "按活动查看个人战绩，适合课堂竞赛、主题活动和研学任务场景。")
+        render_section("活动个人榜", "按活动范围查看个人战绩。")
         if activity:
-            st.caption(f"当前活动：{activity.get('name', '')} | {activity.get('mode', '')}")
+            st.caption(f"活动范围：{activity.get('name', '')} | {activity.get('mode', '')}")
         rows = get_activity_leaderboard(current_activity_id, limit=20) if current_activity_id else []
         if rows:
             st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动还没有成绩记录。")
+            st.info("活动成绩尚未形成。")
 
     with tab3:
-        render_section("红军小队榜", "多名队员分别完成剧情关卡后，会自动汇总到小队总分，用于展示协作答题效果。")
+        render_section("红军小队榜", "各队伍成员的作答成果将在此汇总为协作战绩。")
         rows = get_team_leaderboard(current_activity_id, limit=20) if current_activity_id else []
         if rows:
             st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动还没有小队战绩。")
+            st.info("小队战绩尚未形成。")
 
     with tab4:
         render_section("支部对抗榜", "以支部或单位为聚合维度，展示组织化学习对抗的阶段结果。")
@@ -66,7 +66,7 @@ def _render_rank_board(current_activity_id: str) -> None:
         if rows:
             st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动还没有支部对抗成绩。")
+            st.info("支部对抗成绩尚未形成。")
 
     with tab5:
         render_section("班级/单位榜", "把个人战绩按班级、单位或学习小组聚合，更贴近真实组织化活动的展示方式。")
@@ -74,17 +74,17 @@ def _render_rank_board(current_activity_id: str) -> None:
         if rows:
             st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动还没有班级/单位排行数据。")
+            st.info("班级或单位排行尚未形成。")
 
     with tab6:
-        render_section("实时战绩流与分享", "用于展示最新战绩播报、主持口播文案和个人/小队分享内容。")
+        render_section("实时战绩流与分享", "汇集最新战绩播报与个人、小队分享内容。")
         live_left, live_right = st.columns([1.1, 1])
         with live_left:
             live_rows = build_live_battle_rows(hours=48, limit=12)
             if live_rows:
                 st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
             else:
-                st.info("当前还没有实时战绩流。")
+                st.info("实时战绩流尚未形成。")
         with live_right:
             user_name = st.session_state.get("user_name", "红色学习者")
             personal_share = build_user_share_text(user_name, current_activity_id)
@@ -100,14 +100,14 @@ def _render_rank_board(current_activity_id: str) -> None:
             if battle_rows:
                 st.dataframe(pd.DataFrame(battle_rows), width="stretch", hide_index=True)
             else:
-                st.info("当前用户还没有战绩记录。")
+                st.info("个人战绩尚未形成。")
 
 
 setup_page("排行榜", icon="🏆")
 render_top_nav("排行榜")
 render_hero(
     title="排行榜",
-    subtitle="排行榜汇集全服实时榜、活动个人榜、红军小队榜、支部对抗榜、班级或单位榜以及实时战绩流，用于集中呈现学习成果与协作表现。",
+    subtitle="排行榜汇集全服实时榜、活动个人榜、红军小队榜、支部对抗榜、班级或单位榜与实时战绩流。",
     badges=["全服实时榜", "红军小队榜", "支部对抗榜", "战绩分享"],
 )
 

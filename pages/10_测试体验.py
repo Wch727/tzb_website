@@ -26,7 +26,7 @@ from streamlit_ui import (
 
 setup_page("导览速览", icon="🧭")
 render_top_nav("导览速览")
-render_section("快速导览", "从重点问题、代表性节点和讲解入口出发，快速把握整站主线内容。")
+render_section("导览速览", "从重点问题、代表性节点与讲解入口切入，快速把握整站主线内容。")
 render_model_banner()
 
 provider_config = build_current_provider_config()
@@ -35,14 +35,14 @@ featured_nodes = get_featured_route_nodes(limit=6)
 current_activity = get_activity(st.session_state.get("current_activity_id", ""))
 
 if current_activity:
-    st.info(f"当前活动：{current_activity.get('name', '')} · {current_activity.get('mode', '')}")
+    st.info(f"所属活动：{current_activity.get('name', '')} · {current_activity.get('mode', '')}")
 
 story_tracks = get_storytelling_tracks()
 
 tab1, tab2, tab3, tab4 = st.tabs(["快速问答", "展项预览", "一键讲解", "长征故事"])
 
 with tab1:
-    render_section("推荐问题体验", "点击任意问题，即可直接进入长征史问答与依据阅读。")
+    render_section("推荐问题", "由典型问题切入长征史的核心脉络。")
     question_cols = st.columns(3)
     for index, question in enumerate(get_recommended_questions(limit=6)):
         with question_cols[index % 3]:
@@ -59,7 +59,7 @@ with tab1:
         render_sources(result.get("sources", []), title="本次回答依据")
 
 with tab2:
-    render_section("代表性展项预览", "从重点节点中任选一个，查看完整展项详情、语音讲解和互动入口。")
+    render_section("代表性展项预览", "从重点节点中抽样浏览展项详情、讲解内容与互动入口。")
     preview_cols = st.columns(3)
     for index, node in enumerate(featured_nodes):
         with preview_cols[index % 3]:
@@ -80,7 +80,7 @@ with tab2:
         )
 
 with tab3:
-    render_section("一键讲解", "选择一个主题节点，快速查看讲解内容与资料依据。")
+    render_section("一键讲解", "围绕单一节点生成讲解内容，并同步查看资料依据。")
     topic_node = st.selectbox(
         "选择讲解主题",
         [node.get("id", "") for node in featured_nodes],
@@ -107,16 +107,16 @@ with tab3:
             meta=[
                 f"讲解主题：{selected_node.get('title', '长征节点')}",
                 f"地点：{selected_node.get('place', '未标注')}",
-                "适用场景：导览速览",
+                    "场景：导览速览",
             ],
         )
         render_sources(guide_result.get("sources", []), title="本次讲解依据")
-        st.markdown("#### 推荐继续体验")
+        st.markdown("#### 相关展项")
         for node in sample.get("featured_nodes", [])[:3]:
             st.markdown(f"- **{node.get('title', '')}**：{node.get('summary', '')}")
 
 with tab4:
-    render_section("长征故事", "从总讲述或分篇章讲述切入，先听一遍长征，再进入对应展项继续浏览。")
+    render_section("长征故事", "从总讲述或分篇章讲述切入，再进入对应展项展开浏览。")
     story_id = st.selectbox(
         "选择讲述主题",
         [track.get("id", "") for track in story_tracks],
@@ -139,13 +139,13 @@ with tab4:
         cache_key=f"quick-story::{current_story.get('id', 'overall_story')}",
         button_label="播放这一段讲述",
     )
-    if st.toggle("显示讲解员模式", key=f"quick_story_avatar::{current_story.get('id', '')}"):
+    if st.toggle("讲解员模式", key=f"quick_story_avatar::{current_story.get('id', '')}"):
         render_digital_human(
             section_text=current_story.get("script", ""),
             avatar_path="assets/avatar/guide.svg",
             audio_path=audio_path,
         )
-    st.markdown("#### 继续阅读")
+    st.markdown("#### 延伸阅读")
     for question in current_story.get("questions", [])[:3]:
         if st.button(question, key=f"quick_story_question::{story_id}::{question}", width="stretch"):
             st.session_state["pending_question"] = question

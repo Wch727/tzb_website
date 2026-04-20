@@ -192,7 +192,7 @@ render_exhibition_hero(
     ),
     side_points=[
         "先看四大篇章，再进入具体展项",
-        "每个节点都可继续讲解、问答与互动答题",
+        "各节点均收录讲解、问答与互动学习内容",
         "没有模型时也能依靠静态厚内容完整浏览",
     ],
 )
@@ -212,7 +212,7 @@ with intro_right:
         body=(
             "可先沿四大篇章浏览，再进入重点节点。湘江战役、遵义会议、四渡赤水和飞夺泸定桥，是理解长征转折、战略机动和胜利意义的重要入口。"
         ),
-        label="导览提示",
+        label="导览提要",
     )
     action_left, action_right, action_more = st.columns([1, 1, 1])
     with action_left:
@@ -312,11 +312,11 @@ with story_right:
             },
             {
                 "title": "先看哪一站",
-                "desc": lead_story_node.get("title", "从当前篇章的第一站进入") if selected_story.get("lead_node_id") else "从长征主线的起点进入",
+                "desc": lead_story_node.get("title", "由本篇章起点展开") if selected_story.get("lead_node_id") else "由长征主线起点展开",
             },
             {
                 "title": "继续追问",
-                "desc": "、".join(selected_story.get("questions", [])[:2]) or "可继续进入知识百问查看相关问题。",
+                "desc": "、".join(selected_story.get("questions", [])[:2]) or "相关问题与史料可在知识百问中延展阅读。",
             },
         ]
     )
@@ -340,13 +340,13 @@ render_detail_panels(
         },
         {
             "title": "互动学习",
-            "desc": "每个关键节点都可继续进入互动答题、讲解生成与学习延展，形成以题带学的闭环。",
+            "desc": "每个关键节点均收录互动答题、讲解生成与相关史料，形成完整学习链路。",
         },
     ]
 )
 
 render_gallery_frame("重点展项导览", "从最能代表长征转折、战略机动和胜利会师的节点切入，快速建立主线认识。")
-render_section("重点展项", "优先从最能代表长征主线与历史转折的节点进入，建立整条征程的基本认识。")
+render_section("重点展项", "从最能代表长征主线与历史转折的节点进入，逐步建立整条征程的整体认识。")
 feature_cols = st.columns(3)
 for index, node in enumerate(featured_nodes):
     with feature_cols[index % 3]:
@@ -368,7 +368,7 @@ render_feature_ribbon(
         {
             "label": "重点建议",
             "title": "优先看转折节点",
-            "desc": "湘江战役、遵义会议、四渡赤水与泸定桥，是最适合快速理解长征精神与战略转折的展项。",
+            "desc": "湘江战役、遵义会议、四渡赤水与泸定桥，集中呈现长征精神与战略转折的关键面貌。",
         },
         {
             "label": "延展阅读",
@@ -421,7 +421,7 @@ with route_shell_mid:
             _jump_to_route(item)
 
 with route_shell_right:
-    render_section("今日推荐路线", "聚焦关键转折与胜利场景，适合形成对长征主线的核心印象。")
+    render_section("今日推荐路线", "聚焦关键转折与胜利场景，用一条更紧凑的路径把握长征主线的核心印象。")
     for index, item in enumerate(sample.get("recommended_route", [])[:3]):
         route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
         _render_route_entry_card(route_title, route_body, route_nodes, "今日导览")
@@ -487,7 +487,7 @@ with tab1:
         with question_cols[index % 2]:
             render_curatorial_note(
                 title=question,
-                body="由此进入知识百问页，可继续查看回答依据与延伸阅读。",
+                body="由此进入知识百问页，查看相关回答依据与延伸阅读。",
                 label="推荐问题",
             )
             if st.button("进入这个问题", key=f"home_question_{index}", width="stretch"):
@@ -514,7 +514,7 @@ with tab2:
 with tab3:
     render_curatorial_note(
         title="分阶段学习路线",
-        body="可先从各篇章代表节点进入，再顺着篇章内部的展项继续展开阅读与互动学习。",
+        body="可由各篇章代表节点入手，再沿篇章内部的展项展开阅读与互动学习。",
         label="学习路线",
     )
     stage_cols = st.columns(2)
@@ -536,7 +536,7 @@ with tab3:
 with tab4:
     render_curatorial_note(
         title="快速进入主题展",
-        body="由此进入，可快速浏览主线展项、知识问答与互动学习内容。",
+        body="由此进入，可集中浏览主线展项、知识问答与互动学习内容。",
         label="快速入口",
     )
     quick_cols = st.columns(3)

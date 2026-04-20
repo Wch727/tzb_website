@@ -100,7 +100,7 @@ with chapter_right:
             caption=f"{selected_chapter.get('title', '')}篇章入口展项",
         )
         st.markdown(
-            f"<div class='small-muted'>本篇章可先从 {lead_node.get('title', '')} 进入，由此把握这一阶段的历史任务与转折意义。</div>",
+            f"<div class='small-muted'>本篇章可由 {lead_node.get('title', '')} 展开，以把握这一阶段的历史任务与转折意义。</div>",
             unsafe_allow_html=True,
         )
 
@@ -142,7 +142,7 @@ selected_node = get_route_node(selected_node_id)
 if selected_node:
     render_section(
         "节点展项详情",
-        f"以下展项位于“{selected_chapter.get('title', '主线篇章')}”篇章之中，可继续查看讲解、史料依据与互动学习内容。",
+        f"以下展项位于“{selected_chapter.get('title', '主线篇章')}”篇章之中，收录讲解、史料依据与互动学习内容。",
     )
     render_node_detail(
         node=selected_node,

@@ -13,7 +13,7 @@ def main() -> None:
     render_top_nav("启动入口")
     render_hero(
         title="长征精神·沉浸式云端答题互动平台",
-        subtitle="这里是整站的统一入口。你可以从主展首页、角色选择、活动中心或内容运营页面进入不同使用场景。",
+        subtitle="由此进入主展首页、角色任务、活动组织与内容运营等不同板块。",
         badges=["主线导览", "角色任务", "活动组织", "学习榜单"],
     )
     col1, col2, col3, col4 = st.columns(4)

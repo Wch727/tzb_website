@@ -43,7 +43,7 @@ setup_page("活动中心", icon="🎯")
 render_top_nav("活动中心")
 render_hero(
     title="活动中心",
-    subtitle="活动中心承载知识竞赛、党史学习日、研学任务等组织化场景，支持活动链接、二维码、红军小队协作、支部对抗与实时战绩播报。",
+    subtitle="围绕知识竞赛、党史学习日与研学任务等组织化场景，集中呈现活动入口、协作方式与对抗机制。",
     badges=["活动模板", "红军小队", "支部对抗", "实时战绩"],
 )
 
@@ -53,7 +53,7 @@ current_activity_id = st.session_state.get("current_activity_id", activity_ids[0
 if current_activity_id not in activity_ids and activity_ids:
     current_activity_id = activity_ids[0]
 
-render_section("活动模板总览", "当前版本已提供知识竞赛、党史学习日和红色研学任务等模板，支持个人参与与小队协同。")
+render_section("活动模板总览", "不同活动模板对应不同的组织场景、节点评估范围与协作方式。")
 render_cards(
     [
         {
@@ -82,7 +82,7 @@ current_team = _sync_current_team(current_activity_id)
 
 left, right = st.columns([1.1, 1])
 with left:
-    render_section("活动信息", "活动可以作为班级竞赛、党史学习日、研学任务或支部对抗的组织单元进行分发。")
+    render_section("活动信息", "活动以节点范围、组织形式与协作规则为基本框架。")
     st.markdown(f"## {activity.get('name', '')}")
     st.write(activity.get("description", ""))
     st.caption(f"活动模式：{activity.get('mode', '')}")
@@ -91,10 +91,10 @@ with left:
     st.caption(f"覆盖节点：{len(activity.get('node_scope', []))} 个")
     st.caption(f"支持红军小队：{'是' if activity.get('support_team_mode') else '否'}")
     st.caption(f"支持支部对抗：{'是' if activity.get('support_branch_pk') else '否'}")
-    st.caption(f"当前参与身份：{st.session_state.get('user_name', '红色学习者')} | {st.session_state.get('unit_name', '体验组')}")
+    st.caption(f"参与身份：{st.session_state.get('user_name', '红色学习者')} | {st.session_state.get('unit_name', '体验组')}")
     if current_team:
         st.success(
-            f"当前已加入小队：{current_team.get('team_name', '')} | "
+            f"所属小队：{current_team.get('team_name', '')} | "
             f"{current_team.get('branch_name', '')} | 队员 {len(current_team.get('members', []))} 人"
         )
 
@@ -119,7 +119,7 @@ with right:
     if qr_bytes:
         st.image(qr_bytes, caption="活动二维码", width=220)
     else:
-        st.info("当前已保留活动分享链接，可继续通过链接组织访问。")
+        st.info("活动分享链接已生成，可通过链接组织访问。")
 
 info_tab, team_tab, pk_tab, share_tab = st.tabs(["活动范围", "红军小队", "支部对抗", "战绩分享"])
 
@@ -135,47 +135,47 @@ with info_tab:
             summary = str(node.get("summary", "") or "")
             st.write(summary[:88] + ("..." if len(summary) > 88 else ""))
 
-    render_section("活动个人榜预览", "适合课堂竞赛和现场展示，便于快速看到本活动中的个人表现。")
+    render_section("活动个人榜预览", "呈现本活动范围内的个人作答表现。")
     ranking = get_activity_leaderboard(current_activity_id, limit=8)
     if ranking:
         st.dataframe(pd.DataFrame(ranking), width="stretch", hide_index=True)
     else:
-        st.info("当前活动还没有成绩记录。完成一次剧情答题后，这里将自动出现活动排行榜。")
+        st.info("活动成绩尚未形成；完成一次剧情答题后，榜单将自动更新。")
 
-    render_section("班级/单位榜预览", "可直接展示班级、单位或学习小组的聚合成绩。")
+    render_section("班级/单位榜预览", "按班级、单位或学习小组聚合呈现活动成绩。")
     unit_rows = get_unit_leaderboard(current_activity_id, limit=8)
     if unit_rows:
         st.dataframe(pd.DataFrame(unit_rows), width="stretch", hide_index=True)
     else:
-        st.info("当前活动还没有班级/单位排行数据。")
+        st.info("班级或单位榜单尚未形成。")
 
 with team_tab:
-    render_section("红军小队协作", "支持创建红军小队、加入协作队伍，并把个人答题贡献自动汇总到小队总分。")
+    render_section("红军小队协作", "以小队为单位汇聚成员贡献，形成协作作答与集体推进的战绩结构。")
     if not activity.get("support_team_mode", True):
-        st.warning("当前活动未开启红军小队协作，可在内容运营页面开启后使用。")
+        st.warning("本场活动暂未开放红军小队协作。")
     else:
         current_team = _sync_current_team(current_activity_id)
         if current_team:
             st.success(
-                f"你当前所在小队：{current_team.get('team_name', '')} | "
+                f"所属小队：{current_team.get('team_name', '')} | "
                 f"{current_team.get('branch_name', '')} | 口号：{current_team.get('slogan', '暂无')}"
             )
             team_left, team_right = st.columns([1.05, 1])
             with team_left:
-                st.markdown("### 当前小队成员贡献")
+                st.markdown("### 小队成员贡献")
                 member_rows = build_team_member_summary(current_team.get("team_id", ""))
                 if member_rows:
                     st.dataframe(pd.DataFrame(member_rows), width="stretch", hide_index=True)
             with team_right:
-                st.markdown("### 当前小队战力")
+                st.markdown("### 小队战力")
                 st.metric("小队总分", current_team.get("total_score", 0))
                 st.metric("小队粮草", current_team.get("total_grain", 0))
                 st.metric("累计作答", current_team.get("answered_count", 0))
                 st.metric("正确率", f"{round((current_team.get('correct_count', 0) / max(current_team.get('answered_count', 1), 1)) * 100, 1)}%")
-                if st.button("退出当前小队", width="stretch"):
+                if st.button("退出小队", width="stretch"):
                     leave_team(current_team.get("team_id", ""), st.session_state.get("user_name", "红色学习者"))
                     _sync_current_team(current_activity_id)
-                    st.success("已退出当前小队。")
+                    st.success("已退出小队。")
                     st.rerun()
 
         create_col, join_col = st.columns(2)
@@ -228,19 +228,19 @@ with team_tab:
                             st.rerun()
                         st.error("加入失败，可能是队伍已满。")
             else:
-                st.info("当前活动还没有创建小队。")
+                st.info("本场活动尚未组建红军小队。")
 
-        render_section("小队排行榜", "多名队员分别完成节点作答后，会自动合并为队伍协作成绩。")
+        render_section("小队排行榜", "各队伍作答成果按协作总分统一汇总。")
         team_rows = get_team_leaderboard(current_activity_id, limit=10)
         if team_rows:
             st.dataframe(pd.DataFrame(team_rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动还没有小队战绩。")
+            st.info("小队战绩尚未形成。")
 
 with pk_tab:
-    render_section("支部对抗赛", "系统按支部或单位汇总各小队成绩，形成组织化学习对抗榜单。")
+    render_section("支部对抗赛", "按支部或单位汇总各小队成绩，形成组织化学习的对抗榜单。")
     if not activity.get("support_branch_pk", True):
-        st.warning("当前活动未开启支部对抗模式，可在内容运营页面开启后使用。")
+        st.warning("本场活动暂未开放支部对抗。")
     else:
         pk_rows = get_branch_pk_board(current_activity_id, limit=12)
         if pk_rows:
@@ -258,10 +258,10 @@ with pk_tab:
             render_cards(top_cards)
             st.dataframe(pd.DataFrame(pk_rows), width="stretch", hide_index=True)
         else:
-            st.info("当前活动还没有支部 PK 数据。先创建小队并完成答题后即可形成对抗榜。")
+            st.info("支部对抗数据尚未形成；完成小队编组与作答后即可生成榜单。")
 
 with share_tab:
-    render_section("实时战绩分享", "支持生成个人战绩分享文案和小队播报文案，适合活动群、班级群和现场主持串场。")
+    render_section("实时战绩分享", "可生成个人战绩文案与小队播报文案，用于活动播报与成果传播。")
     personal_share = build_user_share_text(
         st.session_state.get("user_name", "红色学习者"),
         current_activity_id,
@@ -300,9 +300,9 @@ with share_tab:
             )
             st.success("小队战绩已写入实时播报流。")
 
-    render_section("实时战绩播报流", "这里展示最近的小队协作贡献和战绩分享事件，可直接作为主持口播素材或活动播报内容。")
+    render_section("实时战绩播报流", "集中呈现近期的小队协作贡献与战绩播报记录。")
     live_rows = build_live_battle_rows(hours=48, limit=12)
     if live_rows:
         st.dataframe(pd.DataFrame(live_rows), width="stretch", hide_index=True)
     else:
-        st.info("当前还没有可展示的实时战绩播报。")
+        st.info("实时战绩播报暂未形成。")

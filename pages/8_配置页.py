@@ -44,18 +44,18 @@ setup_page("使用设置", icon="⚙️")
 render_top_nav("使用设置")
 render_hero(
     title="使用设置",
-    subtitle="在这里选择当前使用的讲解方式、可用模型与主题偏好；运营人员也可管理开放范围与模型策略。",
+    subtitle="围绕导览模式、可用模型与主题偏好进行设置；运营范围与模型策略由内容运营统一维护。",
     badges=["个人设置", "开放策略", "模型管理"],
 )
 
 user_tab, admin_tab = st.tabs(["个人设置", "运营设置"])
 
 with user_tab:
-    render_section("当前可用模型", "普通用户只能看到管理员已经开放的模型，不能改动全局 provider 配置。")
+    render_section("可用模型", "此处展示站点已开放的讲解模型与导览模式。")
     st.caption(get_settings().get("repository_content_notice", "正式展示内容以内置史料与知识卡为准。"))
     visible_models = get_user_models()
     if not visible_models:
-        st.warning("当前还没有可用模型，请联系运营人员开放至少一个讲解模型。")
+        st.warning("站点暂未开放可用讲解模型。")
     else:
         current_model = get_selected_model_info()
         provider_names = [item["provider_name"] for item in visible_models]
@@ -78,11 +78,11 @@ with user_tab:
         render_cards(
             [
                 {
-                    "label": "当前模型",
+                    "label": "模型",
                     "title": current_model.get("display_name", "未选择"),
                     "desc": (
                         f"模型标识：{current_model.get('model', '未配置')}。"
-                        f"{' 当前为系统默认模型。' if current_model.get('provider_name') == default_provider_name else ''}"
+                        f"{' 系统默认模型。' if current_model.get('provider_name') == default_provider_name else ''}"
                     ),
                 },
                 {
@@ -98,7 +98,7 @@ with user_tab:
                 {
                     "label": "主题偏好",
                     "title": st.session_state.get("selected_topic_label", "综合导览"),
-                    "desc": "主题偏好只影响当前会话，不会修改系统级配置。",
+                    "desc": "主题偏好仅影响本次浏览中的导览与问答侧重。",
                 },
             ]
         )
@@ -114,29 +114,29 @@ with user_tab:
 
         if current_model.get("allow_user_key"):
             api_key = st.text_input(
-                "个人 API Key（仅本次访问生效）",
+                "个人 API Key（仅本次会话生效）",
                 type="password",
                 value=st.session_state.get("session_api_keys", {}).get(selected, ""),
-                placeholder="如已开放个人接入，可在此输入你自己的 API Key",
+                placeholder="如已开放个人接入，可在此填写个人 API Key",
             )
             if st.button("保存当前会话 Key", width="stretch"):
                 set_runtime_api_key(selected, api_key.strip())
-                st.success("已保存到当前访问会话。关闭页面或切换会话后将失效。")
+                st.success("个人密钥已保存到本次会话。")
         else:
-            st.info("当前模型由运营人员统一配置，暂不开放个人 API Key。")
+            st.info("个人 API Key 输入未开放。")
 
         preferred_topic = st.selectbox(
-            "当前主题偏好",
+            "主题偏好",
             get_topic_filter_options(),
             index=get_topic_filter_options().index(st.session_state.get("selected_topic_label", "综合导览")),
         )
         st.session_state["selected_topic_label"] = preferred_topic
-        st.caption("说明：这里的设置仅影响你当前的浏览与学习体验，不会修改全局开放策略。")
+        st.caption("以上设置仅影响本次浏览中的导览与学习体验。")
 
 with admin_tab:
-    render_section("运营开放策略", "运营人员可决定开放哪些模型与接入方式给访问者使用，并控制是否允许输入个人 Key。")
+    render_section("运营开放策略", "由内容运营统一管理模型开放范围、展示名称与接入方式。")
     render_admin_badge()
-    st.info("这里的设置用于管理当前站点对外开放的模型范围、展示名称和接入策略。")
+    st.info("此处用于维护站点对外开放的模型范围与接入策略。")
 
     if not admin_is_logged_in():
         st.info("请先前往“内容运营”页面完成登录，再返回此处进行开放策略配置。")
@@ -164,7 +164,7 @@ with admin_tab:
         with st.expander(f"{provider.get('display_name', provider_name)}（{provider_name}）", expanded=False):
             runtime_status = get_provider_runtime_status(provider_name)
             st.caption(
-                f"当前模型：{provider.get('model', '未配置')} | "
+                f"模型：{provider.get('model', '未配置')} | "
                 f"密钥来源：{runtime_status.get('api_key_source_text', '未配置')} | "
                 f"平台密钥标识：{provider.get('api_key_secret_name', '') or '未设置'}"
             )

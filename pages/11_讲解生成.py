@@ -22,7 +22,7 @@ from streamlit_ui import (
 setup_page("讲解生成", icon="📝")
 render_top_nav("讲解生成")
 
-render_section("讲解与脚本生成", "基于长征史知识库先检索、再生成。结果不仅可阅读，也可直接进行语音播报和数字人讲解展示。")
+render_section("讲解与脚本生成", "围绕长征史知识库进行检索与生成，并同步呈现语音与讲解员展示。")
 render_model_banner()
 
 provider_config = build_current_provider_config()
@@ -36,9 +36,9 @@ with top_col1:
         format_func=lambda node_id: next((node["title"] for node in route_nodes if node["id"] == node_id), node_id),
     )
     selected_node = get_route_node(selected_node_id) or {}
-    st.caption(f"已选择：{selected_node.get('title', '')} · {selected_node.get('place', '')}")
+    st.caption(f"选定主题：{selected_node.get('title', '')} · {selected_node.get('place', '')}")
 with top_col2:
-    st.info("你也可以直接手动输入主题，不局限于路线节点。")
+    st.info("除路线节点外，也可围绕专题主题单独生成讲解内容。")
 
 preview_left, preview_right = st.columns([1.05, 1.2])
 with preview_left:
