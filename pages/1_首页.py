@@ -117,6 +117,48 @@ def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str
     )
 
 
+def _render_route_overview_board(chapters: list[dict[str, object]]) -> None:
+    """渲染首页路线总览展板。"""
+    chapter_markup = "".join(
+        f"""
+        <div style="
+            border-radius:18px;
+            padding:0.9rem 0.95rem;
+            background:rgba(255,252,250,0.92);
+            border:1px solid rgba(139,38,66,0.14);
+        ">
+            <div style="color:#8a2947;font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.22rem;">{html.escape(str(chapter.get('badge', '篇章')))}</div>
+            <div style="color:#5b112d;font-size:1rem;font-weight:700;margin-bottom:0.28rem;">{html.escape(str(chapter.get('title', '')))}</div>
+            <div style="color:#675646;font-size:0.88rem;line-height:1.72;margin-bottom:0.35rem;">{html.escape(str(chapter.get('subtitle', '')))}</div>
+            <div style="color:#7b6147;font-size:0.84rem;line-height:1.62;">代表节点：{html.escape('、'.join(node.get('title', '') for node in chapter.get('nodes', [])[:3]))}</div>
+        </div>
+        """
+        for chapter in chapters[:4]
+    )
+    st.markdown(
+        f"""
+        <div style="
+            border-radius:28px;
+            padding:1.1rem 1.15rem;
+            background:linear-gradient(180deg, rgba(255,252,250,0.96), rgba(247,239,236,0.94));
+            border:1px solid rgba(139,38,66,0.16);
+            box-shadow:0 14px 34px rgba(78,16,33,0.08);
+            margin:0 0 1rem;
+        ">
+            <div style="color:#8a2947;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem;">路线总览</div>
+            <div style="color:#5b112d;font-size:1.52rem;font-weight:700;margin-bottom:0.45rem;">沿着主线进入长征征程</div>
+            <div style="color:#5a5047;font-size:0.96rem;line-height:1.86;margin-bottom:0.95rem;">
+                先把握“出发与突围、转折与调整、巧渡与突破、北上会师”四大篇章，再从推荐路线进入具体节点，浏览时会更像沿着主线逐步展开，而不是零散地点开。
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.8rem;">
+                {chapter_markup}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 setup_page("首页", icon="🏛️")
 render_top_nav("首页")
 
@@ -354,30 +396,10 @@ for index, chapter in enumerate(chapters):
 render_gallery_frame("路线导览总板", "先看四大篇章，再从推荐线路进入代表节点，把整条长征主线真正走起来。")
 route_shell_left, route_shell_mid, route_shell_right = st.columns([0.92, 1.04, 1.04], gap="large")
 with route_shell_left:
-    render_curatorial_note(
-        title="沿着主线进入长征征程",
-        body="这一区承担的是整条路线的导学功能。先理解四大篇章，再顺着推荐线路进入具体节点，浏览体验会更完整，也更容易把握长征从出发、转折到会师的整体脉络。",
-        label="导览总览",
-    )
-    render_detail_panels(
-        [
-            {
-                "title": chapter.get("title", ""),
-                "desc": chapter.get("subtitle", ""),
-            }
-            for chapter in chapters[:4]
-        ]
-    )
-    render_ledger_cards(
-        [
-            {
-                "label": chapter.get("badge", "篇章"),
-                "title": chapter.get("title", ""),
-                "desc": "、".join(node.get("title", "") for node in chapter.get("nodes", [])[:3]) or "沿着本篇章节点继续浏览",
-            }
-            for chapter in chapters[:4]
-        ]
-    )
+    _render_route_overview_board(chapters)
+    route_map_path = sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg")
+    if route_map_path:
+        st.image(route_map_path, caption="长征路线总览图", width="stretch")
     chapter_jump_cols = st.columns(2)
     for index, chapter in enumerate(chapters[:4]):
         with chapter_jump_cols[index % 2]:
