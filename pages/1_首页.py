@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from content_store import get_chapter_for_node, get_route_chapters, get_route_node_data
@@ -85,6 +87,34 @@ def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
     if node_id:
         st.session_state["selected_node_id"] = node_id
     st.switch_page("pages/3_长征路线.py")
+
+
+def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str) -> None:
+    """渲染路线入口卡。"""
+    node_markup = "".join(
+        f"<span style='display:inline-flex;align-items:center;padding:0.18rem 0.58rem;border-radius:999px;"
+        f"background:rgba(123,23,54,0.08);border:1px solid rgba(123,23,54,0.12);font-size:0.82rem;"
+        f"color:#7b1736;margin:0 0.38rem 0.38rem 0;'>{html.escape(node)}</span>"
+        for node in nodes[:4]
+    )
+    st.markdown(
+        f"""
+        <div style="
+            border-radius:24px;
+            padding:1rem 1.05rem 1rem;
+            background:linear-gradient(180deg, rgba(255,252,250,0.96), rgba(247,239,236,0.94));
+            border:1px solid rgba(139,38,66,0.16);
+            box-shadow:0 12px 30px rgba(78,16,33,0.08);
+            margin:0 0 0.95rem;
+        ">
+            <div style="color:#8a2947;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">{html.escape(label)}</div>
+            <div style="color:#5b112d;font-size:1.32rem;font-weight:700;margin-bottom:0.45rem;">{html.escape(title)}</div>
+            <div style="color:#5a5047;font-size:0.96rem;line-height:1.82;margin-bottom:0.8rem;">{html.escape(body)}</div>
+            <div style="display:flex;flex-wrap:wrap;">{node_markup or "<span style='color:#7a6350;font-size:0.88rem;'>沿着这条路线进入对应节点。</span>"}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 setup_page("首页", icon="🏛️")
@@ -321,23 +351,29 @@ for index, chapter in enumerate(chapters):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
             st.switch_page("pages/3_长征路线.py")
 
-render_gallery_frame("路线导览总板", "先看四大篇章，再按推荐线路进入代表节点，整体浏览会更顺。")
-overview_left, overview_right = st.columns([1.05, 0.95])
-with overview_left:
-    route_map_path = sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg")
-    if route_map_path:
-        st.image(route_map_path, caption="中国工农红军长征路线图", width="stretch")
-with overview_right:
+render_gallery_frame("路线导览总板", "先看四大篇章，再从推荐线路进入代表节点，把整条长征主线真正走起来。")
+route_shell_left, route_shell_mid, route_shell_right = st.columns([0.92, 1.04, 1.04], gap="large")
+with route_shell_left:
     render_curatorial_note(
-        title="推荐浏览顺序",
-        body="建议先沿四大篇章浏览，建立长征主线印象；如果时间有限，可直接从转折与胜利节点切入，再回到前后章节继续补足脉络。",
-        label="主线提要",
+        title="沿着主线进入长征征程",
+        body="这一区承担的是整条路线的导学功能。先理解四大篇章，再顺着推荐线路进入具体节点，浏览体验会更完整，也更容易把握长征从出发、转折到会师的整体脉络。",
+        label="导览总览",
     )
     render_detail_panels(
         [
             {
                 "title": chapter.get("title", ""),
-                "desc": f"{chapter.get('subtitle', '')} 代表节点：{'、'.join(node.get('title', '') for node in chapter.get('nodes', [])[:3])}",
+                "desc": chapter.get("subtitle", ""),
+            }
+            for chapter in chapters[:4]
+        ]
+    )
+    render_ledger_cards(
+        [
+            {
+                "label": chapter.get("badge", "篇章"),
+                "title": chapter.get("title", ""),
+                "desc": "、".join(node.get("title", "") for node in chapter.get("nodes", [])[:3]) or "沿着本篇章节点继续浏览",
             }
             for chapter in chapters[:4]
         ]
@@ -351,51 +387,22 @@ with overview_right:
                 width="stretch",
             ):
                 _jump_to_chapter(chapter.get("id", ""), chapter.get("nodes", [{}])[0].get("id", ""))
+    if st.button("打开完整路线展厅", key="home_open_full_route_hall", width="stretch", type="primary"):
+        st.switch_page("pages/3_长征路线.py")
 
-render_section("导览入口", "从推荐学习路线或今日推荐路线进入，都可以直接跳到对应节点。")
-route_board_left, route_board_right = st.columns(2)
-with route_board_left:
+with route_shell_mid:
     render_section("推荐学习路线", "适合第一次系统进入主题展时，沿主线建立整体认知。")
-    for index, item in enumerate(sample.get("recommended_learning_paths", [])[:4]):
+    for index, item in enumerate(sample.get("recommended_learning_paths", [])[:3]):
         route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
-        render_curatorial_note(
-            title=route_title,
-            body=route_body,
-            label="推荐路线",
-        )
-        if route_nodes:
-            render_ledger_cards(
-                [
-                    {
-                        "label": f"{step + 1:02d}",
-                        "title": node_title,
-                        "desc": "顺着这一站继续进入主线节点。",
-                    }
-                    for step, node_title in enumerate(route_nodes[:4])
-                ]
-            )
+        _render_route_entry_card(route_title, route_body, route_nodes, "推荐路线")
         if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
             _jump_to_route(item)
-with route_board_right:
+
+with route_shell_right:
     render_section("今日推荐路线", "适合快速体验重点节点，先进入转折与胜利场景。")
-    for index, item in enumerate(sample.get("recommended_route", [])[:4]):
+    for index, item in enumerate(sample.get("recommended_route", [])[:3]):
         route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
-        render_curatorial_note(
-            title=route_title,
-            body=route_body,
-            label="今日导览",
-        )
-        if route_nodes:
-            render_ledger_cards(
-                [
-                    {
-                        "label": f"{step + 1:02d}",
-                        "title": node_title,
-                        "desc": "从这一站进入，可快速形成章节印象。",
-                    }
-                    for step, node_title in enumerate(route_nodes[:4])
-                ]
-            )
+        _render_route_entry_card(route_title, route_body, route_nodes, "今日导览")
         if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
             _jump_to_route(item)
 
