@@ -89,34 +89,41 @@ def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
 
 def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str) -> None:
     """渲染路线入口卡。"""
-    with st.container(border=True):
-        st.caption(label)
-        st.markdown(f"### {title}")
-        st.write(body)
-        if nodes:
-            st.caption("沿线节点")
-            st.write(" · ".join(nodes[:4]))
-        else:
-            st.caption("沿着这条路线进入对应节点。")
+    render_curatorial_note(title=title, body=body, label=label)
+    if nodes:
+        render_ledger_cards(
+            [
+                {
+                    "label": f"{index + 1:02d}",
+                    "title": node,
+                    "desc": "沿线节点",
+                }
+                for index, node in enumerate(nodes[:4])
+            ]
+        )
+    else:
+        st.caption("沿着这条路线进入对应节点。")
 
 
 def _render_route_overview_board(chapters: list[dict[str, object]]) -> None:
     """渲染首页路线总览展板。"""
-    with st.container(border=True):
-        st.caption("路线总览")
-        st.markdown("## 沿着主线进入长征征程")
-        st.write("先把握“出发与突围、转折与调整、巧渡与突破、北上会师”四大篇章，再从推荐路线进入具体节点，浏览时会更像沿着主线逐步展开，而不是零散地点开。")
-        chapter_cols = st.columns(2)
-        for index, chapter in enumerate(chapters[:4]):
-            with chapter_cols[index % 2]:
-                render_curatorial_note(
-                    title=str(chapter.get("title", "")),
-                    body=str(chapter.get("subtitle", "")),
-                    label=str(chapter.get("badge", "篇章")),
-                )
-                node_titles = [node.get("title", "") for node in chapter.get("nodes", [])[:3] if node.get("title")]
-                if node_titles:
-                    st.caption("代表节点：" + "、".join(node_titles))
+    render_curatorial_note(
+        title="沿着主线进入长征征程",
+        body="先把握“出发与突围、转折与调整、巧渡与突破、北上会师”四大篇章，再从具体路线进入代表节点，浏览时会更像沿着主线逐步展开，而不是零散地点开。",
+        label="路线总览",
+    )
+    render_ledger_cards(
+        [
+            {
+                "label": str(chapter.get("badge", "篇章")),
+                "title": str(chapter.get("title", "")),
+                "desc": "代表节点：" + "、".join(
+                    node.get("title", "") for node in chapter.get("nodes", [])[:3] if node.get("title")
+                ),
+            }
+            for chapter in chapters[:4]
+        ]
+    )
 
 
 setup_page("首页", icon="🏛️")
@@ -357,7 +364,7 @@ for index, chapter in enumerate(chapters):
             st.switch_page("pages/3_长征路线.py")
 
 render_gallery_frame("路线导览总板", "先看四大篇章，再从推荐线路进入代表节点，把整条长征主线真正走起来。")
-route_shell_left, route_shell_mid, route_shell_right = st.columns([0.92, 1.04, 1.04], gap="large")
+route_shell_left, route_shell_right = st.columns([1.08, 1.12], gap="large")
 with route_shell_left:
     _render_route_overview_board(chapters)
     route_map_path = sample.get("hero_route_map", "assets/images/changzheng_route_map.jpg")
@@ -375,21 +382,23 @@ with route_shell_left:
     if st.button("打开完整路线展厅", key="home_open_full_route_hall", width="stretch", type="primary"):
         st.switch_page("pages/3_长征路线.py")
 
-with route_shell_mid:
-    render_section("推荐学习路线", "沿主线梳理长征征程，从整体历史脉络进入主题展。")
-    for index, item in enumerate(sample.get("recommended_learning_paths", [])[:3]):
-        route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
-        _render_route_entry_card(route_title, route_body, route_nodes, "推荐路线")
-        if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
-            _jump_to_route(item)
-
 with route_shell_right:
-    render_section("今日推荐路线", "聚焦关键转折与胜利场景，用一条更紧凑的路径把握长征主线的核心印象。")
-    for index, item in enumerate(sample.get("recommended_route", [])[:3]):
-        route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
-        _render_route_entry_card(route_title, route_body, route_nodes, "今日导览")
-        if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
-            _jump_to_route(item)
+    route_shell_mid, route_shell_right_inner = st.columns(2, gap="large")
+    with route_shell_mid:
+        render_section("推荐学习路线", "沿主线梳理长征征程，从整体历史脉络进入主题展。")
+        for index, item in enumerate(sample.get("recommended_learning_paths", [])[:3]):
+            route_title, route_body, route_nodes = _split_route_item(item, f"学习路线 {index + 1}")
+            _render_route_entry_card(route_title, route_body, route_nodes, "推荐路线")
+            if st.button("按此路线进入", key=f"learn_route_{index}", width="stretch"):
+                _jump_to_route(item)
+
+    with route_shell_right_inner:
+        render_section("今日推荐路线", "聚焦关键转折与胜利场景，用一条更紧凑的路径把握长征主线的核心印象。")
+        for index, item in enumerate(sample.get("recommended_route", [])[:3]):
+            route_title, route_body, route_nodes = _split_route_item(item, f"今日路线 {index + 1}")
+            _render_route_entry_card(route_title, route_body, route_nodes, "今日导览")
+            if st.button("从这条路线开始", key=f"today_route_{index}", width="stretch"):
+                _jump_to_route(item)
 
 render_gallery_frame("人物与专题", "在主线之外，从人物与精神专题继续深入，理解长征何以发生、如何转折、为何胜利。")
 render_section("重要人物", "通过关键人物回看决策、组织与战斗过程，能够更完整地理解长征主线。")
