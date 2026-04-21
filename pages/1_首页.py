@@ -11,6 +11,7 @@ from media import render_audio_player, render_digital_human, render_node_image
 from rag import get_rag_status
 from sample_content import load_home_sample_content
 from streamlit_ui import (
+    _clean_html,
     render_chapter_overview_cards,
     render_curatorial_note,
     render_detail_panels,
@@ -98,7 +99,8 @@ def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str
         for node in nodes[:4]
     )
     st.markdown(
-        f"""
+        _clean_html(
+            f"""
         <div style="
             border-radius:24px;
             padding:1rem 1.05rem 1rem;
@@ -112,7 +114,8 @@ def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str
             <div style="color:#5a5047;font-size:0.96rem;line-height:1.82;margin-bottom:0.8rem;">{html.escape(body)}</div>
             <div style="display:flex;flex-wrap:wrap;">{node_markup or "<span style='color:#7a6350;font-size:0.88rem;'>沿着这条路线进入对应节点。</span>"}</div>
         </div>
-        """,
+        """
+        ),
         unsafe_allow_html=True,
     )
 
@@ -136,7 +139,8 @@ def _render_route_overview_board(chapters: list[dict[str, object]]) -> None:
         for chapter in chapters[:4]
     )
     st.markdown(
-        f"""
+        _clean_html(
+            f"""
         <div style="
             border-radius:28px;
             padding:1.1rem 1.15rem;
@@ -154,7 +158,8 @@ def _render_route_overview_board(chapters: list[dict[str, object]]) -> None:
                 {chapter_markup}
             </div>
         </div>
-        """,
+        """
+        ),
         unsafe_allow_html=True,
     )
 
