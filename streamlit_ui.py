@@ -1222,25 +1222,28 @@ def render_curatorial_note(title: str, body: str, label: str = "专题导语") -
 
 def render_chapter_overview_cards(chapters: List[Dict[str, Any]], active_id: str = "") -> None:
     """渲染篇章总览卡。"""
-    cards: List[str] = []
-    for chapter in chapters:
+    if not chapters:
+        return
+
+    cols = st.columns(min(4, len(chapters)))
+    for index, chapter in enumerate(chapters):
+        node_titles = " · ".join(node.get("title", "") for node in chapter.get("nodes", [])[:3]) or "沿线展项"
         class_name = "chapter-card active" if chapter.get("id") == active_id else "chapter-card"
-        node_titles = " · ".join(node.get("title", "") for node in chapter.get("nodes", [])[:3])
-        cards.append(
-            _clean_html(
-                f"""
-                <div class="{class_name}">
-                    <div class="chapter-badge">{html.escape(str(chapter.get('badge', '主线篇章')))}</div>
-                    <div class="chapter-title">{html.escape(str(chapter.get('title', '未命名篇章')))}</div>
-                    <div class="chapter-subtitle">{html.escape(str(chapter.get('subtitle', '')))}</div>
-                    <div class="chapter-meta">节点数量：{html.escape(str(chapter.get('count', len(chapter.get('nodes', [])))))}</div>
-                    <div class="chapter-meta">代表节点：{html.escape(node_titles or '沿线展项')}</div>
-                </div>
-                """
+        with cols[index % len(cols)]:
+            st.markdown(
+                _clean_html(
+                    f"""
+                    <div class="{class_name}">
+                        <div class="chapter-badge">{html.escape(str(chapter.get('badge', '主线篇章')))}</div>
+                        <div class="chapter-title">{html.escape(str(chapter.get('title', '未命名篇章')))}</div>
+                        <div class="chapter-subtitle">{html.escape(str(chapter.get('subtitle', '')))}</div>
+                        <div class="chapter-meta">节点数量：{html.escape(str(chapter.get('count', len(chapter.get('nodes', [])))))}</div>
+                        <div class="chapter-meta">代表节点：{html.escape(node_titles)}</div>
+                    </div>
+                    """
+                ),
+                unsafe_allow_html=True,
             )
-        )
-    if cards:
-        st.markdown(f"<div class='chapter-strip'>{''.join(cards)}</div>", unsafe_allow_html=True)
 
 
 def render_detail_panels(items: List[Dict[str, str]]) -> None:
