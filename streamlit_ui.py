@@ -827,23 +827,48 @@ def scroll_page_to_top() -> None:
         """
         <script>
         const parentWindow = window.parent;
-        try {
-          parentWindow.scrollTo({ top: 0, behavior: "instant" });
-          const appView = parentWindow.document.querySelector("[data-testid='stAppViewContainer']");
-          if (appView) {
-            appView.scrollTo({ top: 0, behavior: "instant" });
+        const resetScroll = () => {
+          try {
+            parentWindow.scrollTo({ top: 0, left: 0, behavior: "auto" });
+            parentWindow.document.documentElement.scrollTop = 0;
+            parentWindow.document.body.scrollTop = 0;
+
+            const selectors = [
+              "[data-testid='stAppViewContainer']",
+              "section.main",
+              "div[data-testid='stAppViewBlockContainer']",
+              ".main"
+            ];
+
+            selectors.forEach((selector) => {
+              const target = parentWindow.document.querySelector(selector);
+              if (target) {
+                target.scrollTo({ top: 0, left: 0, behavior: "auto" });
+                target.scrollTop = 0;
+              }
+            });
+          } catch (error) {
+            try {
+              parentWindow.scrollTo(0, 0);
+            } catch (_) {}
           }
-          const mainSection = parentWindow.document.querySelector("section.main");
-          if (mainSection) {
-            mainSection.scrollTo({ top: 0, behavior: "instant" });
-          }
-        } catch (error) {
-          parentWindow.scrollTo(0, 0);
-        }
+        };
+
+        resetScroll();
+        requestAnimationFrame(resetScroll);
+        setTimeout(resetScroll, 60);
+        setTimeout(resetScroll, 180);
+        setTimeout(resetScroll, 360);
         </script>
         """,
         height=0,
     )
+
+
+def render_pending_scroll_to_top() -> None:
+    """在页面主体渲染完成后再次触发回顶。"""
+    if st.session_state.pop("_scroll_to_top_after_render", False):
+        scroll_page_to_top()
 
 
 def _clean_html(markup: str) -> str:
@@ -907,7 +932,9 @@ def setup_page(page_title: str, icon: str = "🏔️") -> None:
     init_session_state()
     bootstrap_repository_content()
     sync_activity_from_query()
-    if st.session_state.pop("_scroll_to_top_once", False):
+    should_scroll = st.session_state.pop("_scroll_to_top_once", False)
+    if should_scroll:
+        st.session_state["_scroll_to_top_after_render"] = True
         scroll_page_to_top()
     render_minimal_sidebar()
 

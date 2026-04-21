@@ -17,6 +17,7 @@ from streamlit_ui import (
     render_formal_script,
     render_game_status_board,
     render_hero,
+    render_pending_scroll_to_top,
     render_section,
     render_top_nav,
     setup_page,
@@ -715,3 +716,5 @@ if knowledge_bundle:
             st.write(item.get("summary", item.get("answer", "")))
 else:
     st.info("当前节点暂无额外知识卡片。")
+
+render_pending_scroll_to_top()
