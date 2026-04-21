@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import html
-
 import streamlit as st
 
 from content_store import get_chapter_for_node, get_route_chapters, get_route_node_data
@@ -11,7 +9,6 @@ from media import render_audio_player, render_digital_human, render_node_image
 from rag import get_rag_status
 from sample_content import load_home_sample_content
 from streamlit_ui import (
-    _clean_html,
     render_chapter_overview_cards,
     render_curatorial_note,
     render_detail_panels,
@@ -92,76 +89,34 @@ def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
 
 def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str) -> None:
     """渲染路线入口卡。"""
-    node_markup = "".join(
-        f"<span style='display:inline-flex;align-items:center;padding:0.18rem 0.58rem;border-radius:999px;"
-        f"background:rgba(123,23,54,0.08);border:1px solid rgba(123,23,54,0.12);font-size:0.82rem;"
-        f"color:#7b1736;margin:0 0.38rem 0.38rem 0;'>{html.escape(node)}</span>"
-        for node in nodes[:4]
-    )
-    st.markdown(
-        _clean_html(
-            f"""
-        <div style="
-            border-radius:24px;
-            padding:1rem 1.05rem 1rem;
-            background:linear-gradient(180deg, rgba(255,252,250,0.96), rgba(247,239,236,0.94));
-            border:1px solid rgba(139,38,66,0.16);
-            box-shadow:0 12px 30px rgba(78,16,33,0.08);
-            margin:0 0 0.95rem;
-        ">
-            <div style="color:#8a2947;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">{html.escape(label)}</div>
-            <div style="color:#5b112d;font-size:1.32rem;font-weight:700;margin-bottom:0.45rem;">{html.escape(title)}</div>
-            <div style="color:#5a5047;font-size:0.96rem;line-height:1.82;margin-bottom:0.8rem;">{html.escape(body)}</div>
-            <div style="display:flex;flex-wrap:wrap;">{node_markup or "<span style='color:#7a6350;font-size:0.88rem;'>沿着这条路线进入对应节点。</span>"}</div>
-        </div>
-        """
-        ),
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.caption(label)
+        st.markdown(f"### {title}")
+        st.write(body)
+        if nodes:
+            st.caption("沿线节点")
+            st.write(" · ".join(nodes[:4]))
+        else:
+            st.caption("沿着这条路线进入对应节点。")
 
 
 def _render_route_overview_board(chapters: list[dict[str, object]]) -> None:
     """渲染首页路线总览展板。"""
-    chapter_markup = "".join(
-        f"""
-        <div style="
-            border-radius:18px;
-            padding:0.9rem 0.95rem;
-            background:rgba(255,252,250,0.92);
-            border:1px solid rgba(139,38,66,0.14);
-        ">
-            <div style="color:#8a2947;font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.22rem;">{html.escape(str(chapter.get('badge', '篇章')))}</div>
-            <div style="color:#5b112d;font-size:1rem;font-weight:700;margin-bottom:0.28rem;">{html.escape(str(chapter.get('title', '')))}</div>
-            <div style="color:#675646;font-size:0.88rem;line-height:1.72;margin-bottom:0.35rem;">{html.escape(str(chapter.get('subtitle', '')))}</div>
-            <div style="color:#7b6147;font-size:0.84rem;line-height:1.62;">代表节点：{html.escape('、'.join(node.get('title', '') for node in chapter.get('nodes', [])[:3]))}</div>
-        </div>
-        """
-        for chapter in chapters[:4]
-    )
-    st.markdown(
-        _clean_html(
-            f"""
-        <div style="
-            border-radius:28px;
-            padding:1.1rem 1.15rem;
-            background:linear-gradient(180deg, rgba(255,252,250,0.96), rgba(247,239,236,0.94));
-            border:1px solid rgba(139,38,66,0.16);
-            box-shadow:0 14px 34px rgba(78,16,33,0.08);
-            margin:0 0 1rem;
-        ">
-            <div style="color:#8a2947;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem;">路线总览</div>
-            <div style="color:#5b112d;font-size:1.52rem;font-weight:700;margin-bottom:0.45rem;">沿着主线进入长征征程</div>
-            <div style="color:#5a5047;font-size:0.96rem;line-height:1.86;margin-bottom:0.95rem;">
-                先把握“出发与突围、转折与调整、巧渡与突破、北上会师”四大篇章，再从推荐路线进入具体节点，浏览时会更像沿着主线逐步展开，而不是零散地点开。
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.8rem;">
-                {chapter_markup}
-            </div>
-        </div>
-        """
-        ),
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.caption("路线总览")
+        st.markdown("## 沿着主线进入长征征程")
+        st.write("先把握“出发与突围、转折与调整、巧渡与突破、北上会师”四大篇章，再从推荐路线进入具体节点，浏览时会更像沿着主线逐步展开，而不是零散地点开。")
+        chapter_cols = st.columns(2)
+        for index, chapter in enumerate(chapters[:4]):
+            with chapter_cols[index % 2]:
+                render_curatorial_note(
+                    title=str(chapter.get("title", "")),
+                    body=str(chapter.get("subtitle", "")),
+                    label=str(chapter.get("badge", "篇章")),
+                )
+                node_titles = [node.get("title", "") for node in chapter.get("nodes", [])[:3] if node.get("title")]
+                if node_titles:
+                    st.caption("代表节点：" + "、".join(node_titles))
 
 
 setup_page("首页", icon="🏛️")
