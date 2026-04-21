@@ -144,6 +144,9 @@ with tab4:
             section_text=current_story.get("script", ""),
             avatar_path="assets/avatar/guide.svg",
             audio_path=audio_path,
+            title=current_story.get("title", "长征故事"),
+            subtitle=current_story.get("subtitle", "沿着长征主线继续进入这一段历史叙事。"),
+            cache_key=f"quick-story::{current_story.get('id', 'overall_story')}",
         )
     st.markdown("#### 延伸阅读")
     for question in current_story.get("questions", [])[:3]:

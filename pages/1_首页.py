@@ -301,6 +301,9 @@ with story_left:
             section_text=selected_story.get("script", ""),
             avatar_path="assets/avatar/guide.svg",
             audio_path=audio_path,
+            title=selected_story.get("title", "长征故事"),
+            subtitle=selected_story.get("subtitle", "沿着长征主线继续进入这一段历史叙事。"),
+            cache_key=f"home-story::{selected_story.get('id', 'overall_story')}",
         )
 with story_right:
     lead_story_node = get_route_node_data(selected_story.get("lead_node_id", "")) or {}

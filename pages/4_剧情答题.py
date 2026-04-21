@@ -8,7 +8,7 @@ from certificate import generate_certificate_svg
 from dashboard_data import record_answer_event, record_participation_event, record_share_event
 from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
-from media import render_audio_player, render_node_image, render_svg_artwork
+from media import render_audio_player, render_digital_human, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
 from streamlit_ui import (
     render_boss_stage_intro,
@@ -60,6 +60,19 @@ def _ensure_story_state() -> dict:
         )
         st.session_state[enter_key] = True
     return story_state
+
+
+def _build_boss_outcome_script(outcome: dict) -> str:
+    """将大关复盘信息整理为可直接播报的讲解文本。"""
+    if not outcome:
+        return ""
+    parts = [
+        str(outcome.get("title", "") or "").strip(),
+        str(outcome.get("lead", "") or "").strip(),
+        str(outcome.get("focus", "") or "").strip(),
+        str(outcome.get("closing", "") or "").strip(),
+    ]
+    return "\n\n".join(part for part in parts if part)
 
 
 setup_page("剧情答题", icon="🎮")
@@ -282,6 +295,28 @@ render_detail_panels(
 )
 if stage.get("boss_stage"):
     render_boss_stage_intro(stage.get("boss_stage", {}))
+    boss_media_left, boss_media_right = st.columns([1, 1])
+    with boss_media_left:
+        boss_audio_path = render_audio_player(
+            text=stage.get("story_script", ""),
+            cache_key=f"boss-prologue::{node.get('id', '')}",
+            button_label="播放大关过场",
+        )
+    with boss_media_right:
+        if st.button("切换大关讲解员模式", key=f"boss_digital::{node.get('id', '')}", width="stretch"):
+            st.session_state[f"boss_digital::{node.get('id', '')}"] = not st.session_state.get(
+                f"boss_digital::{node.get('id', '')}",
+                False,
+            )
+    if st.session_state.get(f"boss_digital::{node.get('id', '')}", False):
+        render_digital_human(
+            section_text=stage.get("story_script", ""),
+            avatar_path=node.get("avatar", "assets/avatar/guide.svg"),
+            audio_path=boss_audio_path,
+            title=f"{node.get('title', '关键大关')}战役过场",
+            subtitle=stage.get("campaign_title", "关键大关"),
+            cache_key=f"boss-prologue::{node.get('id', '')}",
+        )
 
 render_game_status_board(
     [
@@ -562,6 +597,38 @@ if last_result and last_result.get("answer_detail"):
         st.info(last_result.get("role_feedback", ""))
     if last_result.get("boss_stage_outcome"):
         render_boss_stage_outcome(last_result.get("boss_stage_outcome", {}))
+        boss_outcome_script = _build_boss_outcome_script(last_result.get("boss_stage_outcome", {}))
+        debrief_left, debrief_right = st.columns([1, 1])
+        with debrief_left:
+            boss_outcome_audio = render_audio_player(
+                text=boss_outcome_script,
+                cache_key=f"boss-outcome::{answered_node.get('id', node.get('id', ''))}",
+                button_label="播放战役复盘",
+            )
+        with debrief_right:
+            if st.button(
+                "切换复盘讲解员模式",
+                key=f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}",
+                width="stretch",
+            ):
+                st.session_state[
+                    f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}"
+                ] = not st.session_state.get(
+                    f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}",
+                    False,
+                )
+        if st.session_state.get(
+            f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}",
+            False,
+        ):
+            render_digital_human(
+                section_text=boss_outcome_script,
+                avatar_path=answered_node.get("avatar", "assets/avatar/guide.svg"),
+                audio_path=boss_outcome_audio,
+                title=f"{answered_node.get('title', node.get('title', '关键大关'))}战役复盘",
+                subtitle="大关结算 · 历史回响",
+                cache_key=f"boss-outcome::{answered_node.get('id', node.get('id', ''))}",
+            )
 
     st.markdown(f"### 正确答案解析 | {answered_node.get('title', node.get('title', '当前关卡'))}")
     st.write(detail.get("explanation", ""))

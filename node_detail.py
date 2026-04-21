@@ -316,7 +316,7 @@ def render_node_detail(
     with media_left:
         audio_path = render_audio_player(
             text=narration_text,
-            cache_key=f"{key_prefix}-{node_id}",
+            cache_key=f"node-story::{node_id}",
             button_label="播放语音讲解",
         )
     with media_right:
@@ -328,6 +328,9 @@ def render_node_detail(
             section_text=narration_text,
             avatar_path=node.get("avatar", "assets/avatar/guide.svg"),
             audio_path=audio_path,
+            title=f"{node.get('title', '长征节点')}节点讲解",
+            subtitle=f"{node.get('date', '未标注')} · {node.get('place', '未标注')}",
+            cache_key=f"node-story::{node_id}",
         )
 
     if source_cards:

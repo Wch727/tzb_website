@@ -10,7 +10,7 @@ from content_store import (
     get_related_nodes_for_figure,
     load_figures_data,
 )
-from media import render_node_image
+from media import render_audio_player, render_digital_human, render_node_image
 from streamlit_ui import (
     render_curatorial_note,
     render_detail_panels,
@@ -77,6 +77,29 @@ render_formal_script(
         "资料依据：官方党史资料",
     ],
 )
+audio_left, audio_right = st.columns([1, 1])
+with audio_left:
+    figure_audio_path = render_audio_player(
+        text=story_script,
+        cache_key=f"figure-story::{figure.get('id', figure.get('title', 'figure'))}",
+        button_label="播放人物讲解",
+    )
+with audio_right:
+    if st.button("切换人物讲解员模式", key=f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}", width="stretch"):
+        st.session_state[f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}"] = not st.session_state.get(
+            f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}",
+            False,
+        )
+
+if st.session_state.get(f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}", False):
+    render_digital_human(
+        section_text=story_script,
+        avatar_path=figure.get("avatar", "assets/avatar/guide.svg"),
+        audio_path=figure_audio_path,
+        title=f"{figure.get('title', '重要人物')}人物讲解",
+        subtitle=figure.get("role", "党的重要领导人"),
+        cache_key=f"figure-story::{figure.get('id', figure.get('title', 'figure'))}",
+    )
 
 render_section("专题信息板", "从人物经历、长征角色与历史贡献三个维度理解该人物。")
 render_detail_panels(

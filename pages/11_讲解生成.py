@@ -101,6 +101,9 @@ with tab1:
                 section_text=result.get("script", ""),
                 avatar_path=selected_node.get("avatar", "assets/avatar/guide.svg"),
                 audio_path=audio_path,
+                title=f"{st.session_state.get('guide_page_topic', '长征主题')}讲解",
+                subtitle="讲解工坊 · 正式讲解词",
+                cache_key=f"guide-page-{st.session_state.get('guide_page_topic', 'topic')}",
             )
         render_sources(result.get("sources", []), title="本次讲解稿使用的知识片段")
 
@@ -148,5 +151,8 @@ with tab2:
                 section_text=result.get("script", ""),
                 avatar_path=selected_node.get("avatar", "assets/avatar/guide.svg"),
                 audio_path=audio_path,
+                title=f"{st.session_state.get('video_page_topic', '长征主题')}脚本讲解",
+                subtitle="讲解工坊 · 视频叙事脚本",
+                cache_key=f"video-page-{st.session_state.get('video_page_topic', 'topic')}",
             )
         render_sources(result.get("sources", []), title="本次脚本使用的知识片段")
