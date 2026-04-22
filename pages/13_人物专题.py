@@ -85,13 +85,14 @@ with audio_left:
         button_label="播放人物讲解",
     )
 with audio_right:
-    if st.button("切换人物讲解员模式", key=f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}", width="stretch"):
-        st.session_state[f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}"] = not st.session_state.get(
-            f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}",
+    figure_state_key = f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}"
+    if st.button("切换人物讲解员模式", key=f"btn::{figure_state_key}", width="stretch"):
+        st.session_state[figure_state_key] = not st.session_state.get(
+            figure_state_key,
             False,
         )
 
-if st.session_state.get(f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}", False):
+if st.session_state.get(figure_state_key, False):
     render_digital_human(
         section_text=story_script,
         avatar_path=figure.get("avatar", "assets/avatar/guide_digital_host.png"),

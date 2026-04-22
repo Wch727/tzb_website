@@ -306,12 +306,13 @@ if stage.get("boss_stage"):
             button_label="播放大关过场",
         )
     with boss_media_right:
-        if st.button("切换大关讲解员模式", key=f"boss_digital::{node.get('id', '')}", width="stretch"):
-            st.session_state[f"boss_digital::{node.get('id', '')}"] = not st.session_state.get(
-                f"boss_digital::{node.get('id', '')}",
+        boss_digital_key = f"boss_digital::{node.get('id', '')}"
+        if st.button("切换大关讲解员模式", key=f"btn::{boss_digital_key}", width="stretch"):
+            st.session_state[boss_digital_key] = not st.session_state.get(
+                boss_digital_key,
                 False,
             )
-    if st.session_state.get(f"boss_digital::{node.get('id', '')}", False):
+    if st.session_state.get(boss_digital_key, False):
         render_digital_human(
             section_text=stage.get("story_script", ""),
             avatar_path=node.get("avatar", "assets/avatar/guide_digital_host.png"),
@@ -609,21 +610,17 @@ if last_result and last_result.get("answer_detail"):
                 button_label="播放战役复盘",
             )
         with debrief_right:
+            boss_outcome_key = f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}"
             if st.button(
                 "切换复盘讲解员模式",
-                key=f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}",
+                key=f"btn::{boss_outcome_key}",
                 width="stretch",
             ):
-                st.session_state[
-                    f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}"
-                ] = not st.session_state.get(
-                    f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}",
+                st.session_state[boss_outcome_key] = not st.session_state.get(
+                    boss_outcome_key,
                     False,
                 )
-        if st.session_state.get(
-            f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}",
-            False,
-        ):
+        if st.session_state.get(boss_outcome_key, False):
             render_digital_human(
                 section_text=boss_outcome_script,
                 avatar_path=answered_node.get("avatar", "assets/avatar/guide_digital_host.png"),
