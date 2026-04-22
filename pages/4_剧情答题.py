@@ -314,7 +314,7 @@ if stage.get("boss_stage"):
     if st.session_state.get(f"boss_digital::{node.get('id', '')}", False):
         render_digital_human(
             section_text=stage.get("story_script", ""),
-            avatar_path=node.get("avatar", "assets/avatar/guide_photo.jpg"),
+            avatar_path=node.get("avatar", "assets/avatar/guide_digital_host.png"),
             audio_path=boss_audio_path,
             title=f"{node.get('title', '关键大关')}战役过场",
             subtitle=stage.get("campaign_title", "关键大关"),
@@ -626,7 +626,7 @@ if last_result and last_result.get("answer_detail"):
         ):
             render_digital_human(
                 section_text=boss_outcome_script,
-                avatar_path=answered_node.get("avatar", "assets/avatar/guide_photo.jpg"),
+                avatar_path=answered_node.get("avatar", "assets/avatar/guide_digital_host.png"),
                 audio_path=boss_outcome_audio,
                 title=f"{answered_node.get('title', node.get('title', '关键大关'))}战役复盘",
                 subtitle="大关结算 · 历史回响",

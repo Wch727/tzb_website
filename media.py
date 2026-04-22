@@ -13,7 +13,7 @@ from content_store import load_image_map
 from tts import resolve_existing_audio, synthesize_text_to_audio
 from utils import AVATAR_DIR, BASE_DIR, IMAGE_DIR, get_settings
 
-DEFAULT_GUIDE_AVATAR = "assets/avatar/guide_photo.jpg"
+DEFAULT_GUIDE_AVATAR = "assets/avatar/guide_digital_host.png"
 
 
 def _resolve_asset_path(path_like: str) -> Path:

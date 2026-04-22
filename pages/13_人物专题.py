@@ -94,7 +94,7 @@ with audio_right:
 if st.session_state.get(f"figure_digital::{figure.get('id', figure.get('title', 'figure'))}", False):
     render_digital_human(
         section_text=story_script,
-        avatar_path=figure.get("avatar", "assets/avatar/guide_photo.jpg"),
+        avatar_path=figure.get("avatar", "assets/avatar/guide_digital_host.png"),
         audio_path=figure_audio_path,
         title=f"{figure.get('title', '重要人物')}人物讲解",
         subtitle=figure.get("role", "党的重要领导人"),

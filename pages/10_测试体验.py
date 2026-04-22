@@ -142,7 +142,7 @@ with tab4:
     if st.toggle("讲解员模式", key=f"quick_story_avatar::{current_story.get('id', '')}"):
         render_digital_human(
             section_text=current_story.get("script", ""),
-            avatar_path="assets/avatar/guide_photo.jpg",
+            avatar_path="assets/avatar/guide_digital_host.png",
             audio_path=audio_path,
             title=current_story.get("title", "长征故事"),
             subtitle=current_story.get("subtitle", "沿着长征主线继续进入这一段历史叙事。"),

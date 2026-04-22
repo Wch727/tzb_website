@@ -99,7 +99,7 @@ with tab1:
         if st.session_state.get("guide_digital_mode", False):
             render_digital_human(
                 section_text=result.get("script", ""),
-                avatar_path=selected_node.get("avatar", "assets/avatar/guide_photo.jpg"),
+                avatar_path=selected_node.get("avatar", "assets/avatar/guide_digital_host.png"),
                 audio_path=audio_path,
                 title=f"{st.session_state.get('guide_page_topic', '长征主题')}讲解",
                 subtitle="讲解工坊 · 正式讲解词",
@@ -149,7 +149,7 @@ with tab2:
         if st.session_state.get("video_digital_mode", False):
             render_digital_human(
                 section_text=result.get("script", ""),
-                avatar_path=selected_node.get("avatar", "assets/avatar/guide_photo.jpg"),
+                avatar_path=selected_node.get("avatar", "assets/avatar/guide_digital_host.png"),
                 audio_path=audio_path,
                 title=f"{st.session_state.get('video_page_topic', '长征主题')}脚本讲解",
                 subtitle="讲解工坊 · 视频叙事脚本",
