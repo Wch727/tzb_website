@@ -17,6 +17,7 @@ from streamlit_ui import (
     render_formal_script,
     render_game_status_board,
     render_hero,
+    render_scroll_anchor,
     render_pending_scroll_to_top,
     render_section,
     render_top_nav,
@@ -77,6 +78,7 @@ def _build_boss_outcome_script(outcome: dict) -> str:
 
 
 setup_page("剧情答题", icon="🎮")
+render_scroll_anchor()
 render_top_nav("剧情答题")
 render_hero(
     title="剧情答题",

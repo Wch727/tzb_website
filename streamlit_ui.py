@@ -821,17 +821,22 @@ def inject_custom_css() -> None:
     st.markdown(css, unsafe_allow_html=True)
 
 
-def scroll_page_to_top() -> None:
+def scroll_page_to_top(anchor_id: str = "codex-scroll-top") -> None:
     """在页面重渲染后把视角拉回顶部。"""
-    components.html(
-        """
+    script = """
         <script>
         const parentWindow = window.parent;
+        const anchorId = "__ANCHOR_ID__";
         const resetScroll = () => {
           try {
             parentWindow.scrollTo({ top: 0, left: 0, behavior: "auto" });
             parentWindow.document.documentElement.scrollTop = 0;
             parentWindow.document.body.scrollTop = 0;
+
+            const anchor = parentWindow.document.getElementById(anchorId);
+            if (anchor) {
+              anchor.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+            }
 
             const selectors = [
               "[data-testid='stAppViewContainer']",
@@ -859,8 +864,19 @@ def scroll_page_to_top() -> None:
         setTimeout(resetScroll, 60);
         setTimeout(resetScroll, 180);
         setTimeout(resetScroll, 360);
+        setTimeout(resetScroll, 720);
+        let attempts = 0;
+        const timer = setInterval(() => {
+          resetScroll();
+          attempts += 1;
+          if (attempts >= 12) {
+            clearInterval(timer);
+          }
+        }, 160);
         </script>
-        """,
+        """.replace("__ANCHOR_ID__", anchor_id)
+    components.html(
+        script,
         height=0,
     )
 
@@ -869,6 +885,14 @@ def render_pending_scroll_to_top() -> None:
     """在页面主体渲染完成后再次触发回顶。"""
     if st.session_state.pop("_scroll_to_top_after_render", False):
         scroll_page_to_top()
+
+
+def render_scroll_anchor(anchor_id: str = "codex-scroll-top") -> None:
+    """在页面顶部渲染可供脚本定位的锚点。"""
+    st.markdown(
+        f"<div id='{anchor_id}' style='position:relative; top:0; height:1px; margin:0; padding:0;'></div>",
+        unsafe_allow_html=True,
+    )
 
 
 def _clean_html(markup: str) -> str:
