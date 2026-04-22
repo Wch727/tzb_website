@@ -217,7 +217,7 @@ def generate_node_explanation(
         "date": node.get("date", ""),
         "place": node.get("place", ""),
         "image": node.get("image", ""),
-        "avatar": node.get("avatar", "assets/avatar/guide.svg"),
+        "avatar": node.get("avatar", "assets/avatar/guide_photo.jpg"),
         "quiz_explanation": static_details.get("explanation", ""),
         "extended_note": static_details.get("extended_note", ""),
         "key_points": node.get("key_points", []),

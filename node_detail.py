@@ -326,7 +326,7 @@ def render_node_detail(
     if st.session_state.get(f"show_digital::{node_id}", False):
         render_digital_human(
             section_text=narration_text,
-            avatar_path=node.get("avatar", "assets/avatar/guide.svg"),
+            avatar_path=node.get("avatar", "assets/avatar/guide_photo.jpg"),
             audio_path=audio_path,
             title=f"{node.get('title', '长征节点')}节点讲解",
             subtitle=f"{node.get('date', '未标注')} · {node.get('place', '未标注')}",

@@ -266,7 +266,7 @@ with story_left:
     if st.toggle("讲解员模式", key=f"story_digital::{selected_story.get('id', '')}"):
         render_digital_human(
             section_text=selected_story.get("script", ""),
-            avatar_path="assets/avatar/guide.svg",
+            avatar_path="assets/avatar/guide_photo.jpg",
             audio_path=audio_path,
             title=selected_story.get("title", "长征故事"),
             subtitle=selected_story.get("subtitle", "沿着长征主线继续进入这一段历史叙事。"),

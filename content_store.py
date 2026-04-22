@@ -231,7 +231,7 @@ def load_route_nodes_data() -> List[Dict[str, Any]]:
         item["order"] = int(item.get("order", index))
         item["score"] = int(item.get("score", 10))
         item.setdefault("image_key", item.get("id", "") or item.get("title", ""))
-        item.setdefault("avatar", "assets/avatar/guide.svg")
+        item.setdefault("avatar", "assets/avatar/guide_photo.jpg")
         item.setdefault("summary", "")
         item.setdefault("background", "")
         item.setdefault("process", "")
