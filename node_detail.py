@@ -67,6 +67,26 @@ def _build_node_exhibit_script(node: Dict[str, Any]) -> str:
     return "\n\n".join(section for section in sections if section.strip())
 
 
+def _build_node_intro_text(node: Dict[str, Any], max_chars: int = 260) -> str:
+    """Build a fuller first-screen exhibit lead from static node content."""
+    parts = [
+        str(node.get("summary", "") or "").strip(),
+        str(node.get("background", "") or "").strip(),
+        str(node.get("process", "") or "").strip(),
+    ]
+    text = " ".join(part for part in parts if part)
+    if not text:
+        return "该节点是长征主线中的重要展项，可从历史背景、事件经过、关键人物和历史意义四个层面展开阅读。"
+    if len(text) <= max_chars:
+        return text
+    cut = text[:max_chars].rstrip("，。；、 ")
+    for mark in ["。", "；", "，"]:
+        index = cut.rfind(mark)
+        if index >= max_chars * 0.62:
+            return cut[: index + 1]
+    return f"{cut}……"
+
+
 def _source_cards_from_retrieval(node: Dict[str, Any], retrieval: Dict[str, Any]) -> List[Dict[str, Any]]:
     """整理节点详情使用到的依据卡片。"""
     source_cards = [
@@ -156,6 +176,7 @@ def render_node_detail(
     related_nodes = get_related_nodes(node, limit=3)
     related_questions = build_node_related_questions(node, limit=4)
     default_guide_script = build_node_story_script(node)
+    node_intro = _build_node_intro_text(node)
 
     st.markdown(
         f"""
@@ -170,10 +191,7 @@ def render_node_detail(
 
     render_curatorial_note(
         title=node.get("title", "长征节点"),
-        body=(
-            node.get("summary", "")
-            or "该节点是长征主线中的重要展项，可从历史背景、行动过程、战略意义与人物线索四个层面展开阅读。"
-        ),
+        body=node_intro,
         label="展项导语",
     )
 
@@ -188,7 +206,7 @@ def render_node_detail(
             f"**主线位置**：{node.get('route_stage', '未标注')}"
         )
         st.markdown("### 节点导读")
-        st.write(node.get("summary", "暂无摘要说明。"))
+        st.write(node_intro)
         if related_questions:
             st.markdown("### 本节点可继续追问")
             for question in related_questions:

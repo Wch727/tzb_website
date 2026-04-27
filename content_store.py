@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from utils import DATA_DIR, normalize_knowledge_type
 
+POLISHED_NODE_NARRATIVES: Dict[str, Dict[str, Any]] = {}
 
 ROUTE_CHAPTERS: List[Dict[str, Any]] = [
     {
@@ -240,6 +241,9 @@ def load_route_nodes_data() -> List[Dict[str, Any]]:
         item.setdefault("key_points", [])
         item.setdefault("related_nodes", [])
         item.setdefault("quiz", {})
+        narrative_override = POLISHED_NODE_NARRATIVES.get(str(item.get("id", "") or ""))
+        if narrative_override:
+            item.update({key: value for key, value in narrative_override.items() if value})
         nodes.append(item)
     nodes.sort(key=lambda row: int(row.get("order", 0)))
     return nodes
@@ -1149,6 +1153,14 @@ def clear_content_caches() -> None:
     load_places_data.cache_clear()
     load_spirit_topics.cache_clear()
     load_faq_items.cache_clear()
+
+
+try:
+    from node_narratives import POLISHED_NODE_NARRATIVES as _POLISHED_NODE_NARRATIVES
+
+    POLISHED_NODE_NARRATIVES.update(_POLISHED_NODE_NARRATIVES)
+except Exception:
+    pass
 
 
 try:
