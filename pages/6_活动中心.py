@@ -121,6 +121,35 @@ with right:
     else:
         st.info("活动分享链接已生成，可通过链接组织访问。")
 
+pending_team_id = st.session_state.get("pending_team_id", "")
+pending_team = get_team(pending_team_id) if pending_team_id else {}
+if pending_team and pending_team.get("activity_id") == current_activity_id:
+    st.info(
+        f"你正在通过“{pending_team.get('team_name', '')}”小队二维码进入活动，"
+        f"所属单位：{pending_team.get('branch_name', '')}。"
+    )
+    join_cols = st.columns([1, 1])
+    with join_cols[0]:
+        if st.button("加入该小队", key=f"join_pending_{pending_team_id}", width="stretch", type="primary"):
+            joined = join_team(
+                team_id=pending_team_id,
+                user_name=st.session_state.get("user_name", "红色学习者"),
+                unit_name=st.session_state.get("unit_name", pending_team.get("branch_name", "体验组")),
+                role_name=st.session_state.get("selected_role_name", "侦察兵"),
+            )
+            if joined:
+                st.session_state["current_team_id"] = joined.get("team_id", "")
+                st.session_state["current_team_name"] = joined.get("team_name", "")
+                st.session_state["current_branch_name"] = joined.get("branch_name", "")
+                st.session_state["pending_team_id"] = ""
+                st.success(f"已加入小队：{joined.get('team_name', '')}")
+                st.rerun()
+            st.error("加入失败，可能是队伍已满。")
+    with join_cols[1]:
+        if st.button("暂不加入", key=f"ignore_pending_{pending_team_id}", width="stretch"):
+            st.session_state["pending_team_id"] = ""
+            st.rerun()
+
 info_tab, team_tab, pk_tab, share_tab = st.tabs(["活动范围", "红军小队", "支部对抗", "战绩分享"])
 
 with info_tab:
@@ -177,6 +206,12 @@ with team_tab:
                     _sync_current_team(current_activity_id)
                     st.success("已退出小队。")
                     st.rerun()
+                st.markdown("### 小队专属二维码")
+                team_link = build_activity_share_link(activity, team_id=current_team.get("team_id", ""))
+                st.text_input("小队分享链接", value=team_link, disabled=True, key=f"team_link_{current_team.get('team_id', '')}")
+                team_qr = build_activity_qr_bytes(team_link)
+                if team_qr:
+                    st.image(team_qr, caption=f"{current_team.get('team_name', '')} 小队二维码", width=220)
 
         create_col, join_col = st.columns(2)
         with create_col:
@@ -213,6 +248,17 @@ with team_tab:
                         f"队员 {len(item.get('members', []))}/{item.get('max_team_size', 6)} | "
                         f"总分 {item.get('total_score', 0)}"
                     )
+                    team_share_link = build_activity_share_link(activity, team_id=item.get("team_id", ""))
+                    with st.expander("查看小队二维码", expanded=False):
+                        st.text_input(
+                            "小队分享链接",
+                            value=team_share_link,
+                            disabled=True,
+                            key=f"team_list_link_{item.get('team_id', '')}",
+                        )
+                        team_list_qr = build_activity_qr_bytes(team_share_link)
+                        if team_list_qr:
+                            st.image(team_list_qr, caption=f"{item.get('team_name', '')} 小队二维码", width=180)
                     if st.button(f"加入 {item.get('team_name', '')}", key=f"join_{item.get('team_id')}", width="stretch"):
                         joined = join_team(
                             team_id=item.get("team_id", ""),

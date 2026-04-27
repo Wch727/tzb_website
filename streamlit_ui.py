@@ -925,6 +925,7 @@ def init_session_state() -> None:
         "current_team_id": "",
         "current_team_name": "",
         "current_branch_name": "",
+        "pending_team_id": "",
         "story_state": {},
         "progress_snapshot": {},
     }
@@ -935,13 +936,19 @@ def init_session_state() -> None:
 
 
 def sync_activity_from_query() -> None:
-    """从查询参数中同步活动选择。"""
+    """从查询参数中同步活动与小队入口。"""
     try:
         activity_id = str(st.query_params.get("activity_id", "") or "").strip()
     except Exception:
         activity_id = ""
     if activity_id:
         st.session_state["current_activity_id"] = activity_id
+    try:
+        team_id = str(st.query_params.get("team_id", "") or "").strip()
+    except Exception:
+        team_id = ""
+    if team_id:
+        st.session_state["pending_team_id"] = team_id
 
 
 def setup_page(page_title: str, icon: str = "🏔️") -> None:

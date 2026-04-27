@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import io
+import os
 import secrets
 from datetime import datetime
 from typing import Any, Dict, List
+from urllib.parse import quote, urlencode, urlsplit, urlunsplit
 
 from utils import RUNTIME_DIR, get_settings, read_json, write_json
 
@@ -177,12 +179,28 @@ def update_activity(activity_id: str, patch: Dict[str, Any]) -> Dict[str, Any]:
     return updated
 
 
-def build_activity_share_link(activity: Dict[str, Any]) -> str:
-    """生成活动分享链接。"""
-    base_url = str(get_settings().get("public_base_url", "") or "").strip()
+def _public_base_url() -> str:
+    """读取公开访问根地址，避免二维码只有相对路径。"""
+    base_url = str(os.getenv("PUBLIC_BASE_URL") or get_settings().get("public_base_url", "") or "").strip()
+    if not base_url:
+        return ""
+    parsed = urlsplit(base_url)
+    if parsed.scheme and parsed.netloc:
+        return urlunsplit((parsed.scheme, parsed.netloc, "", "", "")).rstrip("/")
+    return base_url.rstrip("/")
+
+
+def build_activity_share_link(activity: Dict[str, Any], team_id: str = "") -> str:
+    """生成可扫码访问的活动或小队分享链接。"""
+    params = {"activity_id": activity.get("activity_id", "")}
+    if team_id:
+        params["team_id"] = team_id
+    query = urlencode({key: value for key, value in params.items() if value})
+    base_url = _public_base_url()
+    page_path = f"/{quote('活动中心')}"
     if base_url:
-        return f"{base_url.rstrip('/')}/?activity_id={activity.get('activity_id', '')}"
-    return f"?activity_id={activity.get('activity_id', '')}"
+        return f"{base_url}{page_path}?{query}"
+    return f"{page_path}?{query}"
 
 
 def build_activity_qr_bytes(link: str) -> bytes:
@@ -195,4 +213,3 @@ def build_activity_qr_bytes(link: str) -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()
-

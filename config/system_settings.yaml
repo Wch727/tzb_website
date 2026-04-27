@@ -8,7 +8,9 @@ default_topic: "长征史"
 default_provider: "moonshot"
 default_model: "kimi-k2.5"
 allow_mock_provider: true
-repository_content_notice: "正式展示内容以仓库内置 data/ 与 assets/ 为准，后台上传仅用于临时演示或补充导入。"
+public_base_url: "https://tzbwebsite-hvpcfpjbbwetrrumyird28.streamlit.app"
+debug_image_resolver: false
+repository_content_notice: "正式展示内容以仓库内置内容为准，后台上传与活动配置用于补充演示。"
 supported_extensions:
   - ".txt"
   - ".md"
