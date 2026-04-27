@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from content_store import (
@@ -12,8 +14,8 @@ from content_store import (
 )
 from media import render_audio_player, render_digital_human, render_node_image
 from streamlit_ui import (
+    _clean_html,
     render_curatorial_note,
-    render_detail_panels,
     render_formal_script,
     render_gallery_frame,
     render_ledger_cards,
@@ -27,6 +29,168 @@ def _jump_to_node(node_id: str) -> None:
     """跳转到主线节点。"""
     st.session_state["selected_node_id"] = node_id
     st.switch_page("pages/3_长征路线.py")
+
+
+def _script_paragraphs(script: str) -> list[str]:
+    """把人物讲解词拆成可展陈阅读的段落。"""
+    return [part.strip() for part in str(script or "").split("\n\n") if part.strip()]
+
+
+def _without_source_note(text: str) -> str:
+    """页面正文中不重复显示资料来源提示。"""
+    cleaned = str(text or "").strip()
+    for marker in ("依据", "资料依据", "从官方资料看"):
+        if cleaned.startswith(marker):
+            return ""
+    return cleaned
+
+
+def _merge_text(*parts: str) -> str:
+    """合并文本，过滤空段落。"""
+    return "\n\n".join(part.strip() for part in parts if str(part or "").strip())
+
+
+def _render_figure_exhibit_wall(figure: dict, story_script: str, related_nodes: list[dict]) -> None:
+    """渲染人物专题展墙，避免短卡片造成内容单薄。"""
+    paragraphs = [_without_source_note(part) for part in _script_paragraphs(story_script)]
+    paragraphs = [part for part in paragraphs if part]
+    background = _merge_text(figure.get("background", ""), paragraphs[0] if paragraphs else "")
+    role = _merge_text(
+        figure.get("long_march_role", ""),
+        "\n\n".join(paragraphs[1:3]) if len(paragraphs) > 1 else "",
+    )
+    significance = _merge_text(
+        figure.get("significance", ""),
+        "\n\n".join(paragraphs[3:]) if len(paragraphs) > 3 else "",
+    )
+    node_links = "".join(
+        f"<span class='figure-node-pill'>{html.escape(node.get('title', '长征节点'))}</span>"
+        for node in related_nodes[:5]
+    )
+    if not node_links:
+        node_links = "<span class='figure-node-pill'>长征主线</span>"
+
+    st.markdown(
+        _clean_html(
+            f"""
+            <style>
+            .figure-exhibit-wall {{
+                display: grid;
+                grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.6fr);
+                gap: 1.2rem;
+                margin: 1rem 0 1.6rem;
+            }}
+            .figure-archive-card,
+            .figure-scroll-panel {{
+                border: 1px solid rgba(137, 42, 54, 0.18);
+                border-radius: 28px;
+                background:
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 235, 0.88)),
+                    radial-gradient(circle at 10% 0%, rgba(137, 42, 54, 0.08), transparent 34%);
+                box-shadow: 0 18px 42px rgba(95, 35, 27, 0.08);
+            }}
+            .figure-archive-card {{
+                padding: 1.35rem;
+                position: sticky;
+                top: 1rem;
+                align-self: start;
+            }}
+            .figure-archive-label {{
+                color: #9b3148;
+                font-size: 0.88rem;
+                font-weight: 800;
+                letter-spacing: 0.16em;
+            }}
+            .figure-archive-card h3 {{
+                margin: 0.35rem 0 0.55rem;
+                color: #521824;
+                font-size: clamp(1.45rem, 2vw, 2.1rem);
+            }}
+            .figure-archive-role {{
+                color: #67514a;
+                line-height: 1.75;
+                font-size: 1rem;
+            }}
+            .figure-node-pills {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.55rem;
+                margin-top: 1rem;
+            }}
+            .figure-node-pill {{
+                border: 1px solid rgba(137, 42, 54, 0.22);
+                border-radius: 999px;
+                padding: 0.36rem 0.68rem;
+                color: #6b2432;
+                background: rgba(255, 246, 235, 0.82);
+                font-weight: 700;
+                font-size: 0.9rem;
+            }}
+            .figure-scroll-panel {{
+                padding: clamp(1.2rem, 2.4vw, 2.1rem);
+            }}
+            .figure-scroll-section + .figure-scroll-section {{
+                border-top: 1px solid rgba(137, 42, 54, 0.12);
+                margin-top: 1.35rem;
+                padding-top: 1.35rem;
+            }}
+            .figure-scroll-section span {{
+                color: #a33d52;
+                font-size: 0.9rem;
+                font-weight: 800;
+                letter-spacing: 0.12em;
+            }}
+            .figure-scroll-section h3 {{
+                margin: 0.28rem 0 0.8rem;
+                color: #48141f;
+                font-size: clamp(1.35rem, 2vw, 1.9rem);
+            }}
+            .figure-scroll-section p {{
+                margin: 0 0 0.78rem;
+                color: #3f312d;
+                line-height: 2.02;
+                font-size: 1.04rem;
+                text-align: justify;
+            }}
+            @media (max-width: 900px) {{
+                .figure-exhibit-wall {{
+                    grid-template-columns: 1fr;
+                }}
+                .figure-archive-card {{
+                    position: relative;
+                    top: auto;
+                }}
+            }}
+            </style>
+            <div class="figure-exhibit-wall">
+                <aside class="figure-archive-card">
+                    <div class="figure-archive-label">人物档案</div>
+                    <h3>{html.escape(figure.get('title', '重要人物'))}</h3>
+                    <div class="figure-archive-role">{html.escape(figure.get('role', '党的重要领导人'))}</div>
+                    <div class="figure-node-pills">{node_links}</div>
+                </aside>
+                <article class="figure-scroll-panel">
+                    <section class="figure-scroll-section">
+                        <span>第一部分</span>
+                        <h3>走进历史现场</h3>
+                        {''.join(f'<p>{html.escape(part)}</p>' for part in background.split(chr(10) + chr(10)) if part.strip())}
+                    </section>
+                    <section class="figure-scroll-section">
+                        <span>第二部分</span>
+                        <h3>长征中的关键作用</h3>
+                        {''.join(f'<p>{html.escape(part)}</p>' for part in role.split(chr(10) + chr(10)) if part.strip())}
+                    </section>
+                    <section class="figure-scroll-section">
+                        <span>第三部分</span>
+                        <h3>历史贡献</h3>
+                        {''.join(f'<p>{html.escape(part)}</p>' for part in significance.split(chr(10) + chr(10)) if part.strip())}
+                    </section>
+                </article>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 setup_page("人物专题", icon="🧑")
@@ -102,14 +266,8 @@ if st.session_state.get(figure_state_key, False):
         cache_key=f"figure-story::{figure.get('id', figure.get('title', 'figure'))}",
     )
 
-render_section("专题信息板", "从人物经历、长征角色与历史贡献三个维度理解该人物。")
-render_detail_panels(
-    [
-        {"title": "人物经历与历史背景", "desc": figure.get("background", "暂无补充说明。")},
-        {"title": "长征中的作用", "desc": figure.get("long_march_role", figure.get("summary", "暂无补充说明。"))},
-        {"title": "历史贡献", "desc": figure.get("significance", "暂无补充说明。")},
-    ]
-)
+render_section("人物专题长卷", "沿着人物经历、长征实践与历史贡献展开阅读。")
+_render_figure_exhibit_wall(figure, story_script, related_nodes)
 
 render_section("官方资料来源", "以下资料来自中国共产党新闻网、人民网党史频道等公开党史资料。")
 sources = figure.get("official_sources", []) or []

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from certificate import generate_certificate_svg
@@ -11,6 +13,7 @@ from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_digital_human, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
 from streamlit_ui import (
+    _clean_html,
     render_boss_stage_intro,
     render_boss_stage_outcome,
     render_detail_panels,
@@ -75,6 +78,163 @@ def _build_boss_outcome_script(outcome: dict) -> str:
         str(outcome.get("closing", "") or "").strip(),
     ]
     return "\n\n".join(part for part in parts if part)
+
+
+def _render_battle_briefing(stage: dict) -> None:
+    """用任务面板替代 Markdown 列表，增强剧情关卡的游戏化质感。"""
+    orders = [str(item).strip() for item in stage.get("squad_orders", []) if str(item).strip()]
+    logs = [str(item).strip() for item in stage.get("battle_log", [])[:3] if str(item).strip()]
+    if not orders and not logs:
+        return
+
+    orders_html = "".join(
+        f"""
+        <div class="mission-ticket">
+            <span>命令 {index:02d}</span>
+            <strong>{html.escape(item)}</strong>
+        </div>
+        """
+        for index, item in enumerate(orders, start=1)
+    )
+    logs_html = "".join(
+        f"""
+        <div class="war-log-line">
+            <span>记录 {index:02d}</span>
+            <p>{html.escape(item)}</p>
+        </div>
+        """
+        for index, item in enumerate(logs, start=1)
+    )
+    st.markdown(
+        _clean_html(
+            f"""
+            <style>
+            .battle-briefing {{
+                margin: 1.2rem 0 1.8rem;
+                border-radius: 30px;
+                overflow: hidden;
+                border: 1px solid rgba(138, 28, 43, 0.22);
+                background:
+                    linear-gradient(135deg, rgba(98, 18, 31, 0.96), rgba(151, 42, 54, 0.92)),
+                    radial-gradient(circle at top right, rgba(255, 224, 148, 0.26), transparent 34%);
+                box-shadow: 0 24px 54px rgba(91, 22, 30, 0.18);
+            }}
+            .battle-briefing-head {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1.05rem 1.35rem;
+                color: #fff8ea;
+                border-bottom: 1px solid rgba(255, 238, 210, 0.22);
+            }}
+            .battle-briefing-head span {{
+                border: 1px solid rgba(255, 239, 206, 0.44);
+                border-radius: 999px;
+                padding: 0.32rem 0.7rem;
+                font-size: 0.86rem;
+                font-weight: 800;
+                letter-spacing: 0.12em;
+            }}
+            .battle-briefing-head strong {{
+                font-size: clamp(1.18rem, 2vw, 1.68rem);
+                letter-spacing: 0.02em;
+            }}
+            .battle-briefing-head em {{
+                color: rgba(255, 248, 234, 0.82);
+                font-style: normal;
+                font-weight: 700;
+            }}
+            .battle-briefing-grid {{
+                display: grid;
+                grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+                gap: 1rem;
+                padding: 1.05rem;
+            }}
+            .battle-panel {{
+                border-radius: 24px;
+                padding: 1.05rem;
+                background: rgba(255, 250, 239, 0.94);
+                border: 1px solid rgba(255, 238, 210, 0.54);
+            }}
+            .battle-panel h3 {{
+                margin: 0 0 0.8rem;
+                color: #571625;
+                font-size: clamp(1.18rem, 2vw, 1.55rem);
+            }}
+            .mission-ticket {{
+                display: grid;
+                grid-template-columns: 86px 1fr;
+                gap: 0.75rem;
+                align-items: center;
+                padding: 0.82rem 0.9rem;
+                border-radius: 18px;
+                background: linear-gradient(135deg, rgba(255, 243, 222, 0.95), rgba(255, 255, 255, 0.9));
+                border: 1px solid rgba(138, 28, 43, 0.12);
+            }}
+            .mission-ticket + .mission-ticket,
+            .war-log-line + .war-log-line {{
+                margin-top: 0.72rem;
+            }}
+            .mission-ticket span,
+            .war-log-line span {{
+                color: #a54638;
+                font-size: 0.82rem;
+                font-weight: 900;
+                letter-spacing: 0.08em;
+            }}
+            .mission-ticket strong {{
+                color: #2f2522;
+                line-height: 1.65;
+                font-size: 1rem;
+            }}
+            .war-log-line {{
+                padding: 0.85rem 0.95rem;
+                border-radius: 18px;
+                background:
+                    linear-gradient(90deg, rgba(255, 244, 224, 0.96), rgba(255, 255, 255, 0.84));
+                border-left: 5px solid #9a2636;
+            }}
+            .war-log-line p {{
+                margin: 0.24rem 0 0;
+                color: #3f302c;
+                line-height: 1.78;
+                font-size: 1rem;
+            }}
+            @media (max-width: 900px) {{
+                .battle-briefing-grid {{
+                    grid-template-columns: 1fr;
+                }}
+                .battle-briefing-head {{
+                    align-items: flex-start;
+                    flex-direction: column;
+                }}
+                .mission-ticket {{
+                    grid-template-columns: 1fr;
+                }}
+            }}
+            </style>
+            <div class="battle-briefing">
+                <div class="battle-briefing-head">
+                    <span>行动简报</span>
+                    <strong>{html.escape(stage.get('node_title', stage.get('title', '当前关卡')))}</strong>
+                    <em>{html.escape(stage.get('campaign_title', '长征主线'))}</em>
+                </div>
+                <div class="battle-briefing-grid">
+                    <section class="battle-panel">
+                        <h3>小队命令</h3>
+                        {orders_html or '<div class="mission-ticket"><span>命令</span><strong>阅读背景，完成本关判断。</strong></div>'}
+                    </section>
+                    <section class="battle-panel">
+                        <h3>战地日志</h3>
+                        {logs_html or '<div class="war-log-line"><span>记录</span><p>本关暂无补充记录。</p></div>'}
+                    </section>
+                </div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 setup_page("剧情答题", icon="🎮")
@@ -477,14 +637,7 @@ render_detail_panels(
     ]
 )
 
-if stage.get("squad_orders"):
-    st.markdown("### 小队命令")
-    for idx, item in enumerate(stage.get("squad_orders", []), start=1):
-        st.markdown(f"- **命令 {idx}**：{item}")
-
-st.markdown("### 战地日志")
-for idx, log_line in enumerate(stage.get("battle_log", [])[:3], start=1):
-    st.markdown(f"- **记录 {idx}**：{log_line}")
+_render_battle_briefing(stage)
 
 render_section("本关行动策略", "先选行动策略，再进入作答。策略与关卡环境越匹配，奖励越高。")
 tactic_options = stage.get("tactic_options", []) or []
