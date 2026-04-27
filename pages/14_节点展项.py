@@ -7,7 +7,6 @@ import streamlit as st
 from content_store import get_chapter_for_node, get_route_chapters
 from game import get_route_node
 from node_detail import render_node_detail
-from quiz_engine import create_story_state, set_story_checkpoint
 from streamlit_ui import (
     build_current_provider_config,
     render_curatorial_note,
@@ -111,16 +110,15 @@ render_node_detail(
     key_prefix=f"node-exhibit::{selected_node_id}",
 )
 
-render_section("继续体验", "完成本展项阅读后，可进入本节点互动题，也可以回到选关大厅选择其他节点。")
+render_section("继续体验", "完成本展项阅读后，可进入闭卷闯关大厅，也可以回到选关大厅选择其他节点。")
 action_left, action_right = st.columns(2)
 with action_left:
-    if st.button("进入本节点互动题", width="stretch", type="primary"):
-        story_state = create_story_state(
-            role_id=st.session_state.get("selected_role_id", "scout"),
-            activity_id=st.session_state.get("current_activity_id", ""),
-            start_node_id=selected_node_id,
-        )
-        st.session_state["story_state"] = set_story_checkpoint(story_state, selected_node_id)
+    if st.button("进入本节点闭卷闯关", width="stretch", type="primary"):
+        st.session_state["pending_game_start_node_id"] = selected_node_id
+        st.session_state["selected_node_id"] = selected_node_id
+        st.session_state["story_state"] = {}
+        st.session_state["game_active"] = False
+        st.session_state["_scroll_to_top_once"] = True
         st.switch_page("pages/4_剧情答题.py")
 with action_right:
     if st.button("进入知识百问", width="stretch"):

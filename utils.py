@@ -445,7 +445,7 @@ def get_visible_user_models() -> List[Dict[str, Any]]:
             models.append(
                 {
                     "provider_name": mock_config.get("provider_name", "mock"),
-                    "display_name": mock_config.get("display_name", "本地演示模型"),
+            "display_name": mock_config.get("display_name", "本地知识导览"),
                     "provider": mock_config.get("provider", "mock"),
                     "model": mock_config.get("model", "mock-longmarch-v1"),
                     "enabled": bool(mock_config.get("enabled", True)),
@@ -592,7 +592,7 @@ def resolve_provider_config(
     """合并管理员配置与用户会话输入。"""
     config = get_provider_config(provider_name) or {
         "provider_name": "mock",
-        "display_name": "本地演示模型",
+            "display_name": "本地知识导览",
         "provider": "mock",
         "base_url": "",
         "api_key": "",
@@ -600,7 +600,7 @@ def resolve_provider_config(
         "enabled": True,
         "visible_to_users": True,
         "allow_user_key": False,
-        "description": "本地演示模型。",
+            "description": "依据内置长征史知识库完成基础导览。",
     }
     merged = normalize_provider_config(config)
     runtime_status = get_provider_runtime_status(provider_name=merged.get("provider_name", provider_name), runtime_api_key=runtime_api_key)

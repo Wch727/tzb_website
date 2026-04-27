@@ -53,7 +53,7 @@ class OpenAICompatibleAdapter(ProviderAdapter):
     def _headers(self) -> Dict[str, str]:
         api_key = self.config.get("api_key", "")
         if not api_key:
-            raise ValueError("当前 provider 未提供 API Key，可改用 mock 模式进行本地演示。")
+            raise ValueError("当前模型未提供 API Key，可切换到本地知识导览模式。")
         return {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -72,19 +72,19 @@ class OpenAICompatibleAdapter(ProviderAdapter):
             )
         except requests.exceptions.ProxyError as exc:
             raise RuntimeError(
-                "当前网络代理不可用，无法连接到模型服务。系统将尝试回退到本地演示模式。"
+                "当前网络代理不可用，无法连接到模型服务。系统将尝试回退到本地知识导览模式。"
             ) from exc
         except requests.exceptions.ConnectTimeout as exc:
             raise RuntimeError(
-                "连接模型服务超时，系统将尝试回退到本地演示模式。"
+                "连接模型服务超时，系统将尝试回退到本地知识导览模式。"
             ) from exc
         except requests.exceptions.ConnectionError as exc:
             raise RuntimeError(
-                "无法连接到模型服务，请检查网络、Base URL 或防火墙设置。系统将尝试回退到本地演示模式。"
+                "无法连接到模型服务，请检查网络、Base URL 或防火墙设置。系统将尝试回退到本地知识导览模式。"
             ) from exc
         except requests.exceptions.RequestException as exc:
             raise RuntimeError(
-                f"模型服务请求失败：{exc.__class__.__name__}。系统将尝试回退到本地演示模式。"
+                f"模型服务请求失败：{exc.__class__.__name__}。系统将尝试回退到本地知识导览模式。"
             ) from exc
 
     def _normalize_payload(self, payload: Dict[str, Any]) -> Dict[str, Any]:

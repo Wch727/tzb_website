@@ -1,7 +1,7 @@
 providers:
   mock:
     provider_name: mock
-    display_name: 本地演示模型
+    display_name: 本地知识导览
     provider: mock
     base_url: ''
     api_key: ''
@@ -10,7 +10,7 @@ providers:
     enabled: true
     visible_to_users: true
     allow_user_key: false
-    description: 无 API Key 时自动启用的本地演示模型。
+    description: 无 API Key 时自动启用的本地知识导览模式。
   moonshot:
     provider_name: moonshot
     display_name: Kimi / Moonshot
@@ -22,7 +22,7 @@ providers:
     enabled: true
     visible_to_users: true
     allow_user_key: false
-    description: 优先读取 Streamlit Secrets 或环境变量中的 Moonshot / Kimi 密钥，未配置时自动回退本地演示模式。
+    description: 优先读取 Streamlit Secrets 或环境变量中的 Moonshot / Kimi 密钥，未配置时自动回退本地知识导览模式。
   qwen:
     provider_name: qwen
     display_name: Qwen / DashScope

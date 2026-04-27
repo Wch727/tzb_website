@@ -100,13 +100,17 @@ with left:
 
     button_cols = st.columns(4)
     with button_cols[0]:
-        if st.button("选择角色", width="stretch"):
-            st.switch_page("pages/2_角色选择.py")
+        if st.button("进入闯关大厅", width="stretch"):
+            st.session_state["story_state"] = {}
+            st.session_state["game_active"] = False
+            st.switch_page("pages/4_剧情答题.py")
     with button_cols[1]:
         if st.button("进入路线", width="stretch"):
             st.switch_page("pages/3_长征路线.py")
     with button_cols[2]:
         if st.button("开始答题", width="stretch", type="primary"):
+            st.session_state["story_state"] = {}
+            st.session_state["game_active"] = False
             st.switch_page("pages/4_剧情答题.py")
     with button_cols[3]:
         if st.button("查看排行榜", width="stretch"):

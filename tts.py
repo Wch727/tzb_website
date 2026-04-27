@@ -151,7 +151,7 @@ def synthesize_text_to_audio(
     """Create or reuse narration audio with provider fallback."""
     cleaned = _clean_text(text)
     if not cleaned:
-        cleaned = "当前讲解内容暂未生成语音，以下为展陈占位音频。"
+        cleaned = "欢迎进入长征主题展项，请沿着主线继续浏览。"
 
     settings = get_tts_settings()
     resolved_voice = voice or settings["voice"]

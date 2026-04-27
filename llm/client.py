@@ -16,7 +16,7 @@ class LLMClient:
         self.adapter = build_adapter(provider_config)
 
     def _fallback_to_mock(self, exc: Exception, mode: str, **kwargs: Any) -> Dict[str, Any]:
-        """当真实 provider 不可用时，自动回退到本地 Mock，保证演示可继续。"""
+        """当真实 provider 不可用时，自动回退到本地知识导览。"""
         provider_name = self.provider_config.get("provider_name", "unknown")
         message = str(exc).strip() or exc.__class__.__name__
         if len(message) > 140:
@@ -42,7 +42,7 @@ class LLMClient:
             )
 
         result["warning"] = (
-            f"{provider_name} 当前不可用，系统已自动切换到本地 Mock 演示模式。"
+            f"{provider_name} 当前不可用，系统已切换到本地知识导览模式。"
             f"原因：{message}"
         )
         result["fallback_used"] = True

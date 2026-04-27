@@ -840,8 +840,11 @@ def scroll_page_to_top(anchor_id: str = "codex-scroll-top") -> None:
 
             const selectors = [
               "[data-testid='stAppViewContainer']",
+              "[data-testid='stMain']",
+              "[data-testid='stMainBlockContainer']",
               "section.main",
               "div[data-testid='stAppViewBlockContainer']",
+              "main",
               ".main"
             ];
 
@@ -877,7 +880,7 @@ def scroll_page_to_top(anchor_id: str = "codex-scroll-top") -> None:
         """.replace("__ANCHOR_ID__", anchor_id)
     components.html(
         script,
-        height=0,
+        height=1,
     )
 
 
@@ -926,6 +929,8 @@ def init_session_state() -> None:
         "current_team_name": "",
         "current_branch_name": "",
         "pending_team_id": "",
+        "pending_game_start_node_id": "",
+        "game_active": False,
         "story_state": {},
         "progress_snapshot": {},
     }
@@ -978,9 +983,9 @@ def render_minimal_sidebar() -> None:
         st.markdown("### 页面导航")
         st.page_link("app.py", label="应用入口")
         st.page_link("pages/1_首页.py", label="首页")
-        st.page_link("pages/2_角色选择.py", label="角色选择")
         st.page_link("pages/3_长征路线.py", label="长征路线")
-        st.page_link("pages/4_剧情答题.py", label="剧情答题")
+        st.page_link("pages/14_节点展项.py", label="节点展项")
+        st.page_link("pages/4_剧情答题.py", label="互动闯关")
         st.page_link("pages/5_知识库.py", label="知识百问")
         st.page_link("pages/6_活动中心.py", label="活动中心")
         st.page_link("pages/7_排行榜.py", label="排行榜")
@@ -991,7 +996,8 @@ def render_minimal_sidebar() -> None:
         st.page_link("pages/12_数据大屏.py", label="数据大屏")
         st.page_link("pages/13_人物专题.py", label="人物专题")
         st.divider()
-        st.caption(f"当前角色：{st.session_state.get('selected_role_name', '侦察兵')}")
+        if st.session_state.get("game_active"):
+            st.caption(f"当前闯关身份：{st.session_state.get('selected_role_name', '侦察兵')}")
         if activity_info:
             st.caption(f"当前活动：{activity_info.get('name', '')}")
         if st.session_state.get("current_team_name"):
@@ -1106,10 +1112,9 @@ def render_top_nav(current_page: str) -> None:
     current_activity_name = current_activity.get("name", "")
     subtitle_map = {
         "首页": "从主展入口进入路线、人物、精神与互动学习内容。",
-        "角色选择": "以不同角色视角进入长征叙事与任务导览。",
         "长征路线": "按四大篇章浏览长征主线展项，进入单节点深度阅读。",
         "节点展项": "单独浏览当前节点的图文讲解、语音导览与互动入口。",
-        "剧情答题": "在历史情境中完成互动学习，以题带学。",
+        "剧情答题": "闭卷完成节点挑战，提交后进入解析、复盘与成长奖励。",
         "知识百问": "围绕长征史问题进入问答、延伸阅读与依据检索。",
         "讲解工坊": "围绕节点与专题生成讲解稿和短视频脚本。",
         "活动中心": "查看活动、分享入口、协作方式与参与路径。",
@@ -1119,9 +1124,9 @@ def render_top_nav(current_page: str) -> None:
         "导览速览": "从重点问题、展项与讲解入口快速进入长征主线。",
         "数据大屏": "集中呈现参与情况、热度变化与榜单数据。",
     }
-    chips = [
-        f"<span class='masthead-chip'>身份：{html.escape(current_role)}</span>",
-    ]
+    chips = []
+    if current_page == "剧情答题":
+        chips.append(f"<span class='masthead-chip'>闯关身份：{html.escape(current_role)}</span>")
     if current_activity_name:
         chips.append(f"<span class='masthead-chip'>活动：{html.escape(current_activity_name)}</span>")
     if current_model and current_page in {"知识百问", "讲解工坊", "使用设置"}:
@@ -1144,32 +1149,34 @@ def render_top_nav(current_page: str) -> None:
         ),
         unsafe_allow_html=True,
     )
-    st.markdown("<div class='nav-section-label'>主展导航</div>", unsafe_allow_html=True)
+    st.markdown("<div class='nav-section-label'>展览导览</div>", unsafe_allow_html=True)
     row1 = st.columns(6)
     with row1[0]:
         _nav_action("首页", "pages/1_首页.py", current_page)
     with row1[1]:
         _nav_action("长征路线", "pages/3_长征路线.py", current_page)
     with row1[2]:
-        _nav_action("知识百问", "pages/5_知识库.py", current_page)
+        _nav_action("节点展项", "pages/14_节点展项.py", current_page)
     with row1[3]:
-        _nav_action("剧情答题", "pages/4_剧情答题.py", current_page)
+        _nav_action("知识百问", "pages/5_知识库.py", current_page)
     with row1[4]:
-        _nav_action("讲解工坊", "pages/11_讲解生成.py", current_page)
+        _nav_action("人物专题", "pages/13_人物专题.py", current_page)
     with row1[5]:
-        _nav_action("活动中心", "pages/6_活动中心.py", current_page)
+        _nav_action("讲解工坊", "pages/11_讲解生成.py", current_page)
 
-    st.markdown("<div class='nav-section-label'>辅助入口</div>", unsafe_allow_html=True)
-    row2 = st.columns(5)
+    st.markdown("<div class='nav-section-label'>互动与活动</div>", unsafe_allow_html=True)
+    row2 = st.columns(6)
     with row2[0]:
-        _nav_action("角色选择", "pages/2_角色选择.py", current_page)
+        _nav_action("互动闯关", "pages/4_剧情答题.py", current_page, current_aliases=["剧情答题", "互动闯关"])
     with row2[1]:
-        _nav_action("排行榜", "pages/7_排行榜.py", current_page)
+        _nav_action("活动中心", "pages/6_活动中心.py", current_page)
     with row2[2]:
-        _nav_action("导览速览", "pages/10_测试体验.py", current_page)
+        _nav_action("排行榜", "pages/7_排行榜.py", current_page)
     with row2[3]:
-        _nav_action("数据大屏", "pages/12_数据大屏.py", current_page)
+        _nav_action("导览速览", "pages/10_测试体验.py", current_page)
     with row2[4]:
+        _nav_action("数据大屏", "pages/12_数据大屏.py", current_page)
+    with row2[5]:
         _nav_action("使用设置", "pages/8_配置页.py", current_page)
 
     if st.session_state.get("admin_authenticated"):

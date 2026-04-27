@@ -241,7 +241,7 @@ def render_node_detail(
         ],
     )
 
-    render_section("展项信息板", "把背景、经过和意义拆开展示，便于课堂讲解、答辩展示和对照阅读。")
+    render_section("展项信息板", "把背景、经过和意义拆开展示，便于顺着时间、地点与行动线索深入阅读。")
     render_detail_panels(
         [
             {
@@ -262,12 +262,15 @@ def render_node_detail(
     _render_figure_block(node)
     _render_key_points(node)
 
-    render_section("讲解与互动", "继续收听讲解、切换讲解员视角，或进入互动题与内容生成。")
+    render_section("讲解与互动", "继续收听讲解、切换讲解员视角，或在完成阅读后进入闭卷闯关。")
     action_left, action_mid, action_right = st.columns(3)
     with action_left:
-        if st.button("进入互动题", key=f"quiz::{node_id}", width="stretch", type="primary"):
+        if st.button("进入闭卷闯关", key=f"quiz::{node_id}", width="stretch", type="primary"):
             st.session_state["story_state"] = {}
             st.session_state["selected_node_id"] = node_id
+            st.session_state["pending_game_start_node_id"] = node_id
+            st.session_state["game_active"] = False
+            st.session_state["_scroll_to_top_once"] = True
             st.switch_page("pages/4_剧情答题.py")
     with action_mid:
         if st.button("生成讲解稿", key=f"guide::{node_id}", width="stretch"):

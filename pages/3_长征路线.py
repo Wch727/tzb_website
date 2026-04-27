@@ -7,7 +7,6 @@ import streamlit as st
 from activity_manager import get_activity
 from content_store import get_route_chapters
 from media import render_node_image
-from quiz_engine import create_story_state, set_story_checkpoint
 from streamlit_ui import (
     render_chapter_overview_cards,
     render_curatorial_note,
@@ -26,7 +25,7 @@ render_top_nav("长征路线")
 
 render_hero(
     title="长征路线导览",
-    subtitle="以篇章化方式组织长征主线节点。用户可按阶段进入各个展区，再从具体节点展开图文阅读、讲解与互动答题。",
+    subtitle="以篇章化方式组织长征主线节点。观众可按阶段进入各个展区，再从具体节点展开图文阅读、讲解与互动闯关。",
     badges=["四大篇章", "节点导览", "展项详情", "互动入口"],
 )
 
@@ -118,13 +117,12 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
                 st.session_state["selected_node_id"] = node.get("id", "")
                 st.switch_page("pages/14_节点展项.py")
         with action_right:
-            if st.button("进入互动", key=f"chapter_quiz_{node.get('id')}", width="stretch"):
-                story_state = create_story_state(
-                    role_id=st.session_state.get("selected_role_id", "scout"),
-                    activity_id=st.session_state.get("current_activity_id", ""),
-                    start_node_id=node.get("id", ""),
-                )
-                st.session_state["story_state"] = set_story_checkpoint(story_state, node.get("id", ""))
+            if st.button("进入闭卷闯关", key=f"chapter_quiz_{node.get('id')}", width="stretch"):
+                st.session_state["selected_node_id"] = node.get("id", "")
+                st.session_state["pending_game_start_node_id"] = node.get("id", "")
+                st.session_state["story_state"] = {}
+                st.session_state["game_active"] = False
+                st.session_state["_scroll_to_top_once"] = True
                 st.switch_page("pages/4_剧情答题.py")
 
 render_feature_ribbon(

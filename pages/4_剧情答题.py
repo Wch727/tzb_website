@@ -12,6 +12,7 @@ from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_digital_human, render_node_image, render_svg_artwork
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
+from role_system import get_role, list_roles
 from streamlit_ui import (
     render_boss_stage_intro,
     render_boss_stage_outcome,
@@ -27,6 +28,7 @@ from streamlit_ui import (
 )
 from template_renderer import render_template_block
 from team_manager import build_team_member_summary, build_team_share_text, get_team, record_team_progress
+from game import get_route_node
 
 
 def _current_team() -> dict:
@@ -45,11 +47,19 @@ def _ensure_story_state() -> dict:
     """确保剧情状态存在。"""
     story_state = st.session_state.get("story_state", {})
     if story_state:
+        _record_story_entry(story_state)
         return story_state
     role_id = st.session_state.get("selected_role_id", "scout")
     activity_id = st.session_state.get("current_activity_id", "knowledge-contest")
-    story_state = create_story_state(role_id=role_id, activity_id=activity_id)
+    start_node_id = st.session_state.get("pending_game_start_node_id", "") or st.session_state.get("selected_node_id", "")
+    story_state = create_story_state(role_id=role_id, activity_id=activity_id, start_node_id=start_node_id)
     st.session_state["story_state"] = story_state
+    _record_story_entry(story_state)
+    return story_state
+
+
+def _record_story_entry(story_state: dict) -> None:
+    """记录进入闯关活动。"""
     team = _current_team()
     enter_key = f"dashboard_participation::{story_state.get('activity_id', 'global')}::{st.session_state.get('user_name', '红色学习者')}"
     if not st.session_state.get(enter_key):
@@ -64,7 +74,88 @@ def _ensure_story_state() -> dict:
             branch_name=team.get("branch_name", ""),
         )
         st.session_state[enter_key] = True
-    return story_state
+
+
+def _render_role_cards(roles: list[dict]) -> None:
+    """渲染闯关身份卡。"""
+    cards_html = "".join(
+        f"""
+        <div class="role-loadout-card">
+            <span>{html.escape(item.get('title', '闯关身份'))}</span>
+            <h3>{html.escape(item.get('name', '侦察兵'))}</h3>
+            <p>{html.escape(item.get('tagline', '进入长征主线挑战。'))}</p>
+        </div>
+        """
+        for item in roles
+    )
+    st.markdown(f"<div class='role-loadout-grid'>{cards_html}</div>", unsafe_allow_html=True)
+
+
+def _render_game_lobby() -> None:
+    """渲染闭卷闯关入口，把角色选择收进游戏页。"""
+    roles = list_roles()
+    pending_node_id = st.session_state.get("pending_game_start_node_id", "") or st.session_state.get("selected_node_id", "")
+    target_node = get_route_node(pending_node_id) if pending_node_id else {}
+    target_title = target_node.get("title", "从活动主线起点开始")
+    target_desc = (
+        f"{target_node.get('date', '')} · {target_node.get('place', '')}"
+        if target_node
+        else "未指定节点时，将从当前活动的第一关开始。"
+    )
+    st.markdown(
+        render_template_block(
+            "game_lobby.html",
+            "game_components.css",
+            title="长征主线挑战营",
+            subtitle="先看展，再闯关。挑战开始后只保留必要任务线索，提交答案后再解锁解析、历史小课堂和成长奖励。",
+            target_title=html.escape(target_title),
+            target_desc=html.escape(target_desc),
+        ),
+        unsafe_allow_html=True,
+    )
+    _render_role_cards(roles)
+    identity_left, identity_right = st.columns(2)
+    with identity_left:
+        st.session_state["user_name"] = st.text_input(
+            "参与者姓名",
+            value=st.session_state.get("user_name", "红色学习者"),
+        )
+    with identity_right:
+        st.session_state["unit_name"] = st.text_input(
+            "班级 / 单位 / 小组",
+            value=st.session_state.get("unit_name", "体验组"),
+        )
+
+    role_ids = [item["role_id"] for item in roles]
+    selected_role_id = st.radio(
+        "选择本次闯关身份",
+        role_ids,
+        horizontal=True,
+        index=role_ids.index(st.session_state.get("selected_role_id", "scout"))
+        if st.session_state.get("selected_role_id", "scout") in role_ids
+        else 0,
+        format_func=lambda item: get_role(item).get("name", item),
+    )
+    selected_role = get_role(selected_role_id)
+    st.session_state["selected_role_id"] = selected_role_id
+    st.session_state["selected_role_name"] = selected_role.get("name", "侦察兵")
+
+    start_left, start_right = st.columns([1.2, 0.8])
+    with start_left:
+        if st.button("开始闭卷挑战", width="stretch", type="primary"):
+            story_state = create_story_state(
+                role_id=selected_role_id,
+                activity_id=st.session_state.get("current_activity_id", "knowledge-contest"),
+                start_node_id=pending_node_id,
+            )
+            st.session_state["story_state"] = story_state
+            st.session_state["game_active"] = True
+            st.session_state.pop("story_last_result", None)
+            _record_story_entry(story_state)
+            st.rerun()
+    with start_right:
+        if st.button("先回展览路线", width="stretch"):
+            st.switch_page("pages/3_长征路线.py")
 
 
 def _build_boss_outcome_script(outcome: dict) -> str:
@@ -119,18 +210,18 @@ def _render_battle_briefing(stage: dict) -> None:
     )
 
 
-setup_page("剧情答题", icon="🎮")
+setup_page("互动闯关", icon="🎮")
 render_scroll_anchor()
 render_top_nav("剧情答题")
 render_hero(
-    title="剧情答题",
-    subtitle="围绕长征时间线逐关推进。每一关都包含历史导入、角色任务、多媒体题型、答案反馈、历史小课堂和成长激励，同时支持将个人贡献同步到红军小队与支部对抗榜单。",
-    badges=["主线关卡", "多媒体题型", "红军小队", "支部对抗"],
+    title="互动闯关",
+    subtitle="先在主展中了解征程，再进入闯关检验。挑战开始前选择身份与小队，提交答案后解锁解析、历史小课堂与成长奖励。",
+    badges=["闭卷挑战", "角色任务", "红军小队", "支部对抗"],
 )
 
-if not st.session_state.get("selected_role_id"):
-    st.warning("请先完成角色选择，再进入剧情答题。")
-    st.page_link("pages/2_角色选择.py", label="前往角色选择", width="stretch")
+if not st.session_state.get("game_active") or not st.session_state.get("story_state"):
+    _render_game_lobby()
+    render_pending_scroll_to_top()
     st.stop()
 
 story_state = _ensure_story_state()
@@ -300,10 +391,9 @@ if story_state.get("finished"):
         if st.button("重新开始活动", width="stretch"):
             st.session_state.pop(record_key, None)
             st.session_state.pop("story_last_result", None)
-            st.session_state["story_state"] = create_story_state(
-                role_id=st.session_state.get("selected_role_id", "scout"),
-                activity_id=st.session_state.get("current_activity_id", "knowledge-contest"),
-            )
+            st.session_state["story_state"] = {}
+            st.session_state["game_active"] = False
+            st.session_state["_scroll_to_top_once"] = True
             st.rerun()
     st.stop()
 
@@ -448,10 +538,7 @@ with top_right:
         st.markdown(f"**过场导语：** {stage.get('prologue', '')}")
     st.markdown(f"**题型：** {stage.get('question_type', '情境选择题')}")
     st.markdown(f"**角色任务提示：** {stage.get('role_brief', '')}")
-    if stage.get("opening_brief"):
-        st.info(stage.get("opening_brief", ""))
-    if stage.get("mission_prompt"):
-        st.info(stage.get("mission_prompt", ""))
+    st.info("本关为闭卷挑战。请依据此前在展览页完成的学习和当前材料作出判断；答案提交后将解锁解析、知识卡片与下一站导览。")
     role_task = stage.get("role_task", {}) or {}
     if role_task:
         st.markdown("### 本关角色任务卡")
@@ -460,8 +547,6 @@ with top_right:
             st.markdown(f"- {item}")
         if role_task.get("reward_hint"):
             st.caption(f"奖励提示：{role_task.get('reward_hint', '')}")
-    st.markdown("### 本关故事导入")
-    st.write(stage.get("story_opening", "") or node.get("summary", ""))
     if team:
         st.markdown("### 小队协作状态")
         st.write(
@@ -470,38 +555,7 @@ with top_right:
             f"队员 {len(team.get('members', []))} 人。"
         )
 
-figures = node.get("figures", []) or []
-if figures:
-    render_section("本关关键人物", "从人物专题继续进入本关，可以把这一关中的决策、组织与行动放回具体人物身上理解。")
-    figure_cols = st.columns(min(4, len(figures)))
-    for index, figure_name in enumerate(figures):
-        with figure_cols[index % len(figure_cols)]:
-            st.markdown(f"**{figure_name}**")
-            st.caption("人物专题页收录人物经历、长征中的作用与历史贡献。")
-            if st.button(
-                f"进入{figure_name}专题",
-                key=f"quiz_figure::{node.get('id', '')}::{figure_name}",
-                width="stretch",
-            ):
-                st.session_state["selected_figure_name"] = figure_name
-                st.session_state["_scroll_to_top_once"] = True
-                st.switch_page("pages/13_人物专题.py")
-
-render_section("关前故事", "先进入当时的行军情境，再完成本关判断。每一道题都要放回长征主线中去理解。")
-render_formal_script(
-    stage.get("story_script", ""),
-    title=f"{node.get('title', '长征节点')} · 关前故事",
-    label="关前讲述",
-    meta=[
-        stage.get("campaign_title", "长征主线"),
-        stage.get("stage_badge", "主线推进关"),
-        stage.get("question_type", "情境选择题"),
-    ],
-)
-if stage.get("story_panels"):
-    render_detail_panels(stage.get("story_panels", []))
-
-render_section("作战简报", "每一关都不仅是答题，还包含任务目标、风险提示和奖励预告。")
+render_section("作战简报", "本区只保留本关任务与作答规则，详细历史讲解将在提交答案后展开。")
 render_detail_panels(
     [
         {
@@ -541,30 +595,24 @@ if tactic_options:
                 "title": selected_tactic.get("title", "行动策略"),
                 "desc": selected_tactic.get("desc", "请结合当前关卡环境选择策略。"),
             },
-            {
-                "title": "推荐策略",
-                "desc": f"{stage.get('recommended_tactic_title', '默认推进')}：{stage.get('recommended_tactic_reason', '')}",
-            },
         ]
     )
 
-render_section("多媒体材料与作答线索", "不同题型会提供不同的观察重点，避免答题只剩下“裸选择”。")
+render_section("多媒体材料", "请依据当前材料与此前展览学习作答；本关答案解析将在提交后显示。")
 material_left, material_right = st.columns([1.1, 1])
 with material_left:
     st.markdown(f"**材料类型：** {stage.get('question_type', '情境选择题')}")
     if stage.get("material_title"):
         st.markdown(f"**{stage.get('material_title', '')}**")
-    for point in stage.get("material_points", []):
-        st.markdown(f"- {point}")
 with material_right:
     if stage.get("question_type") == "看图识史":
-        st.caption("请先观察左侧图片中的场景特征，再结合历史背景作答。")
+        st.caption("请观察图片中的地点、人物、场景或路线特征。")
     elif stage.get("question_type") == "地图纠错":
-        st.caption("请先观察路线图，再判断哪一种路线理解或结论存在偏差。")
+        st.caption("请对照路线图判断哪一项表述存在偏差。")
     elif stage.get("question_type") == "听音辨曲":
-        st.caption("请先播放音频线索，再把诗句与节点环境、精神内涵对应起来。")
+        st.caption("请播放音频线索，再判断它与哪类历史情境相关。")
     else:
-        st.caption("请先阅读剧情导入和角色任务卡，再进入题目判断。")
+        st.caption("请根据题干情境和角色任务作出选择。")
 
 st.markdown("---")
 st.markdown("## 开始作答")
@@ -736,19 +784,32 @@ if last_result and last_result.get("answer_detail"):
     for item in answered_bundle[:3]:
         st.markdown(f"- **{item.get('title', '')}**：{item.get('summary', item.get('answer', ''))}")
 
+    figures = answered_node.get("figures", []) or node.get("figures", []) or []
+    if figures:
+        st.markdown("### 相关人物专题")
+        figure_cols = st.columns(min(4, len(figures)))
+        for index, figure_name in enumerate(figures):
+            with figure_cols[index % len(figure_cols)]:
+                if st.button(
+                    f"查看{figure_name}专题",
+                    key=f"quiz_result_figure::{answered_node.get('id', node.get('id', ''))}::{figure_name}",
+                    width="stretch",
+                ):
+                    st.session_state["selected_figure_name"] = figure_name
+                    st.session_state["_scroll_to_top_once"] = True
+                    st.switch_page("pages/13_人物专题.py")
+
+    if knowledge_bundle:
+        st.markdown("### 知识卡片联动")
+        cols = st.columns(min(3, len(knowledge_bundle[:3])))
+        for index, item in enumerate(knowledge_bundle[:3]):
+            with cols[index % len(cols)]:
+                st.markdown(f"**{item.get('title', '')}**")
+                st.write(item.get("summary", item.get("answer", "")))
+
     if last_result.get("next_node"):
         next_node = last_result.get("next_node", {})
         st.markdown("### 下一节点推荐")
         st.write(f"{next_node.get('title', '')} | {next_node.get('summary', '')}")
-
-render_section("知识卡片联动", "答题并不是终点，每一关都要把题目、知识点和节点背景关联起来。")
-if knowledge_bundle:
-    cols = st.columns(min(3, len(knowledge_bundle[:3])))
-    for index, item in enumerate(knowledge_bundle[:3]):
-        with cols[index % len(cols)]:
-            st.markdown(f"**{item.get('title', '')}**")
-            st.write(item.get("summary", item.get("answer", "")))
-else:
-    st.info("当前节点暂无额外知识卡片。")
 
 render_pending_scroll_to_top()
