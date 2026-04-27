@@ -79,16 +79,14 @@ def _record_story_entry(story_state: dict) -> None:
 def _render_role_cards(roles: list[dict]) -> None:
     """渲染闯关身份卡。"""
     cards_html = "".join(
-        f"""
-        <div class="role-loadout-card">
-            <span>{html.escape(item.get('title', '闯关身份'))}</span>
-            <h3>{html.escape(item.get('name', '侦察兵'))}</h3>
-            <p>{html.escape(item.get('tagline', '进入长征主线挑战。'))}</p>
-        </div>
-        """
+        "<div class='role-loadout-card'>"
+        f"<span>{html.escape(item.get('title', '闯关身份'))}</span>"
+        f"<h3>{html.escape(item.get('name', '侦察兵'))}</h3>"
+        f"<p>{html.escape(item.get('tagline', '进入长征主线挑战。'))}</p>"
+        "</div>"
         for item in roles
     )
-    st.markdown(f"<div class='role-loadout-grid'>{cards_html}</div>", unsafe_allow_html=True)
+    st.html(f"<div class='role-loadout-grid'>{cards_html}</div>")
 
 
 def _render_game_lobby() -> None:
@@ -102,7 +100,7 @@ def _render_game_lobby() -> None:
         if target_node
         else "未指定节点时，将从当前活动的第一关开始。"
     )
-    st.markdown(
+    st.html(
         render_template_block(
             "game_lobby.html",
             "game_components.css",
@@ -110,8 +108,7 @@ def _render_game_lobby() -> None:
             subtitle="先看展，再闯关。挑战开始后只保留必要任务线索，提交答案后再解锁解析、历史小课堂和成长奖励。",
             target_title=html.escape(target_title),
             target_desc=html.escape(target_desc),
-        ),
-        unsafe_allow_html=True,
+        )
     )
     _render_role_cards(roles)
     identity_left, identity_right = st.columns(2)
@@ -196,7 +193,7 @@ def _render_battle_briefing(stage: dict) -> None:
         """
         for index, item in enumerate(logs, start=1)
     )
-    st.markdown(
+    st.html(
         render_template_block(
             "battle_briefing.html",
             "exhibit_components.css",
@@ -205,8 +202,7 @@ def _render_battle_briefing(stage: dict) -> None:
             orders_html=orders_html
             or '<div class="mission-ticket"><span>命令</span><strong>阅读背景，完成本关判断。</strong></div>',
             logs_html=logs_html or '<div class="war-log-line"><span>记录</span><p>本关暂无补充记录。</p></div>',
-        ),
-        unsafe_allow_html=True,
+        )
     )
 
 

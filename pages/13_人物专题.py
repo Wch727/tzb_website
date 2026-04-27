@@ -76,7 +76,7 @@ def _render_figure_exhibit_wall(figure: dict, story_script: str, related_nodes: 
     if not node_links:
         node_links = "<span class='figure-node-pill'>长征主线</span>"
 
-    st.markdown(
+    st.html(
         render_template_block(
             "figure_exhibit_wall.html",
             "exhibit_components.css",
@@ -86,8 +86,7 @@ def _render_figure_exhibit_wall(figure: dict, story_script: str, related_nodes: 
             background_html=_paragraph_html(background),
             role_html=_paragraph_html(role),
             significance_html=_paragraph_html(significance),
-        ),
-        unsafe_allow_html=True,
+        )
     )
 
 

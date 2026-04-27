@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import re
 from string import Template
 from textwrap import dedent
 from typing import Any
@@ -33,4 +34,5 @@ def render_template_block(template_name: str, style_name: str = "", **context: A
     style_block = ""
     if style_name:
         style_block = f"<style>\n{_read_style(style_name)}\n</style>\n"
-    return dedent(style_block + render_template(template_name, **context)).strip()
+    markup = dedent(style_block + render_template(template_name, **context)).strip()
+    return re.sub(r"(?m)^[ \t]+(?=<)", "", markup)
