@@ -9,7 +9,8 @@ from activity_manager import build_activity_qr_bytes, build_activity_share_link,
 from dashboard_data import build_live_battle_rows, record_share_event
 from game import get_route_node
 from leaderboard import build_user_share_text, get_activity_leaderboard, get_unit_leaderboard
-from streamlit_ui import render_cards, render_hero, render_section, render_top_nav, setup_page
+from platform_components import activity_card_html, render_platform_showcase, render_qr_panel
+from streamlit_ui import render_cards, render_section, render_top_nav, setup_page
 from team_manager import (
     build_team_member_summary,
     build_team_share_text,
@@ -41,11 +42,6 @@ def _sync_current_team(activity_id: str) -> dict:
 
 setup_page("活动中心", icon="🎯")
 render_top_nav("活动中心")
-render_hero(
-    title="活动中心",
-    subtitle="围绕知识竞赛、党史学习日与研学任务等组织化场景，集中呈现活动入口、协作方式与对抗机制。",
-    badges=["活动模板", "红军小队", "支部对抗", "实时战绩"],
-)
 
 activities = list_activities()
 activity_ids = [item["activity_id"] for item in activities]
@@ -53,22 +49,35 @@ current_activity_id = st.session_state.get("current_activity_id", activity_ids[0
 if current_activity_id not in activity_ids and activity_ids:
     current_activity_id = activity_ids[0]
 
-render_section("活动模板总览", "不同活动模板对应不同的组织场景、节点评估范围与协作方式。")
-render_cards(
-    [
-        {
-            "label": item.get("mode", ""),
-            "title": item.get("name", ""),
-            "desc": (
-                f"{item.get('description', '')} "
-                f"时长：{item.get('time_range', '')}，"
-                f"小队模式：{'开启' if item.get('support_team_mode') else '关闭'}，"
-                f"支部对抗：{'开启' if item.get('support_branch_pk') else '关闭'}。"
-            ),
-        }
-        for item in activities
-    ]
+activity = get_activity(current_activity_id)
+current_team = _sync_current_team(current_activity_id)
+team_rows_preview = get_team_leaderboard(current_activity_id, limit=100) if current_activity_id else []
+personal_rows_preview = get_activity_leaderboard(current_activity_id, limit=100) if current_activity_id else []
+unit_rows_preview = get_unit_leaderboard(current_activity_id, limit=100) if current_activity_id else []
+
+render_platform_showcase(
+    title="活动中心",
+    subtitle="面向课堂竞赛、主题党日和红色研学的活动入口。观众可通过活动二维码进入，同一活动内的小队、单位和个人战绩会集中汇总。",
+    kicker="云端活动入口",
+    tags=["活动二维码", "红军小队", "支部对抗", "实时战绩"],
+    panel_title=activity.get("name", "长征主题活动"),
+    panel_text=activity.get("description", "选择活动后进入闯关、路线导览、排行榜和战绩分享。"),
+    stats=[
+        {"label": "活动模板", "value": len(activities)},
+        {"label": "活动节点", "value": len(activity.get("node_scope", []))},
+        {"label": "个人战绩", "value": len(personal_rows_preview)},
+        {"label": "小队数量", "value": len(team_rows_preview)},
+    ],
 )
+
+render_section("活动模板总览", "不同活动模板对应不同的组织场景、节点评估范围与协作方式。")
+activity_cols = st.columns(min(3, max(1, len(activities))))
+for index, item in enumerate(activities):
+    with activity_cols[index % len(activity_cols)]:
+        st.html(activity_card_html(item, active=item.get("activity_id") == current_activity_id))
+        if st.button("选择此活动", key=f"select_activity_card::{item.get('activity_id')}", width="stretch"):
+            st.session_state["current_activity_id"] = item.get("activity_id", "")
+            st.rerun()
 
 current_activity_id = st.selectbox(
     "选择活动",
@@ -118,6 +127,12 @@ with left:
 
 with right:
     share_link = build_activity_share_link(activity)
+    render_qr_panel(
+        label="扫码进入",
+        title="活动分享入口",
+        desc="把此链接或二维码发给班级、支部或小队成员，进入后将自动绑定当前活动范围。",
+        link=share_link,
+    )
     st.text_input("活动分享链接", value=share_link, disabled=True)
     qr_bytes = build_activity_qr_bytes(share_link)
     if qr_bytes:

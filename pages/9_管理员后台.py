@@ -24,7 +24,8 @@ from file_loader import load_file, persist_processed_text
 from leaderboard import get_activity_leaderboard, get_global_leaderboard, get_unit_leaderboard
 from rag import get_rag_status, incremental_ingest, rebuild_knowledge_base
 from retrieval_debug import run_retrieval_debug
-from streamlit_ui import render_hero, render_metrics, render_section, render_top_nav, setup_page
+from platform_components import render_admin_banner, render_platform_showcase
+from streamlit_ui import render_metrics, render_section, render_top_nav, setup_page
 from team_manager import export_branch_rows, export_team_rows, get_branch_pk_board, get_team_leaderboard, list_teams
 from utils import (
     CONFIG_DIR,
@@ -100,10 +101,19 @@ def _save_json_rows(path: Path, rows: list[dict]) -> None:
 
 setup_page("内容运营", icon="🛡️")
 render_top_nav("内容运营")
-render_hero(
+render_platform_showcase(
     title="内容运营",
-    subtitle="用于维护史料内容、活动范围、知识检索、题目配置、数据统计与开放策略，支撑整站持续更新。",
-    badges=["资料管理", "活动管理", "内容维护", "数据导出"],
+    subtitle="统一维护史料内容、活动范围、题库配置、知识检索、数据统计和模型开放策略。",
+    kicker="运营管理入口",
+    tags=["资料管理", "活动管理", "题库维护", "数据导出"],
+    panel_title="云端展陈内容中枢",
+    panel_text="后台用于持续补充展项、维护活动和检查知识库状态，保证线上版本可长期更新。",
+    stats=[
+        {"label": "主线节点", "value": len(load_route_nodes_data())},
+        {"label": "人物专题", "value": len(load_figures_data())},
+        {"label": "精神专题", "value": len(load_spirit_topics())},
+        {"label": "FAQ", "value": len(load_faq_items())},
+    ],
 )
 
 if not st.session_state.get("admin_authenticated"):
@@ -147,6 +157,16 @@ metrics.extend(
         {"label": "Chunk 数量", "value": status.get("chunk_count", 0)},
         {"label": "开放模型数", "value": len(get_visible_user_models())},
     ]
+)
+render_admin_banner(
+    "运营中枢",
+    "当前页面集中处理内容、活动、知识库和数据导出。先查看状态，再进入下方各管理标签。",
+    [
+        {"label": "上传文件", "value": len(list_uploaded_files()), "desc": "用于临时补充史料与活动资料。"},
+        {"label": "知识切片", "value": status.get("chunk_count", 0), "desc": "支撑问答、讲解和检索依据展示。"},
+        {"label": "开放模型", "value": len(get_visible_user_models()), "desc": "普通用户可见的模型入口数量。"},
+        {"label": "活动模板", "value": len(list_activities()), "desc": "可用于课堂、竞赛和研学活动。"},
+    ],
 )
 render_metrics(metrics)
 

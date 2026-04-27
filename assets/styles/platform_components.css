@@ -1,0 +1,229 @@
+.platform-showcase,
+.platform-admin-banner {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.82fr);
+    gap: clamp(1rem, 2.4vw, 1.8rem);
+    padding: clamp(1.2rem, 2.8vw, 2.4rem);
+    margin: 0.8rem 0 1.1rem;
+    border-radius: 34px;
+    color: #fff8ed;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(255, 218, 128, 0.28), transparent 30%),
+        linear-gradient(135deg, #4e1022 0%, #7b1736 48%, #b33a45 100%);
+    border: 1px solid rgba(255, 238, 218, 0.22);
+    box-shadow: 0 28px 74px rgba(77, 16, 33, 0.26);
+}
+
+.platform-showcase::after,
+.platform-admin-banner::after {
+    content: "";
+    position: absolute;
+    inset: auto -120px -140px auto;
+    width: 380px;
+    height: 380px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(255, 221, 140, 0.22), transparent 70%);
+}
+
+.platform-showcase-main,
+.platform-showcase-panel,
+.platform-admin-banner > div {
+    position: relative;
+    z-index: 1;
+}
+
+.platform-showcase-main span,
+.platform-showcase-panel > strong,
+.platform-card-kicker,
+.platform-qr-panel span,
+.platform-admin-banner span,
+.platform-admin-card span,
+.platform-rank-card span,
+.platform-level-card span {
+    color: #f1c983;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    font-size: 0.82rem;
+}
+
+.platform-showcase h1,
+.platform-admin-banner h1 {
+    margin: 0.5rem 0 0.75rem;
+    color: #fff8ed;
+    font-size: clamp(2rem, 4.6vw, 4.8rem);
+    line-height: 1.06;
+    letter-spacing: -0.04em;
+}
+
+.platform-showcase p,
+.platform-admin-banner p {
+    color: rgba(255, 246, 232, 0.92);
+    line-height: 1.9;
+}
+
+.platform-showcase-tags,
+.platform-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.platform-showcase-tags i,
+.platform-card-meta span {
+    font-style: normal;
+    border-radius: 999px;
+    padding: 0.32rem 0.72rem;
+    background: rgba(255, 248, 232, 0.13);
+    border: 1px solid rgba(255, 239, 212, 0.2);
+    color: #fff4df;
+    font-weight: 800;
+}
+
+.platform-showcase-panel {
+    border-radius: 28px;
+    padding: 1.1rem;
+    background: rgba(255, 248, 232, 0.12);
+    border: 1px solid rgba(255, 239, 212, 0.22);
+    backdrop-filter: blur(8px);
+}
+
+.platform-showcase-panel strong {
+    display: block;
+    color: #fff8ed;
+    font-size: 1.45rem;
+    margin-bottom: 0.45rem;
+}
+
+.platform-stat-grid,
+.platform-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.platform-stat,
+.platform-admin-grid article {
+    border-radius: 18px;
+    padding: 0.85rem 0.95rem;
+    background: rgba(255, 248, 232, 0.12);
+    border: 1px solid rgba(255, 239, 212, 0.16);
+}
+
+.platform-stat strong,
+.platform-admin-grid strong {
+    display: block;
+    color: #fff8ed;
+    font-size: 1.65rem;
+    margin-top: 0.25rem;
+}
+
+.platform-activity-card,
+.platform-level-card,
+.platform-rank-card,
+.platform-qr-panel {
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(255, 252, 248, 0.97), rgba(248, 239, 235, 0.94));
+    border: 1px solid rgba(123, 23, 54, 0.15);
+    box-shadow: 0 16px 38px rgba(78, 16, 33, 0.08);
+}
+
+.platform-activity-card,
+.platform-level-card {
+    padding: 1rem 1.05rem;
+    min-height: 190px;
+}
+
+.platform-activity-card.active,
+.platform-level-card.active {
+    border-color: rgba(123, 23, 54, 0.45);
+    box-shadow: 0 22px 48px rgba(78, 16, 33, 0.14);
+    background: linear-gradient(180deg, rgba(255, 247, 242, 0.99), rgba(248, 232, 230, 0.96));
+}
+
+.platform-activity-card h3,
+.platform-level-card h3,
+.platform-qr-panel h3 {
+    color: #4e1022;
+    font-size: 1.26rem;
+    margin: 0.3rem 0 0.45rem;
+}
+
+.platform-activity-card p,
+.platform-level-card p,
+.platform-qr-panel p,
+.platform-rank-card p {
+    color: #4d403a;
+    line-height: 1.75;
+}
+
+.platform-activity-card .platform-card-meta span {
+    color: #7b1736;
+    background: rgba(123, 23, 54, 0.08);
+    border-color: rgba(123, 23, 54, 0.12);
+}
+
+.platform-qr-panel {
+    padding: 1rem 1.1rem;
+    margin: 0.6rem 0 0.9rem;
+}
+
+.platform-qr-link {
+    margin-top: 0.7rem;
+    border-radius: 16px;
+    padding: 0.75rem 0.85rem;
+    color: #6a2030;
+    background: rgba(123, 23, 54, 0.07);
+    word-break: break-all;
+}
+
+.platform-podium {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 0.95rem;
+    margin: 0.8rem 0 1.2rem;
+}
+
+.platform-rank-card {
+    padding: 1rem 1.08rem;
+    min-height: 160px;
+}
+
+.platform-rank-card.rank-1 {
+    transform: translateY(-8px);
+    background: linear-gradient(180deg, rgba(255, 248, 231, 0.99), rgba(250, 229, 186, 0.94));
+    border-color: rgba(180, 127, 43, 0.32);
+}
+
+.platform-rank-card h3 {
+    margin: 0.35rem 0;
+    color: #4e1022;
+    font-size: 1.28rem;
+}
+
+.platform-rank-card strong {
+    display: block;
+    color: #7b1736;
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.platform-level-meta {
+    margin-top: 0.75rem;
+    color: #7b6147;
+    font-weight: 800;
+}
+
+@media (max-width: 920px) {
+    .platform-showcase,
+    .platform-admin-banner,
+    .platform-podium {
+        grid-template-columns: 1fr;
+    }
+
+    .platform-rank-card.rank-1 {
+        transform: none;
+    }
+}

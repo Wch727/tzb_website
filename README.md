@@ -76,6 +76,7 @@ pages/
 - `templates/figure_exhibit_wall.html`：人物专题展墙模板
 - `templates/role_*.html`、`templates/mission_*.html`、`templates/digital_human_*.html`：角色卡、任务简报和数字讲解员模板
 - `templates/masthead.html`、`templates/hero_banner.html`、`templates/script_sheet.html`：全站页眉、通用主视觉和讲解稿版式模板
+- `templates/platform_*.html`、`assets/styles/platform_components.css`：活动中心、排行榜、内容运营和闯关选关大厅的统一视觉组件
 
 后续改首页视觉时，优先修改 `templates/home_*.html` 与 `assets/styles/home_exhibit.css`；改入口逻辑时再修改 `pages/1_首页.py`。
 

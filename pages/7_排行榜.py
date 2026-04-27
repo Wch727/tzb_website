@@ -14,13 +14,18 @@ from leaderboard import (
     get_unit_leaderboard,
     get_user_battles,
 )
-from streamlit_ui import render_hero, render_metrics, render_section, render_top_nav, setup_page
+from platform_components import rank_podium_html, render_platform_showcase
+from streamlit_ui import render_metrics, render_section, render_top_nav, setup_page
 from team_manager import build_team_share_text, get_branch_pk_board, get_team_leaderboard
 
 
 def _render_rank_board(current_activity_id: str) -> None:
     """渲染排行榜主体。"""
     activity = get_activity(current_activity_id) if current_activity_id else {}
+    live_rows_for_podium = get_live_leaderboard(activity_id="", limit=3, hours=72)
+    if live_rows_for_podium:
+        render_section("全服前三", "先看当前最突出的学习战绩，再进入各类榜单明细。")
+        st.html(rank_podium_html(live_rows_for_podium, score_key="score"))
     render_metrics(
         [
             {"label": "全服实时榜单", "value": len(get_live_leaderboard(limit=100, hours=72))},
@@ -105,17 +110,27 @@ def _render_rank_board(current_activity_id: str) -> None:
 
 setup_page("排行榜", icon="🏆")
 render_top_nav("排行榜")
-render_hero(
-    title="排行榜",
-    subtitle="排行榜汇集全服实时榜、活动个人榜、红军小队榜、支部对抗榜、班级或单位榜与实时战绩流。",
-    badges=["全服实时榜", "红军小队榜", "支部对抗榜", "战绩分享"],
-)
 
 activities = list_activities()
 activity_ids = [item["activity_id"] for item in activities]
 current_activity_id = st.session_state.get("current_activity_id", activity_ids[0] if activity_ids else "")
 if current_activity_id not in activity_ids and activity_ids:
     current_activity_id = activity_ids[0]
+activity = get_activity(current_activity_id) if current_activity_id else {}
+render_platform_showcase(
+    title="排行榜",
+    subtitle="汇集个人、小队、单位和活动榜单，适合课堂竞赛、支部对抗和现场投屏展示。",
+    kicker="学习战绩中心",
+    tags=["全服实时榜", "活动个人榜", "红军小队榜", "支部对抗榜"],
+    panel_title=activity.get("name", "当前活动榜单"),
+    panel_text="完成互动闯关后，个人成绩、小队贡献和单位排行会自动进入榜单。",
+    stats=[
+        {"label": "全服记录", "value": len(get_live_leaderboard(limit=100, hours=72))},
+        {"label": "活动个人", "value": len(get_activity_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
+        {"label": "红军小队", "value": len(get_team_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
+        {"label": "单位排行", "value": len(get_unit_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
+    ],
+)
 
 if activity_ids:
     current_activity_id = st.selectbox(

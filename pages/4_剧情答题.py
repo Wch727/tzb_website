@@ -7,10 +7,12 @@ import html
 import streamlit as st
 
 from certificate import generate_certificate_svg
+from activity_manager import get_activity
 from dashboard_data import record_answer_event, record_participation_event, record_share_event
 from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_digital_human, render_node_image, render_svg_artwork
+from platform_components import level_card_html
 from quiz_engine import create_story_state, get_stage_package, submit_stage_answer
 from role_system import get_role, list_roles
 from streamlit_ui import (
@@ -93,6 +95,7 @@ def _render_role_cards(roles: list[dict]) -> None:
 def _render_game_lobby() -> None:
     """渲染闭卷闯关入口，把角色选择收进游戏页。"""
     roles = list_roles()
+    current_activity = get_activity(st.session_state.get("current_activity_id", "knowledge-contest"))
     pending_node_id = st.session_state.get("pending_game_start_node_id", "") or st.session_state.get("selected_node_id", "")
     target_node = get_route_node(pending_node_id) if pending_node_id else {}
     target_title = target_node.get("title", "从活动主线起点开始")
@@ -111,6 +114,29 @@ def _render_game_lobby() -> None:
             target_desc=html.escape(target_desc),
         )
     )
+    render_section("选择关卡", "先选择本次挑战入口，再选择闯关身份。建议第一次体验从第一关开始，也可以直接挑战重点关卡。")
+    node_scope = current_activity.get("node_scope", []) or []
+    level_nodes = [get_route_node(node_id) for node_id in node_scope]
+    level_nodes = [item for item in level_nodes if item]
+    if level_nodes:
+        level_cols = st.columns(4)
+        for index, node in enumerate(level_nodes):
+            selected = node.get("id") == pending_node_id
+            with level_cols[index % len(level_cols)]:
+                st.html(level_card_html(node, index + 1, selected=selected))
+                if st.button(
+                    "已选择" if selected else "选择此关",
+                    key=f"select_game_level::{node.get('id', index)}",
+                    width="stretch",
+                    type="primary" if selected else "secondary",
+                ):
+                    st.session_state["pending_game_start_node_id"] = node.get("id", "")
+                    st.session_state["selected_node_id"] = node.get("id", "")
+                    st.rerun()
+    else:
+        st.info("当前活动暂未配置关卡范围，将从长征主线起点开始。")
+
+    render_section("选择身份", "不同身份对应不同任务提示和加成方向。")
     _render_role_cards(roles)
     identity_left, identity_right = st.columns(2)
     with identity_left:
