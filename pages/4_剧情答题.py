@@ -214,6 +214,137 @@ def _render_battle_briefing(stage: dict) -> None:
     )
 
 
+def _render_answer_result_at_top(last_result: dict, team: dict) -> None:
+    """提交后优先展示上一关结果，避免用户误以为闯关没有响应。"""
+    detail = last_result.get("answer_detail", {}) or {}
+    answered_node = last_result.get("answered_node", {}) or {}
+    answered_bundle = last_result.get("knowledge_cards", []) or []
+    next_node = last_result.get("next_node", {}) or {}
+    reward_delta = last_result.get("reward_delta", {}) or {}
+    score_delta = int(reward_delta.get("score_delta", 0))
+    grain_delta = int(reward_delta.get("grain_delta", 0))
+
+    render_section(
+        "上一关结果",
+        "本次作答已经完成。先查看解析、复盘和奖励，再继续进入下一关。",
+    )
+    if last_result.get("correct"):
+        st.success(last_result.get("feedback", "回答正确，已推进到下一关。"))
+    else:
+        st.warning(last_result.get("feedback", "本题未答对，已进入错题复盘。"))
+    if last_result.get("role_feedback"):
+        st.info(last_result.get("role_feedback", ""))
+
+    result_panels = [
+        {
+            "title": "完成节点",
+            "desc": answered_node.get("title", "上一关"),
+        },
+        {
+            "title": "正确答案",
+            "desc": detail.get("expected_answer", "当前题目未配置标准答案。"),
+        },
+        {
+            "title": "奖励变化",
+            "desc": f"红星积分 {score_delta:+d}，虚拟粮草 {grain_delta:+d}。",
+        },
+        {
+            "title": "下一关",
+            "desc": next_node.get("title", "本轮闯关已完成，继续查看结算。"),
+        },
+    ]
+    render_detail_panels(result_panels)
+
+    if last_result.get("boss_stage_outcome"):
+        render_boss_stage_outcome(last_result.get("boss_stage_outcome", {}))
+
+    st.markdown(f"### 正确答案解析 | {answered_node.get('title', '上一关')}")
+    st.write(detail.get("explanation", "当前题目暂无解析。"))
+
+    st.markdown("### 作战结果")
+    st.write(last_result.get("battle_outcome", "本关作答已完成。"))
+    for item in last_result.get("after_action_report", []) or []:
+        st.markdown(f"- {item}")
+
+    if last_result.get("tactic_match"):
+        st.success("本关行动策略与节点环境匹配，已获得额外战术奖励。")
+
+    review_manual = last_result.get("review_manual", []) or []
+    if review_manual:
+        render_section("战后复盘手册", "把这道题真正变成一次战役复盘，而不是只看对错。")
+        render_detail_panels(review_manual)
+
+    if last_result.get("continuation_story"):
+        render_section("行军续报", "上一关完成后，主线继续向下一站推进。")
+        render_formal_script(
+            last_result.get("continuation_story", ""),
+            title=f"{answered_node.get('title', '上一关')} · 行军续报",
+            label="关后讲述",
+            meta=["主线推进", answered_node.get("route_stage", "长征节点")],
+        )
+
+    chapter_completion = last_result.get("chapter_completion", {}) or {}
+    if chapter_completion:
+        render_section("阶段总结", "完成一个长征篇章后，先回望这一段征程，再进入下一阶段。")
+        render_detail_panels(
+            [
+                {
+                    "title": "完成篇章",
+                    "desc": f"{chapter_completion.get('badge', '篇章结算')} · {chapter_completion.get('title', '主线篇章')}",
+                },
+                {
+                    "title": "阶段奖励",
+                    "desc": chapter_completion.get("reward_text", "阶段奖励已发放。"),
+                },
+                {
+                    "title": "下一阶段",
+                    "desc": chapter_completion.get("next_subtitle", "继续沿主线推进。"),
+                },
+            ]
+        )
+        render_formal_script(
+            chapter_completion.get("script", ""),
+            title=f"{chapter_completion.get('title', '长征篇章')}阶段讲述",
+            label="阶段讲述稿",
+            meta=[chapter_completion.get("badge", "篇章结算"), "阶段总结"],
+        )
+
+    if detail.get("extended_note"):
+        st.markdown("### 延伸知识点")
+        st.write(detail.get("extended_note", ""))
+
+    if team:
+        st.markdown("### 小队协作反馈")
+        st.write(
+            f"本次作答已经同步计入 **{team.get('team_name', st.session_state.get('current_team_name', '红军小队'))}**。"
+            "小队战绩可在活动中心、排行榜和数据大屏中同步呈现。"
+        )
+
+    if answered_bundle:
+        st.markdown("### 历史小课堂")
+        for item in answered_bundle[:3]:
+            st.markdown(f"- **{item.get('title', '')}**：{item.get('summary', item.get('answer', ''))}")
+
+    figures = answered_node.get("figures", []) or []
+    if figures:
+        st.markdown("### 相关人物专题")
+        figure_cols = st.columns(min(4, len(figures)))
+        for index, figure_name in enumerate(figures):
+            with figure_cols[index % len(figure_cols)]:
+                if st.button(
+                    f"查看{figure_name}专题",
+                    key=f"top_result_figure::{answered_node.get('id', '')}::{figure_name}",
+                    width="stretch",
+                ):
+                    st.session_state["selected_figure_name"] = figure_name
+                    st.session_state["_scroll_to_top_once"] = True
+                    st.switch_page("pages/13_人物专题.py")
+
+    if next_node:
+        st.markdown("### 下一关")
+        st.write(f"{next_node.get('title', '')} | {next_node.get('summary', '')}")
+
+
 setup_page("互动闯关", icon="🎮")
 render_scroll_anchor()
 render_top_nav("剧情答题")
@@ -230,6 +361,7 @@ if not st.session_state.get("game_active") or not st.session_state.get("story_st
 
 story_state = _ensure_story_state()
 team = _current_team()
+last_result = st.session_state.get("story_last_result")
 
 if story_state.get("finished"):
     progress = story_state.get("progress", {})
@@ -400,6 +532,10 @@ if story_state.get("finished"):
             st.session_state["_scroll_to_top_once"] = True
             st.rerun()
     st.stop()
+
+if last_result and last_result.get("answer_detail"):
+    _render_answer_result_at_top(last_result, team)
+    st.divider()
 
 stage = get_stage_package(story_state)
 node = stage.get("node", {})
@@ -674,146 +810,5 @@ if st.button("提交答案", width="stretch", type="primary", disabled=not answe
     st.session_state["story_last_result"] = result
     st.session_state["_scroll_to_top_once"] = True
     st.rerun()
-
-last_result = st.session_state.get("story_last_result")
-if last_result and last_result.get("answer_detail"):
-    detail = last_result.get("answer_detail", {})
-    answered_node = last_result.get("answered_node", {}) or {}
-    answered_bundle = last_result.get("knowledge_cards", []) or []
-    if last_result.get("correct"):
-        st.success(last_result.get("feedback", "回答正确。"))
-    else:
-        st.warning(last_result.get("feedback", "回答未命中全部要点。"))
-    if last_result.get("role_feedback"):
-        st.info(last_result.get("role_feedback", ""))
-    if last_result.get("boss_stage_outcome"):
-        render_boss_stage_outcome(last_result.get("boss_stage_outcome", {}))
-        boss_outcome_script = _build_boss_outcome_script(last_result.get("boss_stage_outcome", {}))
-        debrief_left, debrief_right = st.columns([1, 1])
-        with debrief_left:
-            boss_outcome_audio = render_audio_player(
-                text=boss_outcome_script,
-                cache_key=f"boss-outcome::{answered_node.get('id', node.get('id', ''))}",
-                button_label="播放战役复盘",
-            )
-        with debrief_right:
-            boss_outcome_key = f"boss_outcome_digital::{answered_node.get('id', node.get('id', ''))}"
-            if st.button(
-                "切换复盘讲解员模式",
-                key=f"btn::{boss_outcome_key}",
-                width="stretch",
-            ):
-                st.session_state[boss_outcome_key] = not st.session_state.get(
-                    boss_outcome_key,
-                    False,
-                )
-        if st.session_state.get(boss_outcome_key, False):
-            render_digital_human(
-                section_text=boss_outcome_script,
-                avatar_path=answered_node.get("avatar", "assets/avatar/guide_digital_host.png"),
-                audio_path=boss_outcome_audio,
-                title=f"{answered_node.get('title', node.get('title', '关键大关'))}战役复盘",
-                subtitle="大关结算 · 历史回响",
-                cache_key=f"boss-outcome::{answered_node.get('id', node.get('id', ''))}",
-            )
-
-    st.markdown(f"### 正确答案解析 | {answered_node.get('title', node.get('title', '当前关卡'))}")
-    st.write(detail.get("explanation", ""))
-    st.markdown(f"**正确答案：** {detail.get('expected_answer', '')}")
-    st.markdown("### 作战结果")
-    st.write(last_result.get("battle_outcome", ""))
-    if last_result.get("after_action_report"):
-        for item in last_result.get("after_action_report", []):
-            st.markdown(f"- {item}")
-    reward_delta = last_result.get("reward_delta", {}) or {}
-    score_delta = int(reward_delta.get("score_delta", 0))
-    grain_delta = int(reward_delta.get("grain_delta", 0))
-    reward_text = f"本关奖励变化：红星积分 {score_delta:+d}，虚拟粮草 {grain_delta:+d}。"
-    if reward_text:
-        st.caption(reward_text)
-    if last_result.get("tactic_match"):
-        st.success("本关行动策略与节点环境匹配，已获得额外战术奖励。")
-    review_manual = last_result.get("review_manual", []) or []
-    if review_manual:
-        render_section("战后复盘手册", "把这道题真正变成一次战役复盘，而不是只看对错。")
-        render_detail_panels(review_manual)
-    if last_result.get("continuation_story"):
-        render_section("行军续报", "答题之后，继续沿主线看这场判断将把队伍带向哪里。")
-        render_formal_script(
-            last_result.get("continuation_story", ""),
-            title=f"{answered_node.get('title', node.get('title', '当前关卡'))} · 行军续报",
-            label="关后讲述",
-            meta=["主线推进", answered_node.get("route_stage", "长征节点")],
-        )
-    chapter_completion = last_result.get("chapter_completion", {}) or {}
-    if chapter_completion:
-        render_section("阶段总结", "每完成一个长征篇章，都要停下来回望这一路是怎样走过来的。")
-        render_detail_panels(
-            [
-                {
-                    "title": "完成篇章",
-                    "desc": f"{chapter_completion.get('badge', '篇章结算')} · {chapter_completion.get('title', '主线篇章')}",
-                },
-                {
-                    "title": "阶段奖励",
-                    "desc": chapter_completion.get("reward_text", "阶段奖励已发放。"),
-                },
-                {
-                    "title": "已完成篇章数",
-                    "desc": f"{chapter_completion.get('completed_count', 0)} / 4",
-                },
-                {
-                    "title": "下一阶段",
-                    "desc": chapter_completion.get("next_subtitle", "继续沿主线推进。"),
-                },
-            ]
-        )
-        render_formal_script(
-            chapter_completion.get("script", ""),
-            title=f"{chapter_completion.get('title', '长征篇章')}阶段讲述",
-            label="阶段讲述稿",
-            meta=[chapter_completion.get("badge", "篇章结算"), "阶段总结"],
-        )
-    st.markdown("### 延伸知识点")
-    st.write(detail.get("extended_note", ""))
-
-    if team:
-        st.markdown("### 小队协作反馈")
-        st.write(
-            f"本次作答已经同步计入 **{team.get('team_name', st.session_state.get('current_team_name', '红军小队'))}**。"
-            f"小队战绩可在活动中心、排行榜和数据大屏中同步呈现。"
-        )
-
-    st.markdown("### 历史小课堂")
-    for item in answered_bundle[:3]:
-        st.markdown(f"- **{item.get('title', '')}**：{item.get('summary', item.get('answer', ''))}")
-
-    figures = answered_node.get("figures", []) or node.get("figures", []) or []
-    if figures:
-        st.markdown("### 相关人物专题")
-        figure_cols = st.columns(min(4, len(figures)))
-        for index, figure_name in enumerate(figures):
-            with figure_cols[index % len(figure_cols)]:
-                if st.button(
-                    f"查看{figure_name}专题",
-                    key=f"quiz_result_figure::{answered_node.get('id', node.get('id', ''))}::{figure_name}",
-                    width="stretch",
-                ):
-                    st.session_state["selected_figure_name"] = figure_name
-                    st.session_state["_scroll_to_top_once"] = True
-                    st.switch_page("pages/13_人物专题.py")
-
-    if knowledge_bundle:
-        st.markdown("### 知识卡片联动")
-        cols = st.columns(min(3, len(knowledge_bundle[:3])))
-        for index, item in enumerate(knowledge_bundle[:3]):
-            with cols[index % len(cols)]:
-                st.markdown(f"**{item.get('title', '')}**")
-                st.write(item.get("summary", item.get("answer", "")))
-
-    if last_result.get("next_node"):
-        next_node = last_result.get("next_node", {})
-        st.markdown("### 下一节点推荐")
-        st.write(f"{next_node.get('title', '')} | {next_node.get('summary', '')}")
 
 render_pending_scroll_to_top()
