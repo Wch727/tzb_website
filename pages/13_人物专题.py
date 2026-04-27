@@ -28,7 +28,7 @@ from template_renderer import render_template_block
 def _jump_to_node(node_id: str) -> None:
     """跳转到主线节点。"""
     st.session_state["selected_node_id"] = node_id
-    st.switch_page("pages/3_长征路线.py")
+    st.switch_page("pages/14_节点展项.py")
 
 
 def _script_paragraphs(script: str) -> list[str]:

@@ -539,7 +539,9 @@ def _build_stage_meta(
     next_hint = ""
     related_nodes = list(node.get("related_nodes", []) or [])
     if related_nodes:
-        next_hint = f"完成本关后，可继续关注 {related_nodes[0]} 与当前节点的衔接关系。"
+        related_node = get_route_node_data(str(related_nodes[0])) or {}
+        related_title = related_node.get("title", str(related_nodes[0]))
+        next_hint = f"完成本关后，可继续关注“{related_title}”与当前节点的衔接关系。"
     elif chapter.get("nodes"):
         next_hint = f"完成本关后，建议继续沿“{chapter.get('title', '主线篇章')}”推进。"
 

@@ -28,7 +28,7 @@ from utils import get_visible_user_models
 def _jump_to_node(node_id: str) -> None:
     """记录用户想查看的节点并跳转。"""
     st.session_state["selected_node_id"] = node_id
-    st.switch_page("pages/3_长征路线.py")
+    st.switch_page("pages/14_节点展项.py")
 
 
 def _jump_to_figure(name: str) -> None:
@@ -48,12 +48,12 @@ def _extract_route_titles(route_text: str) -> list[str]:
 
 
 def _jump_to_route(route_text: str) -> None:
-    """按推荐路线跳到首个可浏览节点。"""
+    """按推荐路线进入对应篇章的选关大厅。"""
     for title in _extract_route_titles(route_text):
         node = get_route_node_data(title)
         if node:
-            st.session_state["selected_node_id"] = node.get("id", "")
             st.session_state["selected_chapter_id"] = get_chapter_for_node(node).get("id", "")
+            st.session_state.pop("selected_node_id", None)
             st.switch_page("pages/3_长征路线.py")
             return
 
@@ -79,11 +79,10 @@ def _jump_to_question(question: str) -> None:
 
 
 def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
-    """跳到指定篇章，可附带首个节点。"""
+    """跳到指定篇章选关大厅。"""
     if chapter_id:
         st.session_state["selected_chapter_id"] = chapter_id
-    if node_id:
-        st.session_state["selected_node_id"] = node_id
+    st.session_state.pop("selected_node_id", None)
     st.switch_page("pages/3_长征路线.py")
 
 
@@ -259,7 +258,7 @@ with story_left:
         )
     with story_action_mid:
         if st.button("进入这一篇章", key=f"home_story_chapter::{selected_story.get('id', '')}", width="stretch"):
-            _jump_to_chapter(selected_story.get("chapter_id", ""), selected_story.get("lead_node_id", ""))
+            _jump_to_chapter(selected_story.get("chapter_id", ""))
     with story_action_right:
         if st.button("打开对应展项", key=f"home_story_node::{selected_story.get('id', '')}", width="stretch"):
             _jump_to_node(selected_story.get("lead_node_id", ""))
@@ -378,7 +377,7 @@ with route_shell_left:
                 key=f"route_overview_jump_{chapter.get('id', index)}",
                 width="stretch",
             ):
-                _jump_to_chapter(chapter.get("id", ""), chapter.get("nodes", [{}])[0].get("id", ""))
+                _jump_to_chapter(chapter.get("id", ""))
     if st.button("打开完整路线展厅", key="home_open_full_route_hall", width="stretch", type="primary"):
         st.switch_page("pages/3_长征路线.py")
 

@@ -6,12 +6,9 @@ import streamlit as st
 
 from activity_manager import get_activity
 from content_store import get_route_chapters
-from game import get_route_node
 from media import render_node_image
-from node_detail import render_node_detail
 from quiz_engine import create_story_state, set_story_checkpoint
 from streamlit_ui import (
-    build_current_provider_config,
     render_chapter_overview_cards,
     render_curatorial_note,
     render_feature_ribbon,
@@ -33,7 +30,6 @@ render_hero(
     badges=["四大篇章", "节点导览", "展项详情", "互动入口"],
 )
 
-provider_config = build_current_provider_config()
 activity = get_activity(st.session_state.get("current_activity_id", ""))
 allowed_node_ids = set(activity.get("node_scope", []) if activity else [])
 chapters = get_route_chapters()
@@ -117,10 +113,10 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
             st.markdown("<div class='small-muted'><strong>互动节点：</strong>由此进入本段征程的闯关学习。</div>", unsafe_allow_html=True)
         action_left, action_right = st.columns(2)
         with action_left:
-            if st.button("查看详情", key=f"chapter_node_{node.get('id')}", width="stretch"):
+            if st.button("进入展项", key=f"chapter_node_{node.get('id')}", width="stretch", type="primary"):
                 st.session_state["selected_chapter_id"] = selected_chapter.get("id", "")
                 st.session_state["selected_node_id"] = node.get("id", "")
-                st.rerun()
+                st.switch_page("pages/14_节点展项.py")
         with action_right:
             if st.button("进入互动", key=f"chapter_quiz_{node.get('id')}", width="stretch"):
                 story_state = create_story_state(
@@ -131,35 +127,22 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
                 st.session_state["story_state"] = set_story_checkpoint(story_state, node.get("id", ""))
                 st.switch_page("pages/4_剧情答题.py")
 
-all_nodes = [node for chapter in chapters for node in chapter.get("nodes", [])]
-node_ids = [node.get("id", "") for node in all_nodes]
-selected_node_id = st.session_state.get("selected_node_id", node_ids[0] if node_ids else "")
-if selected_node_id not in node_ids and node_ids:
-    selected_node_id = node_ids[0]
-st.session_state["selected_node_id"] = selected_node_id
-
-selected_node = get_route_node(selected_node_id)
-if selected_node:
-    render_section(
-        "节点展项详情",
-        f"以下展项位于“{selected_chapter.get('title', '主线篇章')}”篇章之中，收录讲解、史料依据与互动学习内容。",
-    )
-    render_node_detail(
-        node=selected_node,
-        provider_config=provider_config,
-        audience=st.session_state.get("selected_role_name", "大学生"),
-        key_prefix="route-page-node",
-    )
-    action_left, action_right = st.columns(2)
-    with action_left:
-        if st.button("从该节点进入互动题", width="stretch", type="primary"):
-            story_state = create_story_state(
-                role_id=st.session_state.get("selected_role_id", "scout"),
-                activity_id=st.session_state.get("current_activity_id", ""),
-                start_node_id=selected_node_id,
-            )
-            st.session_state["story_state"] = set_story_checkpoint(story_state, selected_node_id)
-            st.switch_page("pages/4_剧情答题.py")
-    with action_right:
-        if st.button("进入知识百问", width="stretch"):
-            st.switch_page("pages/5_知识库.py")
+render_feature_ribbon(
+    [
+        {
+            "label": "选关大厅",
+            "title": "先选一站，再进展项",
+            "desc": "从这里选择一站进入，抵达节点后即可看到图文讲解、语音导览与互动闯关入口。",
+        },
+        {
+            "label": "闯关建议",
+            "title": "按顺序推进更完整",
+            "desc": "第一次体验建议从出发与突围篇开始，沿着节点顺序进入，像选关游戏一样逐步解锁主线。",
+        },
+        {
+            "label": "快速玩法",
+            "title": "重点关卡可直达",
+            "desc": "如果时间有限，可优先进入湘江战役、遵义会议、四渡赤水、飞夺泸定桥和会宁会师等关键节点。",
+        },
+    ]
+)

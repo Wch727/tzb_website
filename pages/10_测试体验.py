@@ -9,7 +9,6 @@ from content_store import get_featured_route_nodes, get_recommended_questions, g
 from game import get_route_node
 from generator import generate_guide_script
 from media import render_audio_player, render_digital_human
-from node_detail import render_node_detail
 from rag import ask
 from sample_content import load_home_sample_content
 from streamlit_ui import (
@@ -68,16 +67,7 @@ with tab2:
             st.write(node.get("summary", ""))
             if st.button("打开该展项", key=f"test_node_{node.get('id')}", width="stretch"):
                 st.session_state["selected_node_id"] = node.get("id", "")
-                st.rerun()
-
-    selected_node = get_route_node(st.session_state.get("selected_node_id", featured_nodes[0].get("id", "") if featured_nodes else ""))
-    if selected_node:
-        render_node_detail(
-            node=selected_node,
-            provider_config=provider_config,
-            audience=st.session_state.get("selected_role_name", "大学生"),
-            key_prefix="test-page-node",
-        )
+                st.switch_page("pages/14_节点展项.py")
 
 with tab3:
     render_section("一键讲解", "围绕单一节点生成讲解内容，并同步查看资料依据。")
@@ -157,4 +147,4 @@ with tab4:
     if story_node:
         if st.button("打开对应展项", key=f"quick_story_node::{story_id}", width="stretch"):
             st.session_state["selected_node_id"] = story_node.get("id", "")
-            st.switch_page("pages/3_长征路线.py")
+            st.switch_page("pages/14_节点展项.py")

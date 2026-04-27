@@ -5,15 +5,13 @@ from __future__ import annotations
 import streamlit as st
 
 from content_store import build_node_related_questions, get_node_extended_reading, get_recommended_questions
-from game import get_route_node, load_route_nodes
+from game import get_route_node
 from knowledge_cards import get_knowledge_cards
-from node_detail import render_node_detail
 from rag import ask
 from sample_content import load_home_sample_content
 from streamlit_ui import (
     build_current_provider_config,
     get_filters_by_label,
-    get_selected_model_info,
     get_topic_filter_options,
     render_model_banner,
     render_runtime_notice,
@@ -28,8 +26,6 @@ setup_page("知识百问", icon="📚")
 render_top_nav("知识百问")
 
 provider_config = build_current_provider_config()
-model_info = get_selected_model_info()
-route_nodes = load_route_nodes()
 sample = load_home_sample_content()
 
 render_section("长征百问", "以问题为线索串联节点、人物、事件与精神专题，形成完整的阅读脉络。")
@@ -48,7 +44,7 @@ with tab1:
     )
     st.session_state["selected_topic_label"] = selected_label
 
-    selected_node_id = st.session_state.get("selected_node_id", route_nodes[0]["id"] if route_nodes else "")
+    selected_node_id = st.session_state.get("selected_node_id", "")
     selected_node = get_route_node(selected_node_id) if selected_node_id else None
 
     quick_left, quick_right = st.columns([1, 1])
@@ -119,19 +115,9 @@ with tab2:
                 st.write(item.get("summary", item.get("answer", "")))
                 if item.get("id") and st.button("查看展项", key=f"knowledge_node_{item.get('id')}", width="stretch"):
                     st.session_state["selected_node_id"] = item.get("id", "")
-                    st.rerun()
+                    st.switch_page("pages/14_节点展项.py")
     else:
         st.info("没有找到匹配的知识卡片。")
-
-    selected_node_id = st.session_state.get("selected_node_id", route_nodes[0]["id"] if route_nodes else "")
-    selected_node = get_route_node(selected_node_id)
-    if selected_node:
-        render_node_detail(
-            node=selected_node,
-            provider_config=provider_config,
-            audience=st.session_state.get("selected_role_name", "大学生"),
-            key_prefix="knowledge-node",
-        )
 
 with tab3:
     render_section("学习复盘", "把作答记录重新放回历史情境与知识理解之中。")
