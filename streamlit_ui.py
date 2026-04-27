@@ -14,6 +14,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from activity_manager import get_activity
+from template_renderer import render_template
 from utils import (
     BASE_DIR,
     get_default_provider_name,
@@ -816,6 +817,64 @@ def inject_custom_css() -> None:
             color: #7d6650;
             font-size: 0.88rem;
         }
+        .audio-spacing {
+            width: 100%;
+            margin: 0.35rem 0 0.2rem;
+        }
+        .digital-human-header,
+        .digital-human-card,
+        .digital-human-text-block {
+            border-radius: 18px;
+            background: rgba(255, 252, 250, 0.96);
+            border: 1px solid rgba(139, 38, 66, 0.12);
+            box-shadow: 0 8px 24px rgba(78, 16, 33, 0.05);
+        }
+        .digital-human-header {
+            border-radius: 24px;
+            padding: 1rem 1.05rem;
+            margin: 0.35rem 0 1rem;
+            background: linear-gradient(180deg, rgba(255,252,250,0.98), rgba(246,238,235,0.95));
+            border-color: rgba(139,38,66,0.16);
+            box-shadow: 0 14px 36px rgba(78,16,33,0.08);
+        }
+        .digital-human-kicker {
+            color: #8a2947;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.28rem;
+        }
+        .digital-human-title {
+            color: #5b112d;
+            font-size: 1.42rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+        .digital-human-subtitle,
+        .digital-human-card-text {
+            color: #655448;
+            font-size: 0.96rem;
+            line-height: 1.76;
+        }
+        .digital-human-card {
+            padding: 0.9rem 0.95rem;
+            margin-top: 0.65rem;
+        }
+        .digital-human-card-title {
+            color: #5b112d;
+            font-size: 1.06rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .digital-human-text-block {
+            padding: 0.9rem 1rem;
+            margin: 0 0 0.75rem;
+        }
+        .digital-human-script-text {
+            color: #352822;
+            font-size: 1rem;
+            line-height: 1.9;
+        }
         </style>
         """
     st.markdown(css, unsafe_allow_html=True)
@@ -892,10 +951,7 @@ def render_pending_scroll_to_top() -> None:
 
 def render_scroll_anchor(anchor_id: str = "codex-scroll-top") -> None:
     """在页面顶部渲染可供脚本定位的锚点。"""
-    st.markdown(
-        f"<div id='{anchor_id}' style='position:relative; top:0; height:1px; margin:0; padding:0;'></div>",
-        unsafe_allow_html=True,
-    )
+    st.html(render_template("scroll_anchor.html", anchor_id=html.escape(anchor_id)))
 
 
 def _clean_html(markup: str) -> str:
@@ -1129,30 +1185,26 @@ def render_top_nav(current_page: str) -> None:
     }
     chips = []
     if current_page == "剧情答题":
-        chips.append(f"<span class='masthead-chip'>闯关身份：{html.escape(current_role)}</span>")
+        chips.append(render_template("masthead_chip.html", text=f"闯关身份：{html.escape(current_role)}"))
     if current_activity_name:
-        chips.append(f"<span class='masthead-chip'>活动：{html.escape(current_activity_name)}</span>")
+        chips.append(render_template("masthead_chip.html", text=f"活动：{html.escape(current_activity_name)}"))
     if current_model and current_page in {"知识百问", "讲解工坊", "使用设置"}:
-        chips.append(f"<span class='masthead-chip'>模型：{html.escape(current_model.get('display_name', '知识导览模式'))}</span>")
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="masthead-shell">
-                <div class="masthead-top">
-                    <div>
-                        <div class="masthead-kicker">长征主题数字展</div>
-                        <div class="masthead-title">{html.escape(APP_TITLE)}</div>
-                        <div class="masthead-subtitle">{html.escape(subtitle_map.get(current_page, '沿着长征主线浏览展项、知识与互动学习内容。'))}</div>
-                    </div>
-                    <div class="masthead-meta">{''.join(chips)}</div>
-                </div>
-                <div class="masthead-divider"></div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
+        chips.append(
+            render_template(
+                "masthead_chip.html",
+                text=f"模型：{html.escape(current_model.get('display_name', '知识导览模式'))}",
+            )
+        )
+    st.html(
+        render_template(
+            "masthead.html",
+            kicker="长征主题数字展",
+            title=html.escape(APP_TITLE),
+            subtitle=html.escape(subtitle_map.get(current_page, "沿着长征主线浏览展项、知识与互动学习内容。")),
+            chips_html="".join(chips),
+        )
     )
-    st.markdown("<div class='nav-section-label'>展览导览</div>", unsafe_allow_html=True)
+    st.html(render_template("nav_section_label.html", label="展览导览"))
     row1 = st.columns(6)
     with row1[0]:
         _nav_action("首页", "pages/1_首页.py", current_page)
@@ -1167,7 +1219,7 @@ def render_top_nav(current_page: str) -> None:
     with row1[5]:
         _nav_action("讲解工坊", "pages/11_讲解生成.py", current_page)
 
-    st.markdown("<div class='nav-section-label'>互动与活动</div>", unsafe_allow_html=True)
+    st.html(render_template("nav_section_label.html", label="互动与活动"))
     row2 = st.columns(6)
     with row2[0]:
         _nav_action("互动闯关", "pages/4_剧情答题.py", current_page, current_aliases=["剧情答题", "互动闯关"])
@@ -1183,7 +1235,7 @@ def render_top_nav(current_page: str) -> None:
         _nav_action("使用设置", "pages/8_配置页.py", current_page)
 
     if st.session_state.get("admin_authenticated"):
-        st.markdown("<div class='nav-section-label'>运营入口</div>", unsafe_allow_html=True)
+        st.html(render_template("nav_section_label.html", label="运营入口"))
         admin_cols = st.columns(2)
         with admin_cols[0]:
             _nav_action("内容运营", "pages/9_管理员后台.py", current_page)
@@ -1194,19 +1246,15 @@ def render_top_nav(current_page: str) -> None:
 def render_hero(title: str, subtitle: str, badges: List[str] | None = None) -> None:
     """渲染主视觉区。"""
     badge_html = "".join(
-        f"<span class='badge-pill'>{html.escape(item)}</span>" for item in (badges or []) if item
+        render_template("hero_badge.html", label=html.escape(item)) for item in (badges or []) if item
     )
-    st.markdown(
-        _clean_html(
-            f"""
-        <div class="hero-banner">
-          <div class="badge-row">{badge_html}</div>
-          <div class="hero-title">{html.escape(title)}</div>
-          <div class="hero-subtitle">{html.escape(subtitle)}</div>
-        </div>
-        """
-        ),
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "hero_banner.html",
+            badges_html=badge_html,
+            title=html.escape(title),
+            subtitle=html.escape(subtitle),
+        )
     )
 
 
@@ -1215,16 +1263,13 @@ def render_metrics(items: List[Dict[str, str]]) -> None:
     cards = []
     for item in items:
         cards.append(
-            _clean_html(
-                f"""
-            <div class="metric-box">
-                <div class="metric-name">{html.escape(str(item.get('label', '')))}</div>
-                <div class="metric-value">{html.escape(str(item.get('value', '')))}</div>
-            </div>
-            """
+            render_template(
+                "metric_box.html",
+                label=html.escape(str(item.get("label", ""))),
+                value=html.escape(str(item.get("value", ""))),
             )
         )
-    st.markdown(f"<div class='metric-strip'>{''.join(cards)}</div>", unsafe_allow_html=True)
+    st.html(render_template("metric_strip.html", cards_html="".join(cards)))
 
 
 def render_game_status_board(items: List[Dict[str, str]]) -> None:
@@ -1232,19 +1277,16 @@ def render_game_status_board(items: List[Dict[str, str]]) -> None:
     cards: List[str] = []
     for item in items:
         cards.append(
-            _clean_html(
-                f"""
-                <div class="game-status-card">
-                    <div class="game-status-kicker">{html.escape(str(item.get('kicker', '状态')))}</div>
-                    <div class="game-status-value">{html.escape(str(item.get('value', '')))}</div>
-                    <div class="game-status-label">{html.escape(str(item.get('label', '')))}</div>
-                    <div class="game-status-note">{html.escape(str(item.get('note', '')))}</div>
-                </div>
-                """
+            render_template(
+                "game_status_card.html",
+                kicker=html.escape(str(item.get("kicker", "状态"))),
+                value=html.escape(str(item.get("value", ""))),
+                label=html.escape(str(item.get("label", ""))),
+                note=html.escape(str(item.get("note", ""))),
             )
         )
     if cards:
-        st.markdown(f"<div class='game-status-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+        st.html(render_template("game_status_grid.html", cards_html="".join(cards)))
 
 
 def render_cards(items: List[Dict[str, str]], timeline: bool = False) -> None:
@@ -1253,39 +1295,32 @@ def render_cards(items: List[Dict[str, str]], timeline: bool = False) -> None:
     cards = []
     for item in items:
         cards.append(
-            _clean_html(
-                f"""
-            <div class="info-card">
-                <div class="card-label">{html.escape(str(item.get('label', '')))}</div>
-                <div class="card-title">{html.escape(str(item.get('title', '')))}</div>
-                <div class="card-desc">{html.escape(str(item.get('desc', '')))}</div>
-            </div>
-            """
+            render_template(
+                "info_card.html",
+                label=html.escape(str(item.get("label", ""))),
+                title=html.escape(str(item.get("title", ""))),
+                desc=html.escape(str(item.get("desc", ""))),
             )
         )
-    st.markdown(f"<div class='{class_name}'>{''.join(cards)}</div>", unsafe_allow_html=True)
+    st.html(render_template("card_grid.html", class_name=class_name, cards_html="".join(cards)))
 
 
 def render_section(title: str, subtitle: str = "") -> None:
     """渲染区块标题。"""
-    st.markdown(f"<div class='section-title'>{html.escape(title)}</div>", unsafe_allow_html=True)
+    st.html(render_template("section_title.html", title=html.escape(title)))
     if subtitle:
-        st.markdown(f"<div class='section-subtitle'>{html.escape(subtitle)}</div>", unsafe_allow_html=True)
+        st.html(render_template("section_subtitle.html", subtitle=html.escape(subtitle)))
 
 
 def render_curatorial_note(title: str, body: str, label: str = "专题导语") -> None:
     """渲染策展导语卡。"""
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="curator-note">
-                <div class="curator-label">{html.escape(label)}</div>
-                <div class="curator-title">{html.escape(title)}</div>
-                <div class="curator-desc">{html.escape(body)}</div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "curator_note.html",
+            label=html.escape(label),
+            title=html.escape(title),
+            body=html.escape(body),
+        )
     )
 
 
@@ -1299,19 +1334,16 @@ def render_chapter_overview_cards(chapters: List[Dict[str, Any]], active_id: str
         node_titles = " · ".join(node.get("title", "") for node in chapter.get("nodes", [])[:3]) or "沿线展项"
         class_name = "chapter-card active" if chapter.get("id") == active_id else "chapter-card"
         with cols[index % len(cols)]:
-            st.markdown(
-                _clean_html(
-                    f"""
-                    <div class="{class_name}">
-                        <div class="chapter-badge">{html.escape(str(chapter.get('badge', '主线篇章')))}</div>
-                        <div class="chapter-title">{html.escape(str(chapter.get('title', '未命名篇章')))}</div>
-                        <div class="chapter-subtitle">{html.escape(str(chapter.get('subtitle', '')))}</div>
-                        <div class="chapter-meta">节点数量：{html.escape(str(chapter.get('count', len(chapter.get('nodes', [])))))}</div>
-                        <div class="chapter-meta">代表节点：{html.escape(node_titles)}</div>
-                    </div>
-                    """
-                ),
-                unsafe_allow_html=True,
+            st.html(
+                render_template(
+                    "chapter_card.html",
+                    class_name=class_name,
+                    badge=html.escape(str(chapter.get("badge", "主线篇章"))),
+                    title=html.escape(str(chapter.get("title", "未命名篇章"))),
+                    subtitle=html.escape(str(chapter.get("subtitle", ""))),
+                    count=html.escape(str(chapter.get("count", len(chapter.get("nodes", []))))),
+                    node_titles=html.escape(node_titles),
+                )
             )
 
 
@@ -1320,17 +1352,14 @@ def render_detail_panels(items: List[Dict[str, str]]) -> None:
     cards: List[str] = []
     for item in items:
         cards.append(
-            _clean_html(
-                f"""
-                <div class="detail-panel">
-                    <div class="detail-panel-title">{html.escape(str(item.get('title', '')))}</div>
-                    <div class="detail-panel-desc">{html.escape(str(item.get('desc', '')))}</div>
-                </div>
-                """
+            render_template(
+                "detail_panel.html",
+                title=html.escape(str(item.get("title", ""))),
+                desc=html.escape(str(item.get("desc", ""))),
             )
         )
     if cards:
-        st.markdown(f"<div class='detail-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+        st.html(render_template("detail_grid.html", cards_html="".join(cards)))
 
 
 def render_boss_stage_intro(data: Dict[str, Any]) -> None:
@@ -1338,31 +1367,24 @@ def render_boss_stage_intro(data: Dict[str, Any]) -> None:
     if not data:
         return
     orders_html = "".join(
-        _clean_html(
-            f"""
-            <div class="boss-order-card">
-                <div class="boss-order-title">任务 {index}</div>
-                <div class="boss-order-desc">{html.escape(str(item))}</div>
-            </div>
-            """
+        render_template(
+            "boss_order_card.html",
+            index=str(index),
+            desc=html.escape(str(item)),
         )
         for index, item in enumerate(data.get("orders", []), start=1)
         if str(item).strip()
     )
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="boss-intro">
-                <div class="boss-intro-label">{html.escape(str(data.get('label', '章节攻坚关')))}</div>
-                <div class="boss-intro-title">{html.escape(str(data.get('title', '关键大关')))}</div>
-                <div class="boss-intro-lead">{html.escape(str(data.get('lead', '')))}</div>
-                <div class="boss-intro-focus">{html.escape(str(data.get('focus', '')))}</div>
-                <div class="boss-order-grid">{orders_html}</div>
-                <div class="boss-intro-stakes">{html.escape(str(data.get('stakes', '')))}</div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "boss_intro.html",
+            label=html.escape(str(data.get("label", "章节攻坚关"))),
+            title=html.escape(str(data.get("title", "关键大关"))),
+            lead=html.escape(str(data.get("lead", ""))),
+            focus=html.escape(str(data.get("focus", ""))),
+            orders_html=orders_html,
+            stakes=html.escape(str(data.get("stakes", ""))),
+        )
     )
 
 
@@ -1370,19 +1392,15 @@ def render_boss_stage_outcome(data: Dict[str, Any]) -> None:
     """渲染大关答题后的专属结算语。"""
     if not data:
         return
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="boss-outcome">
-                <div class="boss-outcome-label">{html.escape(str(data.get('label', '章节攻坚关')))}</div>
-                <div class="boss-outcome-title">{html.escape(str(data.get('title', '关键大关')))} · 战役复盘</div>
-                <div class="boss-outcome-lead">{html.escape(str(data.get('lead', '')))}</div>
-                <div class="boss-outcome-focus">{html.escape(str(data.get('focus', '')))}</div>
-                <div class="boss-outcome-closing">{html.escape(str(data.get('closing', '')))}</div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "boss_outcome.html",
+            label=html.escape(str(data.get("label", "章节攻坚关"))),
+            title=html.escape(str(data.get("title", "关键大关"))),
+            lead=html.escape(str(data.get("lead", ""))),
+            focus=html.escape(str(data.get("focus", ""))),
+            closing=html.escape(str(data.get("closing", ""))),
+        )
     )
 
 
@@ -1425,42 +1443,36 @@ def render_formal_script(
         is_section = any(re.match(pattern, first) for pattern in section_patterns)
         if is_section:
             paragraphs = "".join(
-                f"<p class='script-paragraph'>{html.escape(line)}</p>" for line in lines[1:] if line
+                render_template("script_paragraph.html", text=html.escape(line)) for line in lines[1:] if line
             )
+            fallback_paragraph = render_template("script_paragraph.html", text=html.escape(block))
             html_blocks.append(
-                _clean_html(
-                    f"""
-                    <div class="script-block">
-                        <div class="script-section-title">{html.escape(first)}</div>
-                        {paragraphs or f"<p class='script-paragraph'>{html.escape(block)}</p>"}
-                    </div>
-                    """
+                render_template(
+                    "script_section_block.html",
+                    title=html.escape(first),
+                    paragraphs_html=paragraphs or fallback_paragraph,
                 )
             )
         else:
-            paragraphs = "".join(f"<p class='script-paragraph'>{html.escape(line)}</p>" for line in lines)
-            html_blocks.append(f"<div class='script-block'>{paragraphs}</div>")
+            paragraphs = "".join(render_template("script_paragraph.html", text=html.escape(line)) for line in lines)
+            html_blocks.append(render_template("script_block.html", content_html=paragraphs))
 
     meta_markup = ""
     if meta:
         chips = "".join(
-            f"<span class='script-meta-chip'>{html.escape(item)}</span>" for item in meta if item and item.strip()
+            render_template("script_meta_chip.html", text=html.escape(item)) for item in meta if item and item.strip()
         )
         if chips:
-            meta_markup = f"<div class='script-meta'>{chips}</div>"
+            meta_markup = render_template("script_meta.html", chips_html=chips)
 
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="script-sheet">
-                <div class="script-kicker">{html.escape(label)}</div>
-                <div class="script-title">{html.escape(resolved_title or '长征主题讲解')}</div>
-                {meta_markup}
-                {''.join(html_blocks)}
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "script_sheet.html",
+            label=html.escape(label),
+            title=html.escape(resolved_title or "长征主题讲解"),
+            meta_html=meta_markup,
+            blocks_html="".join(html_blocks),
+        )
     )
 
 
@@ -1469,18 +1481,15 @@ def render_feature_ribbon(items: List[Dict[str, str]]) -> None:
     cards: List[str] = []
     for item in items:
         cards.append(
-            _clean_html(
-                f"""
-                <div class="feature-shell">
-                    <div class="feature-kicker">{html.escape(str(item.get('label', '')))}</div>
-                    <div class="feature-headline">{html.escape(str(item.get('title', '')))}</div>
-                    <div class="feature-body">{html.escape(str(item.get('desc', '')))}</div>
-                </div>
-                """
+            render_template(
+                "feature_shell.html",
+                label=html.escape(str(item.get("label", ""))),
+                title=html.escape(str(item.get("title", ""))),
+                desc=html.escape(str(item.get("desc", ""))),
             )
         )
     if cards:
-        st.markdown(f"<div class='feature-ribbon'>{''.join(cards)}</div>", unsafe_allow_html=True)
+        st.html(render_template("feature_ribbon.html", cards_html="".join(cards)))
 
 
 def render_ledger_cards(items: List[Dict[str, str]]) -> None:
@@ -1488,33 +1497,20 @@ def render_ledger_cards(items: List[Dict[str, str]]) -> None:
     cards: List[str] = []
     for item in items:
         cards.append(
-            _clean_html(
-                f"""
-                <div class="ledger-card">
-                    <div class="ledger-index">{html.escape(str(item.get('label', '')))}</div>
-                    <div class="ledger-title">{html.escape(str(item.get('title', '')))}</div>
-                    <div class="ledger-text">{html.escape(str(item.get('desc', '')))}</div>
-                </div>
-                """
+            render_template(
+                "ledger_card.html",
+                label=html.escape(str(item.get("label", ""))),
+                title=html.escape(str(item.get("title", ""))),
+                desc=html.escape(str(item.get("desc", ""))),
             )
         )
     if cards:
-        st.markdown(f"<div class='ledger-grid'>{''.join(cards)}</div>", unsafe_allow_html=True)
+        st.html(render_template("ledger_grid.html", cards_html="".join(cards)))
 
 
 def render_gallery_frame(title: str, subtitle: str = "") -> None:
     """渲染展厅框架标题。"""
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="gallery-frame">
-                <div class="gallery-title">{html.escape(title)}</div>
-                <div class="gallery-subtitle">{html.escape(subtitle)}</div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
-    )
+    st.html(render_template("gallery_frame.html", title=html.escape(title), subtitle=html.escape(subtitle)))
 
 
 def render_exhibition_hero(
@@ -1531,46 +1527,30 @@ def render_exhibition_hero(
     """渲染更具展厅感的首页第一屏。"""
     background_uri = _asset_to_data_uri(background_path)
     tag_markup = "".join(
-        f"<span class='exhibition-tag'>{html.escape(item)}</span>" for item in tags if item
+        render_template("exhibition_tag.html", label=html.escape(item)) for item in tags if item
     )
     story_markup = "".join(
-        _clean_html(
-            f"""
-            <div class="exhibition-story-card">
-                <div class="exhibition-story-label">{html.escape(str(item.get('label', '展线')))}</div>
-                <div class="exhibition-story-title">{html.escape(str(item.get('title', '')))}</div>
-                <div class="exhibition-story-desc">{html.escape(str(item.get('desc', '')))}</div>
-            </div>
-            """
+        render_template(
+            "exhibition_story_card.html",
+            label=html.escape(str(item.get("label", "展线"))),
+            title=html.escape(str(item.get("title", ""))),
+            desc=html.escape(str(item.get("desc", ""))),
         )
         for item in storyline_items
     )
-    point_markup = "".join(f"<li>{html.escape(item)}</li>" for item in side_points if item)
-    st.markdown(
-        _clean_html(
-            f"""
-            <div class="exhibition-hero" style="--hero-image: url('{background_uri}');">
-                <div class="exhibition-hero-inner">
-                    <div>
-                        <div class="exhibition-kicker">长征主题展入口</div>
-                        <div class="exhibition-title">{html.escape(title)}</div>
-                        <div class="exhibition-subtitle">{html.escape(subtitle)}</div>
-                        <div class="exhibition-tag-row">{tag_markup}</div>
-                        <div class="exhibition-storyline">{story_markup}</div>
-                    </div>
-                    <div class="exhibition-side-panel">
-                        <div class="exhibition-side-card">
-                            <div class="exhibition-side-kicker">主线提要</div>
-                            <div class="exhibition-side-title">{html.escape(side_title)}</div>
-                            <div class="exhibition-side-text">{html.escape(side_text)}</div>
-                            <ul class="exhibition-side-points">{point_markup}</ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
+    point_markup = "".join(render_template("exhibition_side_point.html", text=html.escape(item)) for item in side_points if item)
+    st.html(
+        render_template(
+            "exhibition_hero.html",
+            background_uri=background_uri,
+            title=html.escape(title),
+            subtitle=html.escape(subtitle),
+            tag_markup=tag_markup,
+            story_markup=story_markup,
+            side_title=html.escape(side_title),
+            side_text=html.escape(side_text),
+            point_markup=point_markup,
+        )
     )
 
 
@@ -1589,25 +1569,16 @@ def render_model_banner() -> None:
         readiness_text = "已接入可用模型密钥。"
     elif provider_config.get("api_key_source") == "session":
         readiness_text = "正在使用本次访问会话中提供的个人密钥。"
-    st.markdown(
-        _clean_html(
-            f"""
-        <div class="notice-card">
-            <strong>模型：</strong>{html.escape(model_info.get('display_name', '知识导览模式'))}
-            <br/>
-            <span class="small-muted">模型标识：{html.escape(model_info.get('model', '未配置'))}</span>
-            <br/>
-            <span class="small-muted">内容模式：{html.escape(provider_config.get('mode_label', '知识导览模式'))}</span>
-            <br/>
-            <span class="small-muted">接入方式：{html.escape(allow_key_text)}，展示范围以平台已开放模型为准。</span>
-            <br/>
-            <span class="small-muted">{html.escape(provider_config.get('mode_reason', readiness_text))}</span>
-            <br/>
-            <span class="small-muted">{html.escape(description)}</span>
-        </div>
-        """
-        ),
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "model_banner.html",
+            model_name=html.escape(model_info.get("display_name", "知识导览模式")),
+            model_id=html.escape(model_info.get("model", "未配置")),
+            mode_label=html.escape(provider_config.get("mode_label", "知识导览模式")),
+            allow_key_text=html.escape(allow_key_text),
+            readiness_text=html.escape(provider_config.get("mode_reason", readiness_text)),
+            description=html.escape(description),
+        )
     )
 
 
@@ -1635,20 +1606,15 @@ def render_sources(sources: List[Dict[str, Any]], title: str = "本次回答依�
             if item.get("source_page"):
                 meta_bits.append(f"页码：{html.escape(str(item.get('source_page', '')))}")
             cards.append(
-                _clean_html(
-                    f"""
-                <div class="source-card">
-                    <div class="source-label">来源文件：{html.escape(str(item.get('source_file', '未知文件')))}</div>
-                    <div class="source-title">{html.escape(str(item.get('title', '未命名')))}</div>
-                    <div class="source-desc">
-                        {' | '.join(meta_bits)}<br/>
-                        摘要片段：{html.escape(str(item.get('snippet', '')))}
-                    </div>
-                </div>
-                """
+                render_template(
+                    "source_card.html",
+                    source_file=html.escape(str(item.get("source_file", "未知文件"))),
+                    title=html.escape(str(item.get("title", "未命名"))),
+                    meta_text=" | ".join(meta_bits),
+                    snippet=html.escape(str(item.get("snippet", ""))),
                 )
             )
-        st.markdown("".join(cards), unsafe_allow_html=True)
+        st.html("".join(cards))
 
 
 def admin_is_logged_in() -> bool:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 from typing import Any, Dict, List
 
 import streamlit as st
@@ -18,7 +19,6 @@ from generator import generate_guide_script, generate_short_video_script
 from media import render_audio_player, render_digital_human, render_node_image
 from rag import retrieve_knowledge
 from streamlit_ui import (
-    _clean_html,
     render_curatorial_note,
     render_detail_panels,
     render_formal_script,
@@ -27,6 +27,7 @@ from streamlit_ui import (
     render_section,
     render_sources,
 )
+from template_renderer import render_template
 
 
 def _node_narration_text(node: Dict[str, Any], explanation: str = "", guide_script: str = "") -> str:
@@ -115,18 +116,7 @@ def _render_figure_block(node: Dict[str, Any]) -> None:
     cols = st.columns(min(4, len(figures)))
     for index, name in enumerate(figures):
         with cols[index % len(cols)]:
-            st.markdown(
-                _clean_html(
-                    f"""
-                    <div class="info-card" style="padding:0.95rem 1rem; min-height: 170px;">
-                        <div class="card-label">人物专题</div>
-                        <div class="card-title" style="font-size:1.05rem;">{name}</div>
-                        <div class="card-desc">继续围绕该人物阅读相关经历、长征中的作用与历史贡献。</div>
-                    </div>
-                    """
-                ),
-                unsafe_allow_html=True,
-            )
+            st.html(render_template("node_figure_card.html", name=html.escape(str(name))))
             if st.button(f"查看{name}专题", key=f"figure_detail::{node.get('id', '')}::{name}", width="stretch"):
                 st.session_state["selected_figure_name"] = name
                 st.session_state["_scroll_to_top_once"] = True
@@ -178,15 +168,13 @@ def render_node_detail(
     default_guide_script = build_node_story_script(node)
     node_intro = _build_node_intro_text(node)
 
-    st.markdown(
-        f"""
-        <div class="notice-card" style="margin-top:0.2rem;">
-            <strong>{chapter.get('badge', '展项单元')}</strong> · {chapter.get('title', '主线展项')}
-            <br/>
-            <span class="small-muted">{chapter.get('subtitle', '')}</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    st.html(
+        render_template(
+            "node_notice_card.html",
+            badge=html.escape(str(chapter.get("badge", "展项单元"))),
+            title=html.escape(str(chapter.get("title", "主线展项"))),
+            subtitle=html.escape(str(chapter.get("subtitle", ""))),
+        )
     )
 
     render_curatorial_note(

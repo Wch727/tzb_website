@@ -26,7 +26,7 @@ from streamlit_ui import (
     render_top_nav,
     setup_page,
 )
-from template_renderer import render_template_block
+from template_renderer import render_template, render_template_block
 from team_manager import build_team_member_summary, build_team_share_text, get_team, record_team_progress
 from game import get_route_node
 
@@ -79,14 +79,15 @@ def _record_story_entry(story_state: dict) -> None:
 def _render_role_cards(roles: list[dict]) -> None:
     """渲染闯关身份卡。"""
     cards_html = "".join(
-        "<div class='role-loadout-card'>"
-        f"<span>{html.escape(item.get('title', '闯关身份'))}</span>"
-        f"<h3>{html.escape(item.get('name', '侦察兵'))}</h3>"
-        f"<p>{html.escape(item.get('tagline', '进入长征主线挑战。'))}</p>"
-        "</div>"
+        render_template(
+            "role_loadout_card.html",
+            role_title=html.escape(item.get("title", "闯关身份")),
+            role_name=html.escape(item.get("name", "侦察兵")),
+            role_tagline=html.escape(item.get("tagline", "进入长征主线挑战。")),
+        )
         for item in roles
     )
-    st.html(f"<div class='role-loadout-grid'>{cards_html}</div>")
+    st.html(render_template("role_loadout_grid.html", cards_html=cards_html))
 
 
 def _render_game_lobby() -> None:
@@ -176,22 +177,30 @@ def _render_battle_briefing(stage: dict) -> None:
         return
 
     orders_html = "".join(
-        f"""
-        <div class="mission-ticket">
-            <span>命令 {index:02d}</span>
-            <strong>{html.escape(item)}</strong>
-        </div>
-        """
+        render_template(
+            "mission_ticket.html",
+            label=f"命令 {index:02d}",
+            text=html.escape(item),
+        )
         for index, item in enumerate(orders, start=1)
     )
     logs_html = "".join(
-        f"""
-        <div class="war-log-line">
-            <span>记录 {index:02d}</span>
-            <p>{html.escape(item)}</p>
-        </div>
-        """
+        render_template(
+            "war_log_line.html",
+            label=f"记录 {index:02d}",
+            text=html.escape(item),
+        )
         for index, item in enumerate(logs, start=1)
+    )
+    fallback_order = render_template(
+        "mission_ticket.html",
+        label="命令",
+        text="阅读当前材料，完成本关判断。",
+    )
+    fallback_log = render_template(
+        "war_log_line.html",
+        label="记录",
+        text="本关将在作答后展开历史解析与延伸知识。",
     )
     st.html(
         render_template_block(
@@ -199,9 +208,8 @@ def _render_battle_briefing(stage: dict) -> None:
             "exhibit_components.css",
             node_title=html.escape(stage.get("node_title", stage.get("title", "当前关卡"))),
             campaign_title=html.escape(stage.get("campaign_title", "长征主线")),
-            orders_html=orders_html
-            or '<div class="mission-ticket"><span>命令</span><strong>阅读背景，完成本关判断。</strong></div>',
-            logs_html=logs_html or '<div class="war-log-line"><span>记录</span><p>本关暂无补充记录。</p></div>',
+            orders_html=orders_html or fallback_order,
+            logs_html=logs_html or fallback_log,
         )
     )
 

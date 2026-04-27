@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 import streamlit as st
 
 from content_store import load_image_map
+from template_renderer import render_template
 from tts import resolve_existing_audio, synthesize_text_to_audio
 from utils import AVATAR_DIR, BASE_DIR, IMAGE_DIR, get_settings
 
@@ -181,10 +182,7 @@ def render_svg_artwork(svg_markup: str, caption: str = "") -> None:
         svg_markup,
         count=1,
     )
-    st.markdown(
-        f"<div style='width:100%;margin:0.35rem 0 0.2rem;'>{normalized}</div>",
-        unsafe_allow_html=True,
-    )
+    st.html(render_template("audio_spacing.html", content_html=normalized))
     if caption:
         st.caption(caption)
 
@@ -303,58 +301,20 @@ def render_digital_human(
             voice=voice,
         )
 
-    header_html = f"""
-    <div style="
-        border-radius:24px;
-        padding:1rem 1.05rem;
-        background:linear-gradient(180deg, rgba(255,252,250,0.98), rgba(246,238,235,0.95));
-        border:1px solid rgba(139,38,66,0.16);
-        box-shadow:0 14px 36px rgba(78,16,33,0.08);
-        margin:0.35rem 0 1rem;
-    ">
-        <div style="color:#8a2947;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">数字讲解员</div>
-        <div style="color:#5b112d;font-size:1.42rem;font-weight:700;margin-bottom:0.35rem;">{html.escape(title)}</div>
-        <div style="color:#655448;font-size:0.96rem;line-height:1.76;">{html.escape(subtitle or '以正式讲解词、语音与字幕并行呈现当前展项内容。')}</div>
-    </div>
-    """
-    st.markdown(header_html, unsafe_allow_html=True)
+    st.html(
+        render_template(
+            "digital_human_header.html",
+            title=html.escape(title),
+            subtitle=html.escape(subtitle or "以正式讲解词、语音与字幕并行呈现当前展项内容。"),
+        )
+    )
 
     left_col, right_col = st.columns([0.82, 1.18])
     with left_col:
         _render_avatar_panel(avatar_path, "讲解员形象")
-        st.markdown(
-            """
-            <div style="
-                border-radius:18px;
-                padding:0.95rem 1rem;
-                background:linear-gradient(180deg, rgba(255,252,250,0.98), rgba(248,240,237,0.96));
-                border:1px solid rgba(139,38,66,0.12);
-                margin-top:0.7rem;
-            ">
-                <div style="color:#8a2947;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.28rem;">讲解席位</div>
-                <div style="color:#5b112d;font-size:1.06rem;font-weight:700;margin-bottom:0.25rem;">数字讲解员</div>
-                <div style="color:#6a5a4d;font-size:0.92rem;line-height:1.72;">围绕正式讲解词、节点事实与主线线索同步展开讲述，适合在节点页、人物页和大关过场中持续播放。</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.html(render_template("digital_human_avatar_card.html"))
         status_label = "讲解音频已就绪" if resolved_audio_path and Path(resolved_audio_path).exists() else "讲解词已就绪"
-        st.markdown(
-            f"""
-            <div style="
-                border-radius:18px;
-                padding:0.9rem 0.95rem;
-                background:rgba(255,252,250,0.96);
-                border:1px solid rgba(139,38,66,0.12);
-                margin-top:0.6rem;
-            ">
-                <div style="color:#8a2947;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">讲解状态</div>
-                <div style="color:#5b112d;font-size:1.02rem;font-weight:700;margin-bottom:0.25rem;">{html.escape(status_label)}</div>
-                <div style="color:#6a5a4d;font-size:0.9rem;line-height:1.7;">围绕正式讲解稿、节点事实与历史线索同步展开讲述。</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.html(render_template("digital_human_status_card.html", status_label=html.escape(status_label)))
         if cache_key and not resolved_audio_path:
             if st.button("准备讲解音频", key=f"digital_prepare::{cache_key}", width="stretch"):
                 result = synthesize_text_to_audio(text=section_text, cache_key=cache_key, voice=voice)
@@ -368,33 +328,12 @@ def render_digital_human(
     with right_col:
         if blocks:
             for index, block in enumerate(blocks, start=1):
-                st.markdown(
-                    f"""
-                    <div style="
-                        border-radius:18px;
-                        padding:0.9rem 1rem;
-                        background:rgba(255,252,250,0.96);
-                        border:1px solid rgba(139,38,66,0.12);
-                        box-shadow:0 8px 24px rgba(78,16,33,0.05);
-                        margin:0 0 0.75rem;
-                    ">
-                        <div style="color:#8a2947;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.28rem;">讲解片段 {index:02d}</div>
-                        <div style="color:#352822;font-size:1rem;line-height:1.9;">{html.escape(block)}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
+                st.html(
+                    render_template(
+                        "digital_human_text_block.html",
+                        index=f"{index:02d}",
+                        text=html.escape(block),
+                    )
                 )
         else:
-            st.markdown(
-                f"""
-                <div style="
-                    border-radius:18px;
-                    padding:1rem 1.05rem;
-                    background:rgba(255,252,250,0.96);
-                    border:1px solid rgba(139,38,66,0.12);
-                ">
-                    <div style="color:#352822;font-size:1rem;line-height:1.92;">{html.escape(section_text)}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.html(render_template("digital_human_full_text.html", text=html.escape(section_text)))

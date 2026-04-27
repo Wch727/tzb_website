@@ -65,6 +65,20 @@ pages/
 - 闭卷规则：闯关作答前只展示必要任务线索，不再提前展示完整讲解稿、知识卡片和答案解析；提交答案后才解锁解析、历史小课堂、人物专题入口和下一节点推荐。
 - 角色位置：侦察兵、卫生员、通讯员等身份已合并进互动闯关大厅，不再作为独立页面暴露在主展导航中。
 
+## 前端模板维护方式
+
+首页和关键互动组件的 HTML 已拆分到 `templates/`，样式拆分到 `assets/styles/`：
+
+- `templates/home_*.html`：首页主视觉、展项卡、专题卡、统计条、路线卡等模板
+- `assets/styles/home_exhibit.css`：首页展陈式视觉样式
+- `home_components.py`：只负责读取数据、渲染模板和组织跳转，不再在首页页面文件中堆大段 HTML
+- `templates/game_lobby.html`、`templates/battle_briefing.html`：互动闯关相关模板
+- `templates/figure_exhibit_wall.html`：人物专题展墙模板
+- `templates/role_*.html`、`templates/mission_*.html`、`templates/digital_human_*.html`：角色卡、任务简报和数字讲解员模板
+- `templates/masthead.html`、`templates/hero_banner.html`、`templates/script_sheet.html`：全站页眉、通用主视觉和讲解稿版式模板
+
+后续改首页视觉时，优先修改 `templates/home_*.html` 与 `assets/styles/home_exhibit.css`；改入口逻辑时再修改 `pages/1_首页.py`。
+
 ## 管理员 / 用户权限说明
 
 ### 管理员可以
@@ -501,6 +515,7 @@ project/
   tts.py
   sample_content.py
   node_detail.py
+  home_components.py
   streamlit_ui.py
   utils.py
   llm/
@@ -537,8 +552,14 @@ project/
     sample_scripts.json
   assets/
     images/
+    styles/
     avatar/
     audio/
+  templates/
+    home_*.html
+    game_lobby.html
+    battle_briefing.html
+    figure_exhibit_wall.html
   storage/
     chroma_db/
     uploads/

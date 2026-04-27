@@ -94,10 +94,7 @@ with chapter_right:
             lead_node,
             caption=f"{selected_chapter.get('title', '')}篇章入口展项",
         )
-        st.markdown(
-            f"<div class='small-muted'>本篇章可由 {lead_node.get('title', '')} 展开，以把握这一阶段的历史任务与转折意义。</div>",
-            unsafe_allow_html=True,
-        )
+        st.caption(f"本篇章可由 {lead_node.get('title', '')} 展开，以把握这一阶段的历史任务与转折意义。")
 
 render_section("本篇章节点", "先看本篇章的关键节点，再进入具体展项，能够更清晰地理解这一阶段的历史变化。")
 node_cols = st.columns(2)
@@ -107,9 +104,9 @@ for index, node in enumerate(selected_chapter.get("nodes", [])):
         st.markdown(f"#### {node.get('title', '')}")
         st.caption(f"{node.get('date', '')} · {node.get('place', '')}")
         st.write(node.get("summary", ""))
-        st.markdown(f"<div class='small-muted'>{node.get('significance', '')[:110]}...</div>", unsafe_allow_html=True)
+        st.caption(f"{node.get('significance', '')[:110]}...")
         if node.get("id") in allowed_node_ids:
-            st.markdown("<div class='small-muted'><strong>互动节点：</strong>由此进入本段征程的闯关学习。</div>", unsafe_allow_html=True)
+            st.caption("互动节点：由此进入本段征程的闯关学习。")
         action_left, action_right = st.columns(2)
         with action_left:
             if st.button("进入展项", key=f"chapter_node_{node.get('id')}", width="stretch", type="primary"):
