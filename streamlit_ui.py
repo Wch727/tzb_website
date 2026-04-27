@@ -1100,7 +1100,10 @@ def _nav_action(label: str, target: str, current_page: str, current_aliases: Lis
     for item in current_aliases or []:
         aliases.add(item)
     is_current = label in aliases or target in aliases
-    if st.button(label, key=f"topnav::{target}", width="stretch", type="primary" if is_current else "secondary", disabled=is_current):
+    if st.button(label, key=f"topnav::{target}", width="stretch", type="primary" if is_current else "secondary"):
+        if is_current:
+            st.session_state["_scroll_to_top_once"] = True
+            st.rerun()
         st.switch_page(target)
 
 
