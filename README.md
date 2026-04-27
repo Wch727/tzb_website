@@ -72,13 +72,13 @@ pages/
 - `templates/home_*.html`：首页主视觉、展项卡、专题卡、统计条、路线卡等模板
 - `assets/styles/home_exhibit.css`：首页展陈式视觉样式
 - `home_components.py`：只负责读取数据、渲染模板和组织跳转，不再在首页页面文件中堆大段 HTML
-- `templates/game_lobby.html`、`templates/battle_briefing.html`：互动闯关相关模板
+- `templates/game_*.html`、`assets/styles/game_components.css`：互动闯关大厅、征程地图、关卡指挥台、HUD、策略卡和答题战场模板
 - `templates/figure_exhibit_wall.html`：人物专题展墙模板
 - `templates/role_*.html`、`templates/mission_*.html`、`templates/digital_human_*.html`：角色卡、任务简报和数字讲解员模板
 - `templates/masthead.html`、`templates/hero_banner.html`、`templates/script_sheet.html`：全站页眉、通用主视觉和讲解稿版式模板
-- `templates/platform_*.html`、`assets/styles/platform_components.css`：活动中心、排行榜、内容运营和闯关选关大厅的统一视觉组件
+- `templates/platform_*.html`、`assets/styles/platform_components.css`：活动中心、排行榜、内容运营等平台页面的统一视觉组件
 
-后续改首页视觉时，优先修改 `templates/home_*.html` 与 `assets/styles/home_exhibit.css`；改入口逻辑时再修改 `pages/1_首页.py`。
+后续改首页视觉时，优先修改 `templates/home_*.html` 与 `assets/styles/home_exhibit.css`；改闯关视觉时，优先修改 `templates/game_*.html` 与 `assets/styles/game_components.css`；改入口逻辑时再修改对应页面 Python 文件。
 
 ## 管理员 / 用户权限说明
 
@@ -558,7 +558,7 @@ project/
     audio/
   templates/
     home_*.html
-    game_lobby.html
+    game_*.html
     battle_briefing.html
     figure_exhibit_wall.html
   storage/

@@ -9,6 +9,13 @@ import streamlit as st
 from certificate import generate_certificate_svg
 from activity_manager import get_activity
 from dashboard_data import record_answer_event, record_participation_event, record_share_event
+from game_components import (
+    render_answer_arena,
+    render_campaign_map,
+    render_command_center,
+    render_game_hud,
+    render_tactic_preview,
+)
 from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_digital_human, render_node_image, render_svg_artwork
@@ -89,7 +96,7 @@ def _render_role_cards(roles: list[dict]) -> None:
         )
         for item in roles
     )
-    st.html(render_template("role_loadout_grid.html", cards_html=cards_html))
+    st.markdown(render_template("role_loadout_grid.html", cards_html=cards_html), unsafe_allow_html=True)
 
 
 def _render_game_lobby() -> None:
@@ -104,7 +111,7 @@ def _render_game_lobby() -> None:
         if target_node
         else "未指定节点时，将从当前活动的第一关开始。"
     )
-    st.html(
+    st.markdown(
         render_template_block(
             "game_lobby.html",
             "game_components.css",
@@ -112,7 +119,8 @@ def _render_game_lobby() -> None:
             subtitle="先看展，再闯关。挑战开始后只保留必要任务线索，提交答案后再解锁解析、历史小课堂和成长奖励。",
             target_title=html.escape(target_title),
             target_desc=html.escape(target_desc),
-        )
+        ),
+        unsafe_allow_html=True,
     )
     render_section("选择关卡", "先选择本次挑战入口，再选择闯关身份。建议第一次体验从第一关开始，也可以直接挑战重点关卡。")
     node_scope = current_activity.get("node_scope", []) or []
@@ -123,7 +131,7 @@ def _render_game_lobby() -> None:
         for index, node in enumerate(level_nodes):
             selected = node.get("id") == pending_node_id
             with level_cols[index % len(level_cols)]:
-                st.html(level_card_html(node, index + 1, selected=selected))
+                st.markdown(level_card_html(node, index + 1, selected=selected), unsafe_allow_html=True)
                 if st.button(
                     "已选择" if selected else "选择此关",
                     key=f"select_game_level::{node.get('id', index)}",
@@ -228,7 +236,7 @@ def _render_battle_briefing(stage: dict) -> None:
         label="记录",
         text="本关将在作答后展开历史解析与延伸知识。",
     )
-    st.html(
+    st.markdown(
         render_template_block(
             "battle_briefing.html",
             "exhibit_components.css",
@@ -236,7 +244,8 @@ def _render_battle_briefing(stage: dict) -> None:
             campaign_title=html.escape(stage.get("campaign_title", "长征主线")),
             orders_html=orders_html or fallback_order,
             logs_html=logs_html or fallback_log,
-        )
+        ),
+        unsafe_allow_html=True,
     )
 
 
@@ -568,32 +577,14 @@ node = stage.get("node", {})
 progress = stage.get("progress", {})
 knowledge_bundle = build_related_knowledge_bundle(node)
 
-render_section(
-    "当前关卡",
-    f"第 {stage.get('current_step', 1)} / {stage.get('total_steps', 1)} 关 | "
-    f"{story_state.get('activity_name', '长征主线闯关')} | {story_state.get('role_name', '侦察兵')} | "
-    f"{st.session_state.get('unit_name', '体验组')}",
+route_nodes = [get_route_node(node_id) for node_id in story_state.get("node_ids", [])]
+route_nodes = [item for item in route_nodes if item]
+render_campaign_map(
+    route_nodes,
+    int(story_state.get("current_index", 0)),
+    progress.get("completed_nodes", []),
 )
-render_detail_panels(
-    [
-        {
-            "title": "所属篇章",
-            "desc": stage.get("campaign_title", "长征主线"),
-        },
-        {
-            "title": "关卡定位",
-            "desc": stage.get("stage_badge", "主线推进关"),
-        },
-        {
-            "title": "难度等级",
-            "desc": f"{'★' * int(stage.get('difficulty_stars', 3))} {stage.get('difficulty_label', '主线学习关')}",
-        },
-        {
-            "title": "推进提醒",
-            "desc": stage.get("next_hint", "完成本关后继续沿主线推进。"),
-        },
-    ]
-)
+render_command_center(stage, node, story_state, team)
 if stage.get("boss_stage"):
     render_boss_stage_intro(stage.get("boss_stage", {}))
     boss_media_left, boss_media_right = st.columns([1, 1])
@@ -620,66 +611,7 @@ if stage.get("boss_stage"):
             cache_key=f"boss-prologue::{node.get('id', '')}",
         )
 
-render_game_status_board(
-    [
-        {
-            "kicker": "作战积分",
-            "symbol": "★",
-            "value": progress.get("red_star_points", 0),
-            "label": "红星积分",
-            "note": "每完成一关都会累积，用于衡量主线推进中的综合表现。",
-        },
-        {
-            "kicker": "战地补给",
-            "symbol": "粮",
-            "value": progress.get("grain", 0),
-            "label": "虚拟粮草",
-            "note": "连续推进、正确判断和战术加成都会影响当前补给值。",
-        },
-        {
-            "kicker": "身份军衔",
-            "symbol": "军",
-            "value": progress.get("rank_title", "红军新兵"),
-            "label": "军衔等级",
-            "note": "军衔会随着积分提升而变化，呈现征程中的成长轨迹。",
-        },
-        {
-            "kicker": "荣誉记录",
-            "symbol": "章",
-            "value": len(progress.get("medals", [])),
-            "label": "已获勋章",
-            "note": "勋章来自主线推进、篇章突破、连胜与战术判断等关键表现。",
-        },
-        {
-            "kicker": "协作单位",
-            "symbol": "队",
-            "value": team.get("team_name", "未加入"),
-            "label": "红军小队",
-            "note": "当前作答会同步计入小队贡献榜，用于活动协作与支部对抗。",
-        },
-        {
-            "kicker": "组织归属",
-            "symbol": "旗",
-            "value": team.get("branch_name", st.session_state.get("unit_name", "体验组")),
-            "label": "支部归属",
-            "note": "当前单位会参与活动排行、支部对抗与数据大屏展示。",
-        },
-        {
-            "kicker": "作战节奏",
-            "symbol": "连",
-            "value": progress.get("streak", 0),
-            "label": "连续作战",
-            "note": "答题连续命中越多，越能体现主线推进中的稳定判断。",
-        },
-        {
-            "kicker": "个人纪录",
-            "symbol": "冠",
-            "value": progress.get("best_streak", 0),
-            "label": "最佳连胜",
-            "note": "记录本次征程保持过的最高连续命中成绩。",
-        },
-    ]
-)
+render_game_hud(progress, team, story_state)
 
 top_left, top_right = st.columns([1.05, 1.35])
 with top_left:
@@ -754,15 +686,7 @@ if tactic_options:
         key=f"tactic::{node.get('id', '')}",
         horizontal=True,
     )
-    selected_tactic = tactic_map.get(selected_tactic_id, {})
-    render_detail_panels(
-        [
-            {
-                "title": selected_tactic.get("title", "行动策略"),
-                "desc": selected_tactic.get("desc", "请结合当前关卡环境选择策略。"),
-            },
-        ]
-    )
+    render_tactic_preview(tactic_options, selected_tactic_id)
 
 render_section("多媒体材料", "请依据当前材料与此前展览学习作答；本关答案解析将在提交后显示。")
 material_left, material_right = st.columns([1.1, 1])
@@ -780,9 +704,7 @@ with material_right:
     else:
         st.caption("请根据题干情境和角色任务作出选择。")
 
-st.markdown("---")
-st.markdown("## 开始作答")
-st.write(stage.get("question", "暂无题目。"))
+render_answer_arena(stage, node)
 answer = st.radio("作答选项", stage.get("options", []), index=None, key=f"story_answer_{node.get('id', '')}")
 
 if st.button("提交答案", width="stretch", type="primary", disabled=not answer):
