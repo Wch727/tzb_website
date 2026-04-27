@@ -1,0 +1,220 @@
+.figure-exhibit-wall {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.6fr);
+    gap: 1.2rem;
+    margin: 1rem 0 1.6rem;
+}
+
+.figure-archive-card,
+.figure-scroll-panel {
+    border: 1px solid rgba(137, 42, 54, 0.18);
+    border-radius: 28px;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 235, 0.88)),
+        radial-gradient(circle at 10% 0%, rgba(137, 42, 54, 0.08), transparent 34%);
+    box-shadow: 0 18px 42px rgba(95, 35, 27, 0.08);
+}
+
+.figure-archive-card {
+    padding: 1.35rem;
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+}
+
+.figure-archive-label {
+    color: #9b3148;
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+}
+
+.figure-archive-card h3 {
+    margin: 0.35rem 0 0.55rem;
+    color: #521824;
+    font-size: clamp(1.45rem, 2vw, 2.1rem);
+}
+
+.figure-archive-role {
+    color: #67514a;
+    line-height: 1.75;
+    font-size: 1rem;
+}
+
+.figure-node-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1rem;
+}
+
+.figure-node-pill {
+    border: 1px solid rgba(137, 42, 54, 0.22);
+    border-radius: 999px;
+    padding: 0.36rem 0.68rem;
+    color: #6b2432;
+    background: rgba(255, 246, 235, 0.82);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.figure-scroll-panel {
+    padding: clamp(1.2rem, 2.4vw, 2.1rem);
+}
+
+.figure-scroll-section + .figure-scroll-section {
+    border-top: 1px solid rgba(137, 42, 54, 0.12);
+    margin-top: 1.35rem;
+    padding-top: 1.35rem;
+}
+
+.figure-scroll-section span {
+    color: #a33d52;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.figure-scroll-section h3 {
+    margin: 0.28rem 0 0.8rem;
+    color: #48141f;
+    font-size: clamp(1.35rem, 2vw, 1.9rem);
+}
+
+.figure-scroll-section p {
+    margin: 0 0 0.78rem;
+    color: #3f312d;
+    line-height: 2.02;
+    font-size: 1.04rem;
+    text-align: justify;
+}
+
+.battle-briefing {
+    margin: 1.2rem 0 1.8rem;
+    border-radius: 30px;
+    overflow: hidden;
+    border: 1px solid rgba(138, 28, 43, 0.22);
+    background:
+        linear-gradient(135deg, rgba(98, 18, 31, 0.96), rgba(151, 42, 54, 0.92)),
+        radial-gradient(circle at top right, rgba(255, 224, 148, 0.26), transparent 34%);
+    box-shadow: 0 24px 54px rgba(91, 22, 30, 0.18);
+}
+
+.battle-briefing-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.05rem 1.35rem;
+    color: #fff8ea;
+    border-bottom: 1px solid rgba(255, 238, 210, 0.22);
+}
+
+.battle-briefing-head span {
+    border: 1px solid rgba(255, 239, 206, 0.44);
+    border-radius: 999px;
+    padding: 0.32rem 0.7rem;
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.battle-briefing-head strong {
+    font-size: clamp(1.18rem, 2vw, 1.68rem);
+    letter-spacing: 0.02em;
+}
+
+.battle-briefing-head em {
+    color: rgba(255, 248, 234, 0.82);
+    font-style: normal;
+    font-weight: 700;
+}
+
+.battle-briefing-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+    gap: 1rem;
+    padding: 1.05rem;
+}
+
+.battle-panel {
+    border-radius: 24px;
+    padding: 1.05rem;
+    background: rgba(255, 250, 239, 0.94);
+    border: 1px solid rgba(255, 238, 210, 0.54);
+}
+
+.battle-panel h3 {
+    margin: 0 0 0.8rem;
+    color: #571625;
+    font-size: clamp(1.18rem, 2vw, 1.55rem);
+}
+
+.mission-ticket {
+    display: grid;
+    grid-template-columns: 86px 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.82rem 0.9rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255, 243, 222, 0.95), rgba(255, 255, 255, 0.9));
+    border: 1px solid rgba(138, 28, 43, 0.12);
+}
+
+.mission-ticket + .mission-ticket,
+.war-log-line + .war-log-line {
+    margin-top: 0.72rem;
+}
+
+.mission-ticket span,
+.war-log-line span {
+    color: #a54638;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.mission-ticket strong {
+    color: #2f2522;
+    line-height: 1.65;
+    font-size: 1rem;
+}
+
+.war-log-line {
+    padding: 0.85rem 0.95rem;
+    border-radius: 18px;
+    background:
+        linear-gradient(90deg, rgba(255, 244, 224, 0.96), rgba(255, 255, 255, 0.84));
+    border-left: 5px solid #9a2636;
+}
+
+.war-log-line p {
+    margin: 0.24rem 0 0;
+    color: #3f302c;
+    line-height: 1.78;
+    font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+    .figure-exhibit-wall {
+        grid-template-columns: 1fr;
+    }
+
+    .figure-archive-card {
+        position: relative;
+        top: auto;
+    }
+
+    .battle-briefing-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .battle-briefing-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .mission-ticket {
+        grid-template-columns: 1fr;
+    }
+}

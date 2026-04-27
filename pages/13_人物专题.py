@@ -14,7 +14,6 @@ from content_store import (
 )
 from media import render_audio_player, render_digital_human, render_node_image
 from streamlit_ui import (
-    _clean_html,
     render_curatorial_note,
     render_formal_script,
     render_gallery_frame,
@@ -23,6 +22,7 @@ from streamlit_ui import (
     render_top_nav,
     setup_page,
 )
+from template_renderer import render_template_block
 
 
 def _jump_to_node(node_id: str) -> None:
@@ -50,6 +50,12 @@ def _merge_text(*parts: str) -> str:
     return "\n\n".join(part.strip() for part in parts if str(part or "").strip())
 
 
+def _paragraph_html(text: str) -> str:
+    """把段落文本转换为已转义的 HTML 段落。"""
+    parts = [part.strip() for part in str(text or "").split("\n\n") if part.strip()]
+    return "".join(f"<p>{html.escape(part)}</p>" for part in parts)
+
+
 def _render_figure_exhibit_wall(figure: dict, story_script: str, related_nodes: list[dict]) -> None:
     """渲染人物专题展墙，避免短卡片造成内容单薄。"""
     paragraphs = [_without_source_note(part) for part in _script_paragraphs(story_script)]
@@ -71,123 +77,15 @@ def _render_figure_exhibit_wall(figure: dict, story_script: str, related_nodes: 
         node_links = "<span class='figure-node-pill'>长征主线</span>"
 
     st.markdown(
-        _clean_html(
-            f"""
-            <style>
-            .figure-exhibit-wall {{
-                display: grid;
-                grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.6fr);
-                gap: 1.2rem;
-                margin: 1rem 0 1.6rem;
-            }}
-            .figure-archive-card,
-            .figure-scroll-panel {{
-                border: 1px solid rgba(137, 42, 54, 0.18);
-                border-radius: 28px;
-                background:
-                    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 235, 0.88)),
-                    radial-gradient(circle at 10% 0%, rgba(137, 42, 54, 0.08), transparent 34%);
-                box-shadow: 0 18px 42px rgba(95, 35, 27, 0.08);
-            }}
-            .figure-archive-card {{
-                padding: 1.35rem;
-                position: sticky;
-                top: 1rem;
-                align-self: start;
-            }}
-            .figure-archive-label {{
-                color: #9b3148;
-                font-size: 0.88rem;
-                font-weight: 800;
-                letter-spacing: 0.16em;
-            }}
-            .figure-archive-card h3 {{
-                margin: 0.35rem 0 0.55rem;
-                color: #521824;
-                font-size: clamp(1.45rem, 2vw, 2.1rem);
-            }}
-            .figure-archive-role {{
-                color: #67514a;
-                line-height: 1.75;
-                font-size: 1rem;
-            }}
-            .figure-node-pills {{
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.55rem;
-                margin-top: 1rem;
-            }}
-            .figure-node-pill {{
-                border: 1px solid rgba(137, 42, 54, 0.22);
-                border-radius: 999px;
-                padding: 0.36rem 0.68rem;
-                color: #6b2432;
-                background: rgba(255, 246, 235, 0.82);
-                font-weight: 700;
-                font-size: 0.9rem;
-            }}
-            .figure-scroll-panel {{
-                padding: clamp(1.2rem, 2.4vw, 2.1rem);
-            }}
-            .figure-scroll-section + .figure-scroll-section {{
-                border-top: 1px solid rgba(137, 42, 54, 0.12);
-                margin-top: 1.35rem;
-                padding-top: 1.35rem;
-            }}
-            .figure-scroll-section span {{
-                color: #a33d52;
-                font-size: 0.9rem;
-                font-weight: 800;
-                letter-spacing: 0.12em;
-            }}
-            .figure-scroll-section h3 {{
-                margin: 0.28rem 0 0.8rem;
-                color: #48141f;
-                font-size: clamp(1.35rem, 2vw, 1.9rem);
-            }}
-            .figure-scroll-section p {{
-                margin: 0 0 0.78rem;
-                color: #3f312d;
-                line-height: 2.02;
-                font-size: 1.04rem;
-                text-align: justify;
-            }}
-            @media (max-width: 900px) {{
-                .figure-exhibit-wall {{
-                    grid-template-columns: 1fr;
-                }}
-                .figure-archive-card {{
-                    position: relative;
-                    top: auto;
-                }}
-            }}
-            </style>
-            <div class="figure-exhibit-wall">
-                <aside class="figure-archive-card">
-                    <div class="figure-archive-label">人物档案</div>
-                    <h3>{html.escape(figure.get('title', '重要人物'))}</h3>
-                    <div class="figure-archive-role">{html.escape(figure.get('role', '党的重要领导人'))}</div>
-                    <div class="figure-node-pills">{node_links}</div>
-                </aside>
-                <article class="figure-scroll-panel">
-                    <section class="figure-scroll-section">
-                        <span>第一部分</span>
-                        <h3>走进历史现场</h3>
-                        {''.join(f'<p>{html.escape(part)}</p>' for part in background.split(chr(10) + chr(10)) if part.strip())}
-                    </section>
-                    <section class="figure-scroll-section">
-                        <span>第二部分</span>
-                        <h3>长征中的关键作用</h3>
-                        {''.join(f'<p>{html.escape(part)}</p>' for part in role.split(chr(10) + chr(10)) if part.strip())}
-                    </section>
-                    <section class="figure-scroll-section">
-                        <span>第三部分</span>
-                        <h3>历史贡献</h3>
-                        {''.join(f'<p>{html.escape(part)}</p>' for part in significance.split(chr(10) + chr(10)) if part.strip())}
-                    </section>
-                </article>
-            </div>
-            """
+        render_template_block(
+            "figure_exhibit_wall.html",
+            "exhibit_components.css",
+            figure_title=html.escape(figure.get("title", "重要人物")),
+            figure_role=html.escape(figure.get("role", "党的重要领导人")),
+            node_links=node_links,
+            background_html=_paragraph_html(background),
+            role_html=_paragraph_html(role),
+            significance_html=_paragraph_html(significance),
         ),
         unsafe_allow_html=True,
     )
