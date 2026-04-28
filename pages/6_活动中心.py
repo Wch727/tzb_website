@@ -68,6 +68,7 @@ render_platform_showcase(
         {"label": "个人战绩", "value": len(personal_rows_preview)},
         {"label": "小队数量", "value": len(team_rows_preview)},
     ],
+    variant="activity",
 )
 
 render_section("活动模板总览", "不同活动模板对应不同的组织场景、节点评估范围与协作方式。")

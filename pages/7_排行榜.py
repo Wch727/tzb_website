@@ -130,6 +130,7 @@ render_platform_showcase(
         {"label": "红军小队", "value": len(get_team_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
         {"label": "单位排行", "value": len(get_unit_leaderboard(current_activity_id, limit=100)) if current_activity_id else 0},
     ],
+    variant="scoreboard",
 )
 
 if activity_ids:

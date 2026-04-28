@@ -98,6 +98,41 @@ def inject_custom_css() -> None:
             border: 1px solid rgba(255, 238, 234, 0.16);
             margin-bottom: 1rem;
         }
+        .hero-banner.hero-scoreboard {
+            background:
+                linear-gradient(90deg, rgba(255, 214, 128, 0.08) 0 1px, transparent 1px 110px),
+                radial-gradient(circle at 86% 16%, rgba(255, 200, 87, 0.28), transparent 30%),
+                linear-gradient(135deg, #07142d 0%, #102b58 48%, #28527f 100%);
+            box-shadow: 0 18px 46px rgba(6, 22, 52, 0.24);
+            border-color: rgba(206, 231, 255, 0.18);
+        }
+        .hero-banner.hero-activity {
+            background:
+                radial-gradient(circle at 86% 14%, rgba(255, 226, 142, 0.34), transparent 32%),
+                linear-gradient(135deg, #6d3214 0%, #a85c1f 52%, #d69d3f 100%);
+            box-shadow: 0 18px 46px rgba(109, 56, 16, 0.22);
+            border-color: rgba(255, 231, 174, 0.2);
+        }
+        .hero-banner.hero-admin {
+            background:
+                radial-gradient(circle at 88% 14%, rgba(210, 226, 240, 0.26), transparent 34%),
+                linear-gradient(135deg, #28323d 0%, #405261 52%, #657683 100%);
+            box-shadow: 0 18px 46px rgba(34, 45, 53, 0.2);
+            border-color: rgba(235, 241, 246, 0.18);
+        }
+        .hero-banner.hero-game {
+            background:
+                radial-gradient(circle at 76% 18%, rgba(255, 221, 120, 0.3), transparent 32%),
+                linear-gradient(135deg, #35101b 0%, #711a2b 46%, #c54735 100%);
+            box-shadow: 0 20px 52px rgba(103, 20, 36, 0.26);
+        }
+        .hero-banner.hero-exhibit {
+            background:
+                radial-gradient(circle at 86% 14%, rgba(225, 191, 127, 0.24), transparent 34%),
+                linear-gradient(135deg, #3d2418 0%, #7d3a23 48%, #b66a34 100%);
+            box-shadow: 0 18px 46px rgba(78, 43, 20, 0.2);
+            border-color: rgba(241, 210, 169, 0.18);
+        }
         .masthead-shell {
             margin: 0.2rem 0 1rem;
             border-radius: 28px;
@@ -1243,6 +1278,21 @@ def render_top_nav(current_page: str) -> None:
             _nav_action("使用设置", "pages/8_配置页.py", current_page)
 
 
+def _hero_theme_class(title: str) -> str:
+    """按页面类型给通用主视觉分配不同展陈色调。"""
+    if any(keyword in title for keyword in ["排行榜", "数据大屏"]):
+        return "hero-scoreboard"
+    if any(keyword in title for keyword in ["活动中心", "活动"]):
+        return "hero-activity"
+    if any(keyword in title for keyword in ["内容运营", "管理员", "配置", "使用设置"]):
+        return "hero-admin"
+    if any(keyword in title for keyword in ["剧情答题", "互动闯关", "当前关卡"]):
+        return "hero-game"
+    if any(keyword in title for keyword in ["长征路线", "节点展项", "人物专题", "知识百问", "讲解"]):
+        return "hero-exhibit"
+    return ""
+
+
 def render_hero(title: str, subtitle: str, badges: List[str] | None = None) -> None:
     """渲染主视觉区。"""
     badge_html = "".join(
@@ -1251,6 +1301,7 @@ def render_hero(title: str, subtitle: str, badges: List[str] | None = None) -> N
     st.html(
         render_template(
             "hero_banner.html",
+            hero_class=_hero_theme_class(title),
             badges_html=badge_html,
             title=html.escape(title),
             subtitle=html.escape(subtitle),

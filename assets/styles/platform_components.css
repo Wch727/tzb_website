@@ -1,5 +1,18 @@
 .platform-showcase,
 .platform-admin-banner {
+    --platform-bg:
+        radial-gradient(circle at 88% 12%, rgba(255, 218, 128, 0.28), transparent 30%),
+        linear-gradient(135deg, #4e1022 0%, #7b1736 48%, #b33a45 100%);
+    --platform-shadow: rgba(77, 16, 33, 0.26);
+    --platform-border: rgba(255, 238, 218, 0.22);
+    --platform-kicker: #f1c983;
+    --platform-title: #fff8ed;
+    --platform-body: rgba(255, 246, 232, 0.92);
+    --platform-panel-bg: rgba(255, 248, 232, 0.12);
+    --platform-panel-border: rgba(255, 239, 212, 0.22);
+    --platform-chip-bg: rgba(255, 248, 232, 0.13);
+    --platform-chip-border: rgba(255, 239, 212, 0.2);
+    --platform-chip-text: #fff4df;
     position: relative;
     overflow: hidden;
     display: grid;
@@ -8,12 +21,56 @@
     padding: clamp(1.2rem, 2.8vw, 2.4rem);
     margin: 0.8rem 0 1.1rem;
     border-radius: 34px;
-    color: #fff8ed;
-    background:
-        radial-gradient(circle at 88% 12%, rgba(255, 218, 128, 0.28), transparent 30%),
-        linear-gradient(135deg, #4e1022 0%, #7b1736 48%, #b33a45 100%);
-    border: 1px solid rgba(255, 238, 218, 0.22);
-    box-shadow: 0 28px 74px rgba(77, 16, 33, 0.26);
+    color: var(--platform-title);
+    background: var(--platform-bg);
+    border: 1px solid var(--platform-border);
+    box-shadow: 0 28px 74px var(--platform-shadow);
+}
+
+.platform-showcase.platform-activity {
+    --platform-bg:
+        radial-gradient(circle at 88% 8%, rgba(255, 227, 150, 0.42), transparent 31%),
+        radial-gradient(circle at 18% 86%, rgba(175, 74, 35, 0.22), transparent 36%),
+        linear-gradient(135deg, #6a2f12 0%, #a45b20 48%, #d6a34d 100%);
+    --platform-shadow: rgba(111, 56, 15, 0.24);
+    --platform-kicker: #ffe3a4;
+    --platform-chip-bg: rgba(255, 249, 230, 0.14);
+    --platform-chip-border: rgba(255, 231, 170, 0.24);
+}
+
+.platform-showcase.platform-scoreboard {
+    --platform-bg:
+        linear-gradient(90deg, rgba(7, 24, 51, 0.76) 0 1px, transparent 1px 120px),
+        linear-gradient(0deg, rgba(7, 24, 51, 0.62) 0 1px, transparent 1px 96px),
+        radial-gradient(circle at 78% 18%, rgba(255, 194, 80, 0.32), transparent 27%),
+        radial-gradient(circle at 18% 74%, rgba(44, 133, 210, 0.24), transparent 34%),
+        linear-gradient(135deg, #07142d 0%, #102b58 48%, #264d7c 100%);
+    --platform-shadow: rgba(3, 17, 40, 0.34);
+    --platform-border: rgba(196, 225, 255, 0.22);
+    --platform-kicker: #ffcc70;
+    --platform-title: #f7fbff;
+    --platform-body: rgba(232, 244, 255, 0.93);
+    --platform-panel-bg: rgba(234, 244, 255, 0.11);
+    --platform-panel-border: rgba(205, 229, 255, 0.24);
+    --platform-chip-bg: rgba(255, 214, 128, 0.13);
+    --platform-chip-border: rgba(255, 220, 150, 0.28);
+    --platform-chip-text: #fff2c9;
+}
+
+.platform-showcase.platform-admin {
+    --platform-bg:
+        radial-gradient(circle at 84% 18%, rgba(174, 196, 216, 0.28), transparent 32%),
+        linear-gradient(135deg, #26313d 0%, #405161 52%, #61717e 100%);
+    --platform-shadow: rgba(31, 42, 50, 0.24);
+    --platform-border: rgba(235, 241, 246, 0.2);
+    --platform-kicker: #d8c39a;
+    --platform-title: #fbf7ef;
+    --platform-body: rgba(246, 242, 235, 0.9);
+    --platform-panel-bg: rgba(255, 255, 255, 0.1);
+    --platform-panel-border: rgba(255, 255, 255, 0.18);
+    --platform-chip-bg: rgba(255, 255, 255, 0.1);
+    --platform-chip-border: rgba(255, 255, 255, 0.18);
+    --platform-chip-text: #f5ead3;
 }
 
 .platform-showcase::after,
@@ -42,7 +99,7 @@
 .platform-admin-card span,
 .platform-rank-card span,
 .platform-level-card span {
-    color: #f1c983;
+    color: var(--platform-kicker, #8a2947);
     font-weight: 900;
     letter-spacing: 0.12em;
     font-size: 0.82rem;
@@ -51,7 +108,7 @@
 .platform-showcase h1,
 .platform-admin-banner h1 {
     margin: 0.5rem 0 0.75rem;
-    color: #fff8ed;
+    color: var(--platform-title, #fff8ed);
     font-size: clamp(2rem, 4.6vw, 4.8rem);
     line-height: 1.06;
     letter-spacing: -0.04em;
@@ -59,7 +116,7 @@
 
 .platform-showcase p,
 .platform-admin-banner p {
-    color: rgba(255, 246, 232, 0.92);
+    color: var(--platform-body, rgba(255, 246, 232, 0.92));
     line-height: 1.9;
 }
 
@@ -75,23 +132,23 @@
     font-style: normal;
     border-radius: 999px;
     padding: 0.32rem 0.72rem;
-    background: rgba(255, 248, 232, 0.13);
-    border: 1px solid rgba(255, 239, 212, 0.2);
-    color: #fff4df;
+    background: var(--platform-chip-bg, rgba(123, 23, 54, 0.08));
+    border: 1px solid var(--platform-chip-border, rgba(123, 23, 54, 0.12));
+    color: var(--platform-chip-text, #7b1736);
     font-weight: 800;
 }
 
 .platform-showcase-panel {
     border-radius: 28px;
     padding: 1.1rem;
-    background: rgba(255, 248, 232, 0.12);
-    border: 1px solid rgba(255, 239, 212, 0.22);
+    background: var(--platform-panel-bg, rgba(255, 248, 232, 0.12));
+    border: 1px solid var(--platform-panel-border, rgba(255, 239, 212, 0.22));
     backdrop-filter: blur(8px);
 }
 
 .platform-showcase-panel strong {
     display: block;
-    color: #fff8ed;
+    color: var(--platform-title, #fff8ed);
     font-size: 1.45rem;
     margin-bottom: 0.45rem;
 }
@@ -108,14 +165,14 @@
 .platform-admin-grid article {
     border-radius: 18px;
     padding: 0.85rem 0.95rem;
-    background: rgba(255, 248, 232, 0.12);
-    border: 1px solid rgba(255, 239, 212, 0.16);
+    background: var(--platform-panel-bg, rgba(255, 248, 232, 0.12));
+    border: 1px solid var(--platform-panel-border, rgba(255, 239, 212, 0.16));
 }
 
 .platform-stat strong,
 .platform-admin-grid strong {
     display: block;
-    color: #fff8ed;
+    color: var(--platform-title, #fff8ed);
     font-size: 1.65rem;
     margin-top: 0.25rem;
 }
@@ -189,23 +246,31 @@
 .platform-rank-card {
     padding: 1rem 1.08rem;
     min-height: 160px;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(255, 214, 128, 0.2), transparent 35%),
+        linear-gradient(180deg, rgba(247, 251, 255, 0.98), rgba(231, 241, 251, 0.94));
+    border-color: rgba(31, 80, 126, 0.18);
+    box-shadow: 0 16px 42px rgba(15, 45, 80, 0.1);
 }
 
 .platform-rank-card.rank-1 {
     transform: translateY(-8px);
-    background: linear-gradient(180deg, rgba(255, 248, 231, 0.99), rgba(250, 229, 186, 0.94));
-    border-color: rgba(180, 127, 43, 0.32);
+    background:
+        radial-gradient(circle at 82% 12%, rgba(255, 226, 142, 0.38), transparent 36%),
+        linear-gradient(180deg, rgba(255, 250, 232, 0.99), rgba(248, 224, 165, 0.95));
+    border-color: rgba(191, 135, 38, 0.36);
+    box-shadow: 0 20px 52px rgba(139, 92, 21, 0.15);
 }
 
 .platform-rank-card h3 {
     margin: 0.35rem 0;
-    color: #4e1022;
+    color: #122b4d;
     font-size: 1.28rem;
 }
 
 .platform-rank-card strong {
     display: block;
-    color: #7b1736;
+    color: #b87519;
     font-size: 2rem;
     margin-bottom: 0.25rem;
 }

@@ -38,12 +38,16 @@ def render_platform_showcase(
     panel_title: str,
     panel_text: str,
     stats: Iterable[Dict[str, Any]],
+    variant: str = "crimson",
 ) -> None:
     """Render a high-impact page showcase with external HTML/CSS."""
+    allowed_variants = {"crimson", "activity", "scoreboard", "admin", "screen"}
+    variant_class = f"platform-{variant}" if variant in allowed_variants else "platform-crimson"
     st.html(
         render_template_block(
             "platform_showcase.html",
             "platform_components.css",
+            variant_class=variant_class,
             kicker=_text(kicker),
             title=_text(title),
             subtitle=_text(subtitle),

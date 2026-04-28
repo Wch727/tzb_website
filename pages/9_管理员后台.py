@@ -114,6 +114,7 @@ render_platform_showcase(
         {"label": "精神专题", "value": len(load_spirit_topics())},
         {"label": "FAQ", "value": len(load_faq_items())},
     ],
+    variant="admin",
 )
 
 if not st.session_state.get("admin_authenticated"):
