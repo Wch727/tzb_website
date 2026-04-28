@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from content_store import get_chapter_for_node, get_route_chapters, get_route_node_data
@@ -22,6 +24,7 @@ from streamlit_ui import (
     render_top_nav,
     setup_page,
 )
+from template_renderer import render_template, render_template_block
 from utils import get_visible_user_models
 
 
@@ -88,7 +91,68 @@ def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
 
 def _render_game_page_link(label: str = "进入互动闯关") -> None:
     """渲染稳定的互动闯关直达入口。"""
-    st.page_link("pages/4_剧情答题.py", label=label, width="stretch")
+    link_html = render_template(
+        "home_action_link.html",
+        label=html.escape(label),
+        href="/剧情答题",
+        class_name="home-action-link solid single",
+    )
+    st.markdown(
+        render_template_block(
+            "home_action_links.html",
+            "home_exhibit.css",
+            links_html=link_html,
+            extra_class="single-action",
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def _render_home_action_links() -> None:
+    """渲染首页首屏的三枚主入口按钮。"""
+    items = [
+        {"label": "开始长征导览", "href": "/长征路线", "class_name": "home-action-link primary"},
+        {"label": "进入互动闯关", "href": "/剧情答题", "class_name": "home-action-link solid"},
+        {"label": "进入导览速览", "href": "/测试体验", "class_name": "home-action-link outline"},
+    ]
+    links_html = "".join(
+        render_template(
+            "home_action_link.html",
+            label=html.escape(item["label"]),
+            href=html.escape(item["href"]),
+            class_name=html.escape(item["class_name"]),
+        )
+        for item in items
+    )
+    st.markdown(
+        render_template_block(
+            "home_action_links.html",
+            "home_exhibit.css",
+            links_html=links_html,
+            extra_class="",
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def _render_spirit_topics_grid(topics: list[dict]) -> None:
+    """渲染等高对齐的长征精神专题卡片。"""
+    cards_html = ""
+    for item in topics[:6]:
+        sources = item.get("official_sources", []) or []
+        source_text = f"资料来源：{sources[0].get('publisher', '官方资料')}" if sources else "资料来源：官方资料"
+        cards_html += render_template(
+            "home_spirit_card.html",
+            label="精神专题",
+            title=html.escape(item.get("title", "")),
+            summary=html.escape(item.get("summary", "")),
+            source=html.escape(source_text),
+        )
+    if cards_html:
+        st.markdown(
+            render_template_block("home_spirit_grid.html", "home_exhibit.css", cards_html=cards_html),
+            unsafe_allow_html=True,
+        )
 
 
 def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str) -> None:
@@ -185,15 +249,7 @@ with intro_right:
         ),
         label="导览提要",
     )
-    action_left, action_right, action_more = st.columns([1, 1, 1])
-    with action_left:
-        if st.button("开始长征导览", width="stretch", type="primary"):
-            st.switch_page("pages/3_长征路线.py")
-    with action_right:
-        _render_game_page_link("进入互动闯关")
-    with action_more:
-        if st.button("进入导览速览", width="stretch"):
-            st.switch_page("pages/10_测试体验.py")
+    _render_home_action_links()
 
 render_metrics(
     [
@@ -417,17 +473,7 @@ for index, item in enumerate(sample.get("figure_cards", [])[:6]):
             _jump_to_figure(item.get("title", ""))
 
 render_section("长征精神专题", "从理想信念、独立自主、顾全大局和依靠群众等方面，继续理解长征留下的精神财富。")
-spirit_cols = st.columns(3)
-for index, item in enumerate(sample.get("spirit_topics", [])[:6]):
-    with spirit_cols[index % 3]:
-        render_curatorial_note(
-            title=item.get("title", ""),
-            body=item.get("summary", ""),
-            label="精神专题",
-        )
-        sources = item.get("official_sources", []) or []
-        if sources:
-            st.caption(f"资料来源：{sources[0].get('publisher', '官方资料')}")
+_render_spirit_topics_grid(sample.get("spirit_topics", []))
 
 render_feature_ribbon(
     [
