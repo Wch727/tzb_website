@@ -13,7 +13,10 @@ from game_components import (
     render_answer_arena,
     render_campaign_map,
     render_command_center,
+    render_debrief_panel,
     render_game_hud,
+    render_report_cards,
+    render_result_banner,
     render_tactic_preview,
 )
 from knowledge_cards import build_related_knowledge_bundle
@@ -27,7 +30,6 @@ from streamlit_ui import (
     render_boss_stage_outcome,
     render_detail_panels,
     render_formal_script,
-    render_game_status_board,
     render_hero,
     render_scroll_anchor,
     render_pending_scroll_to_top,
@@ -255,58 +257,31 @@ def _render_answer_result_at_top(last_result: dict, team: dict) -> None:
     answered_node = last_result.get("answered_node", {}) or {}
     answered_bundle = last_result.get("knowledge_cards", []) or []
     next_node = last_result.get("next_node", {}) or {}
-    reward_delta = last_result.get("reward_delta", {}) or {}
-    score_delta = int(reward_delta.get("score_delta", 0))
-    grain_delta = int(reward_delta.get("grain_delta", 0))
 
-    render_section(
-        "上一关结果",
-        "本次作答已经完成。先查看解析、复盘和奖励，再继续进入下一关。",
-    )
-    if last_result.get("correct"):
-        st.success(last_result.get("feedback", "回答正确，已推进到下一关。"))
-    else:
-        st.warning(last_result.get("feedback", "本题未答对，已进入错题复盘。"))
-    if last_result.get("role_feedback"):
-        st.info(last_result.get("role_feedback", ""))
-
-    result_panels = [
-        {
-            "title": "完成节点",
-            "desc": answered_node.get("title", "上一关"),
-        },
-        {
-            "title": "正确答案",
-            "desc": detail.get("expected_answer", "当前题目未配置标准答案。"),
-        },
-        {
-            "title": "奖励变化",
-            "desc": f"红星积分 {score_delta:+d}，虚拟粮草 {grain_delta:+d}。",
-        },
-        {
-            "title": "下一关",
-            "desc": next_node.get("title", "本轮闯关已完成，继续查看结算。"),
-        },
-    ]
-    render_detail_panels(result_panels)
+    render_result_banner(last_result, team)
 
     if last_result.get("boss_stage_outcome"):
         render_boss_stage_outcome(last_result.get("boss_stage_outcome", {}))
 
-    st.markdown(f"### 正确答案解析 | {answered_node.get('title', '上一关')}")
-    st.write(detail.get("explanation", "当前题目暂无解析。"))
+    render_debrief_panel(
+        label="答案解析",
+        title=f"{answered_node.get('title', '上一关')} · 正确答案",
+        body=f"{detail.get('explanation', '当前题目暂无解析。')}\n\n正确答案：{detail.get('expected_answer', '当前题目未配置标准答案。')}",
+    )
 
-    st.markdown("### 作战结果")
-    st.write(last_result.get("battle_outcome", "本关作答已完成。"))
-    for item in last_result.get("after_action_report", []) or []:
-        st.markdown(f"- {item}")
+    render_debrief_panel(
+        label="作战结果",
+        title="本关复盘",
+        body=last_result.get("battle_outcome", "本关作答已完成。"),
+    )
+    render_report_cards(last_result.get("after_action_report", []) or [], label_prefix="复盘")
 
     if last_result.get("tactic_match"):
         st.success("本关行动策略与节点环境匹配，已获得额外战术奖励。")
 
     review_manual = last_result.get("review_manual", []) or []
     if review_manual:
-        render_section("战后复盘手册", "把这道题真正变成一次战役复盘，而不是只看对错。")
+        render_section("战后复盘手册", "回看本关处境、判断依据与下一步推进方向。")
         render_detail_panels(review_manual)
 
     if last_result.get("continuation_story"):
@@ -415,38 +390,7 @@ if story_state.get("finished"):
         f"参与身份：{st.session_state.get('user_name', '红色学习者')} | "
         f"{st.session_state.get('unit_name', '体验组')} | {story_state.get('role_name', '侦察兵')}"
     )
-    render_game_status_board(
-        [
-            {
-                "kicker": "成长状态",
-                "symbol": "★",
-                "value": progress.get("red_star_points", 0),
-                "label": "红星积分",
-                "note": "记录长征闯关中的历史判断与推进表现。",
-            },
-            {
-                "kicker": "补给状态",
-                "symbol": "粮",
-                "value": progress.get("grain", 0),
-                "label": "虚拟粮草",
-                "note": "用于表现连续作战中的补给与行动稳定度。",
-            },
-            {
-                "kicker": "身份状态",
-                "symbol": "军",
-                "value": progress.get("rank_title", "红军新兵"),
-                "label": "军衔等级",
-                "note": "随积分提升而晋升，呈现主线成长轨迹。",
-            },
-            {
-                "kicker": "荣誉状态",
-                "symbol": "章",
-                "value": len(progress.get("medals", [])),
-                "label": "已获勋章",
-                "note": "记录主线关卡、篇章推进与战术判断中的阶段成就。",
-            },
-        ]
-    )
+    render_game_hud(progress, team, story_state)
 
     if team:
         team_box, member_box = st.columns([1, 1.05])

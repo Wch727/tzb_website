@@ -154,3 +154,97 @@ def render_answer_arena(stage: Dict[str, Any], node: Dict[str, Any]) -> None:
             material_hint=_text(stage.get("mission_prompt", "请结合关卡情境作出判断。")),
         )
     )
+
+
+def render_result_banner(last_result: Dict[str, Any], team: Dict[str, Any]) -> None:
+    """Render the post-answer result as a game settlement card."""
+    detail = last_result.get("answer_detail", {}) or {}
+    answered_node = last_result.get("answered_node", {}) or {}
+    next_node = last_result.get("next_node", {}) or {}
+    reward_delta = last_result.get("reward_delta", {}) or {}
+    correct = bool(last_result.get("correct"))
+    class_name = "game-result-banner victory" if correct else "game-result-banner review"
+    stats = [
+        {
+            "label": "完成节点",
+            "value": answered_node.get("title", "上一关"),
+            "desc": answered_node.get("route_stage", "长征主线"),
+        },
+        {
+            "label": "正确答案",
+            "value": detail.get("expected_answer", "待复盘"),
+            "desc": "提交后解锁标准解析",
+        },
+        {
+            "label": "奖励变化",
+            "value": f"{int(reward_delta.get('score_delta', 0)):+d} 星 / {int(reward_delta.get('grain_delta', 0)):+d} 粮",
+            "desc": "红星积分与虚拟粮草",
+        },
+        {
+            "label": "下一站",
+            "value": next_node.get("title", "完成结算"),
+            "desc": next_node.get("place", "继续沿主线推进"),
+        },
+    ]
+    stats_html = "".join(
+        render_template(
+            "game_result_stat.html",
+            label=_text(item["label"]),
+            value=_text(item["value"]),
+            desc=_text(item["desc"]),
+        )
+        for item in stats
+    )
+    role_feedback = last_result.get("role_feedback") or (
+        f"本次战绩已计入{team.get('team_name', '当前挑战')}。" if team else "本关记录已写入个人闯关进度。"
+    )
+    _render_html(
+        render_template_block(
+            "game_result_banner.html",
+            "game_components.css",
+            class_name=class_name,
+            kicker="突破成功" if correct else "进入复盘",
+            title=_text(last_result.get("feedback", "本关作答已完成")),
+            feedback=_text(last_result.get("battle_outcome", "作答结果已经记录。")),
+            stats_html=stats_html,
+            role_label=_text("角色反馈"),
+            role_feedback=_text(role_feedback),
+        )
+    )
+
+
+def render_debrief_panel(*, label: str, title: str, body: str) -> None:
+    """Render a single debrief paragraph with game styling."""
+    _render_html(
+        render_template_block(
+            "game_debrief_panel.html",
+            "game_components.css",
+            label=_text(label),
+            title=_text(title),
+            body=_text(body),
+        )
+    )
+
+
+def render_report_cards(items: Iterable[str], label_prefix: str = "记录") -> None:
+    """Render after-action report bullets as cards."""
+    cards = []
+    for index, item in enumerate(items or [], start=1):
+        text = str(item or "").strip()
+        if not text:
+            continue
+        cards.append(
+            render_template(
+                "game_report_card.html",
+                label=_text(f"{label_prefix} {index:02d}"),
+                text=_text(text),
+            )
+        )
+    if cards:
+        _render_html(
+            render_template_block(
+                "game_report_grid.html",
+                "game_components.css",
+                cards_html="".join(cards),
+            )
+        )

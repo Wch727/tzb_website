@@ -523,6 +523,159 @@
     line-height: 1.75;
 }
 
+.game-result-banner {
+    margin: 0.85rem 0 1.15rem;
+    border-radius: 34px;
+    padding: clamp(1.15rem, 2.6vw, 1.8rem);
+    color: #fff8ef;
+    background:
+        radial-gradient(circle at 82% 12%, rgba(255, 219, 133, 0.24), transparent 28%),
+        linear-gradient(135deg, #340818 0%, #711531 48%, #a52d42 100%);
+    border: 1px solid rgba(255, 238, 216, 0.18);
+    box-shadow: 0 26px 68px rgba(75, 12, 30, 0.24);
+}
+
+.game-result-banner.review {
+    background:
+        radial-gradient(circle at 82% 12%, rgba(255, 224, 148, 0.18), transparent 28%),
+        linear-gradient(135deg, #2d1620 0%, #603047 52%, #8b4353 100%);
+}
+
+.game-result-main span {
+    display: inline-flex;
+    width: fit-content;
+    border: 1px solid rgba(255, 238, 216, 0.45);
+    border-radius: 999px;
+    padding: 0.34rem 0.78rem;
+    color: #ffdf9f;
+    font-size: 0.84rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+}
+
+.game-result-main h1 {
+    margin: 0.7rem 0 0.45rem;
+    color: #fff7ed;
+    font-size: clamp(1.8rem, 3.4vw, 3.35rem);
+    line-height: 1.12;
+}
+
+.game-result-main p {
+    margin: 0;
+    max-width: 980px;
+    color: rgba(255, 246, 232, 0.9);
+    line-height: 1.85;
+}
+
+.game-result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.game-result-stat {
+    border-radius: 22px;
+    padding: 0.85rem;
+    background: rgba(255, 249, 239, 0.12);
+    border: 1px solid rgba(255, 238, 216, 0.17);
+}
+
+.game-result-stat span {
+    color: #ffdf9f;
+    font-weight: 900;
+    font-size: 0.82rem;
+}
+
+.game-result-stat strong {
+    display: block;
+    margin: 0.25rem 0;
+    color: #fff7ed;
+    font-size: 1.22rem;
+    line-height: 1.35;
+}
+
+.game-result-stat p {
+    margin: 0;
+    color: rgba(255, 246, 232, 0.75);
+    line-height: 1.55;
+    font-size: 0.86rem;
+}
+
+.game-result-note {
+    margin-top: 0.8rem;
+    border-radius: 20px;
+    padding: 0.78rem 0.9rem;
+    background: rgba(255, 248, 232, 0.1);
+    border: 1px solid rgba(255, 238, 216, 0.12);
+}
+
+.game-result-note strong {
+    color: #ffdf9f;
+}
+
+.game-result-note p {
+    margin: 0.25rem 0 0;
+    color: rgba(255, 246, 232, 0.86);
+    line-height: 1.72;
+}
+
+.game-debrief-panel {
+    margin: 0.75rem 0 1rem;
+    border-radius: 28px;
+    padding: 1rem 1.1rem;
+    background: linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(249, 239, 235, 0.94));
+    border: 1px solid rgba(123, 23, 54, 0.15);
+    box-shadow: 0 16px 36px rgba(78, 16, 33, 0.08);
+}
+
+.game-debrief-head span {
+    color: #8a2947;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    font-size: 0.84rem;
+}
+
+.game-debrief-head h2 {
+    margin: 0.28rem 0 0.55rem;
+    color: #3a0e19;
+    font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.game-debrief-panel p {
+    margin: 0;
+    color: #3f332f;
+    line-height: 1.9;
+}
+
+.game-report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    gap: 0.78rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.game-report-card {
+    border-radius: 22px;
+    padding: 0.9rem 0.95rem;
+    background: rgba(255, 252, 248, 0.96);
+    border: 1px solid rgba(123, 23, 54, 0.13);
+    box-shadow: 0 12px 28px rgba(78, 16, 33, 0.07);
+}
+
+.game-report-card span {
+    color: #8a2947;
+    font-size: 0.82rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+}
+
+.game-report-card p {
+    margin: 0.35rem 0 0;
+    color: #3f332f;
+    line-height: 1.75;
+}
+
 @media (max-width: 900px) {
     .game-lobby-shell {
         grid-template-columns: 1fr;
