@@ -86,6 +86,11 @@ def _jump_to_chapter(chapter_id: str, node_id: str = "") -> None:
     st.switch_page("pages/3_长征路线.py")
 
 
+def _render_game_page_link(label: str = "进入互动闯关") -> None:
+    """渲染稳定的互动闯关直达入口。"""
+    st.page_link("pages/4_剧情答题.py", label=label, width="stretch")
+
+
 def _render_route_entry_card(title: str, body: str, nodes: list[str], label: str) -> None:
     """渲染路线入口卡。"""
     render_curatorial_note(title=title, body=body, label=label)
@@ -185,8 +190,7 @@ with intro_right:
         if st.button("开始长征导览", width="stretch", type="primary"):
             st.switch_page("pages/3_长征路线.py")
     with action_right:
-        if st.button("进入互动闯关", width="stretch"):
-            st.switch_page("pages/4_剧情答题.py")
+        _render_game_page_link("进入互动闯关")
     with action_more:
         if st.button("进入导览速览", width="stretch"):
             st.switch_page("pages/10_测试体验.py")
@@ -518,5 +522,4 @@ with tab4:
         if st.button("打开知识百问", key="home_jump_qa", width="stretch"):
             st.switch_page("pages/5_知识库.py")
     with quick_cols[2]:
-        if st.button("进入互动闯关", key="home_jump_quiz", width="stretch"):
-            st.switch_page("pages/4_剧情答题.py")
+        _render_game_page_link("进入互动闯关")
