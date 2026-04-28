@@ -91,13 +91,13 @@
 
 .battle-briefing {
     margin: 1.2rem 0 1.8rem;
-    border-radius: 30px;
+    border-radius: 34px;
     overflow: hidden;
     border: 1px solid rgba(138, 28, 43, 0.22);
     background:
-        linear-gradient(135deg, rgba(98, 18, 31, 0.96), rgba(151, 42, 54, 0.92)),
-        radial-gradient(circle at top right, rgba(255, 224, 148, 0.26), transparent 34%);
-    box-shadow: 0 24px 54px rgba(91, 22, 30, 0.18);
+        radial-gradient(circle at 78% 12%, rgba(255, 217, 126, 0.2), transparent 30%),
+        linear-gradient(135deg, rgba(50, 8, 20, 0.98), rgba(112, 22, 46, 0.96) 45%, rgba(166, 48, 62, 0.94));
+    box-shadow: 0 28px 72px rgba(91, 22, 30, 0.24);
 }
 
 .battle-briefing-head {
@@ -105,7 +105,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.05rem 1.35rem;
+    padding: 1.2rem 1.45rem;
     color: #fff8ea;
     border-bottom: 1px solid rgba(255, 238, 210, 0.22);
 }
@@ -120,19 +120,67 @@
 }
 
 .battle-briefing-head strong {
-    font-size: clamp(1.18rem, 2vw, 1.68rem);
+    display: block;
+    margin-top: 0.45rem;
+    font-size: clamp(1.55rem, 3vw, 2.55rem);
+    line-height: 1.1;
     letter-spacing: 0.02em;
 }
 
 .battle-briefing-head em {
+    display: block;
+    margin-top: 0.35rem;
     color: rgba(255, 248, 234, 0.82);
     font-style: normal;
     font-weight: 700;
 }
 
+.battle-meta-strip {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-width: 620px;
+}
+
+.battle-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.34rem 0.78rem;
+    color: #fff1d5;
+    background: rgba(255, 248, 232, 0.13);
+    border: 1px solid rgba(255, 238, 210, 0.17);
+    font-size: 0.84rem;
+    font-weight: 850;
+}
+
+.battle-briefing-lead {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    margin: 1rem 1.05rem 0;
+    padding: 0.95rem 1rem;
+    border-radius: 22px;
+    background: rgba(255, 248, 232, 0.12);
+    border: 1px solid rgba(255, 238, 210, 0.16);
+}
+
+.battle-briefing-lead b {
+    color: #ffdb98;
+    letter-spacing: 0.08em;
+}
+
+.battle-briefing-lead p {
+    margin: 0;
+    color: rgba(255, 248, 234, 0.9);
+    line-height: 1.82;
+}
+
 .battle-briefing-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(250px, 0.78fr) minmax(260px, 0.85fr) minmax(360px, 1.25fr);
     gap: 1rem;
     padding: 1.05rem;
 }
@@ -145,7 +193,7 @@
 }
 
 .battle-panel h3 {
-    margin: 0 0 0.8rem;
+    margin: 0 0 0.85rem;
     color: #571625;
     font-size: clamp(1.18rem, 2vw, 1.55rem);
 }
@@ -162,6 +210,7 @@
 }
 
 .mission-ticket + .mission-ticket,
+.battle-objective + .battle-objective,
 .war-log-line + .war-log-line {
     margin-top: 0.72rem;
 }
@@ -177,6 +226,31 @@
 .mission-ticket strong {
     color: #2f2522;
     line-height: 1.65;
+    font-size: 1rem;
+}
+
+.battle-objective {
+    position: relative;
+    padding: 0.86rem 0.92rem 0.86rem 1.05rem;
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, rgba(255, 249, 239, 0.98), rgba(255, 237, 201, 0.72));
+    border: 1px solid rgba(138, 28, 43, 0.12);
+    box-shadow: inset 5px 0 0 rgba(154, 38, 54, 0.82);
+}
+
+.battle-objective span {
+    color: #a54638;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.battle-objective strong {
+    display: block;
+    margin-top: 0.28rem;
+    color: #2f2522;
+    line-height: 1.7;
     font-size: 1rem;
 }
 
@@ -212,6 +286,14 @@
     .battle-briefing-head {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .battle-meta-strip {
+        justify-content: flex-start;
+    }
+
+    .battle-briefing-lead {
+        grid-template-columns: 1fr;
     }
 
     .mission-ticket {

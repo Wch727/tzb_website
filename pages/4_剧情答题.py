@@ -209,6 +209,8 @@ def _render_battle_briefing(stage: dict) -> None:
     """用任务面板替代 Markdown 列表，增强剧情关卡的游戏化质感。"""
     orders = [str(item).strip() for item in stage.get("squad_orders", []) if str(item).strip()]
     logs = [str(item).strip() for item in stage.get("battle_log", [])[:3] if str(item).strip()]
+    node = stage.get("node", {}) or {}
+    goals = [str(item).strip() for item in stage.get("mission_goals", [])[:3] if str(item).strip()]
     if not orders and not logs:
         return
 
@@ -228,10 +230,34 @@ def _render_battle_briefing(stage: dict) -> None:
         )
         for index, item in enumerate(logs, start=1)
     )
+    objectives_html = "".join(
+        render_template(
+            "battle_objective.html",
+            label=f"目标 {index:02d}",
+            text=html.escape(item),
+        )
+        for index, item in enumerate(goals, start=1)
+    )
+    meta_items = [
+        f"第 {stage.get('current_step', 1)} / {stage.get('total_steps', 1)} 关",
+        stage.get("question_type", "情境选择题"),
+        stage.get("stage_badge", "主线推进关"),
+        stage.get("difficulty_label", "主线学习关"),
+    ]
+    meta_html = "".join(
+        render_template("battle_meta_chip.html", text=html.escape(str(item)))
+        for item in meta_items
+        if str(item).strip()
+    )
     fallback_order = render_template(
         "mission_ticket.html",
         label="命令",
         text="阅读当前材料，完成本关判断。",
+    )
+    fallback_objective = render_template(
+        "battle_objective.html",
+        label="目标",
+        text="看清关卡情境，完成本关判断。",
     )
     fallback_log = render_template(
         "war_log_line.html",
@@ -244,7 +270,14 @@ def _render_battle_briefing(stage: dict) -> None:
             "exhibit_components.css",
             node_title=html.escape(stage.get("node_title", stage.get("title", "当前关卡"))),
             campaign_title=html.escape(stage.get("campaign_title", "长征主线")),
+            briefing_lead=html.escape(
+                stage.get("mission_prompt")
+                or node.get("summary")
+                or "根据当前节点处境完成判断，提交后解锁解析与战后复盘。"
+            ),
+            meta_html=meta_html,
             orders_html=orders_html or fallback_order,
+            objectives_html=objectives_html or fallback_objective,
             logs_html=logs_html or fallback_log,
         ),
         unsafe_allow_html=True,

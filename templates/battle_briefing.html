@@ -1,15 +1,26 @@
 <div class="battle-briefing">
     <div class="battle-briefing-head">
-        <span>行动简报</span>
-        <strong>${node_title}</strong>
-        <em>${campaign_title}</em>
+        <div>
+            <span>行动简报</span>
+            <strong>${node_title}</strong>
+            <em>${campaign_title}</em>
+        </div>
+        <div class="battle-meta-strip">${meta_html}</div>
+    </div>
+    <div class="battle-briefing-lead">
+        <b>本关态势</b>
+        <p>${briefing_lead}</p>
     </div>
     <div class="battle-briefing-grid">
-        <section class="battle-panel">
+        <section class="battle-panel battle-orders">
             <h3>小队命令</h3>
             ${orders_html}
         </section>
-        <section class="battle-panel">
+        <section class="battle-panel battle-objectives">
+            <h3>作战目标</h3>
+            ${objectives_html}
+        </section>
+        <section class="battle-panel battle-logs">
             <h3>战地日志</h3>
             ${logs_html}
         </section>
