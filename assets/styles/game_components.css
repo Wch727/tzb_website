@@ -97,7 +97,7 @@
 
 .role-loadout-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 0.9rem;
     margin: 0.75rem 0 1rem;
 }
@@ -105,7 +105,11 @@
 .role-loadout-card {
     border-radius: 24px;
     padding: 1rem 1.05rem;
+    min-height: 255px;
+    display: flex;
+    flex-direction: column;
     background:
+        radial-gradient(circle at 88% 10%, rgba(255, 214, 128, 0.2), transparent 34%),
         linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(249, 238, 232, 0.92));
     border: 1px solid rgba(126, 30, 52, 0.16);
     box-shadow: 0 14px 34px rgba(87, 16, 35, 0.09);
@@ -126,7 +130,33 @@
 .role-loadout-card p {
     color: #5d504b;
     line-height: 1.75;
-    margin: 0;
+    margin: 0 0 0.8rem;
+}
+
+.role-loadout-line {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: 0.55rem;
+    align-items: start;
+    margin-top: 0.42rem;
+    color: #4d403a;
+    line-height: 1.55;
+    font-size: 0.92rem;
+}
+
+.role-loadout-line b {
+    color: #8d2940;
+    font-weight: 950;
+}
+
+.role-loadout-reward {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    color: #7b6147;
+    border-top: 1px solid rgba(126, 30, 52, 0.12);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    font-weight: 800;
 }
 
 .platform-level-card {

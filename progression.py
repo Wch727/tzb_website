@@ -74,6 +74,12 @@ def _refresh_medals(progress: Dict[str, Any]) -> None:
         _append_unique(medals, "雪线守护者")
     if int(role_counts.get("signal", 0)) >= 2:
         _append_unique(medals, "前线通讯尖兵")
+    if int(role_counts.get("quartermaster", 0)) >= 2:
+        _append_unique(medals, "粮草保障能手")
+    if int(role_counts.get("political", 0)) >= 2:
+        _append_unique(medals, "信念宣讲员")
+    if int(role_counts.get("engineer", 0)) >= 2:
+        _append_unique(medals, "架桥开路先锋")
     if int(progress.get("best_streak", 0)) >= 3:
         _append_unique(medals, "连续作战尖兵")
     if int(progress.get("tactic_success_count", 0)) >= 5:

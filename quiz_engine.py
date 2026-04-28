@@ -123,6 +123,75 @@ TACTIC_LIBRARY: Dict[str, List[Dict[str, Any]]] = {
             "match_stages": ["转折"],
         },
     ],
+    "quartermaster": [
+        {
+            "id": "supply_count",
+            "title": "盘点粮草",
+            "desc": "先估算队伍消耗和补给压力，适合雪山草地、长途转移和艰苦环境类关卡。",
+            "match_types": ["情境选择题", "听音辨曲"],
+            "match_stages": ["会师", "突破"],
+        },
+        {
+            "id": "speed_supply",
+            "title": "轻装急行",
+            "desc": "在补给不足时优先判断何处必须快速通过，适合渡河、突围和行军节奏类节点。",
+            "match_types": ["地图纠错", "情境选择题"],
+            "match_stages": ["突围", "突破"],
+        },
+        {
+            "id": "reserve_line",
+            "title": "保留余粮",
+            "desc": "把风险留给最关键路段之前消化，适合连续作战和远距离推进场景。",
+            "match_types": ["情境选择题"],
+            "match_stages": ["调整", "会师"],
+        },
+    ],
+    "political": [
+        {
+            "id": "morale_rally",
+            "title": "鼓舞军心",
+            "desc": "先判断节点体现的理想信念、纪律和群众路线，适合精神专题与意义判断类题目。",
+            "match_types": ["听音辨曲", "情境选择题"],
+            "match_stages": ["会师", "转折"],
+        },
+        {
+            "id": "mass_work",
+            "title": "群众工作",
+            "desc": "关注群众支援、纪律执行和军民关系，适合于都河、沿途支前等节点。",
+            "match_types": ["情境选择题"],
+            "match_stages": ["突围", "调整"],
+        },
+        {
+            "id": "meaning_focus",
+            "title": "提炼意义",
+            "desc": "把事件经过转化为历史意义，适合会议、会师和关键转折节点。",
+            "match_types": ["看图识史", "情境选择题"],
+            "match_stages": ["转折", "会师"],
+        },
+    ],
+    "engineer": [
+        {
+            "id": "bridge_assault",
+            "title": "夺桥开路",
+            "desc": "优先判断桥梁、渡口和通道控制权，适合泸定桥、大渡河等突破关卡。",
+            "match_types": ["看图识史", "地图纠错"],
+            "match_stages": ["突破"],
+        },
+        {
+            "id": "river_crossing",
+            "title": "测渡通行",
+            "desc": "判断渡河条件和敌我位置，适合金沙江、于都河等渡河节点。",
+            "match_types": ["地图纠错", "情境选择题"],
+            "match_stages": ["突围", "突破"],
+        },
+        {
+            "id": "route_clear",
+            "title": "清障开路",
+            "desc": "面对山地、草地和险道时先判断通行条件，适合复杂地形类关卡。",
+            "match_types": ["情境选择题", "看图识史"],
+            "match_stages": ["会师", "突破"],
+        },
+    ],
 }
 
 BOSS_NODE_IDS = {
@@ -676,6 +745,13 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
             bonus_stars += 2
         if node.get("type") == "event" and role.get("role_id") == "signal":
             bonus_stars += 2
+        if role.get("role_id") == "quartermaster" and question_type in ["情境选择题", "听音辨曲"]:
+            bonus_grain += 2
+        if role.get("role_id") == "political" and question_type in ["听音辨曲", "情境选择题"]:
+            bonus_stars += 2
+        if role.get("role_id") == "engineer" and question_type in ["地图纠错", "看图识史"]:
+            bonus_stars += 1
+            bonus_grain += 1
     role_mastery_key = ""
     if correct:
         if role.get("role_id") == "scout" and question_type in ["地图纠错", "看图识史"]:
@@ -684,6 +760,12 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
             role_mastery_key = "medic"
         elif role.get("role_id") == "signal" and node.get("type") == "event":
             role_mastery_key = "signal"
+        elif role.get("role_id") == "quartermaster" and question_type in ["情境选择题", "听音辨曲"]:
+            role_mastery_key = "quartermaster"
+        elif role.get("role_id") == "political" and question_type in ["听音辨曲", "情境选择题"]:
+            role_mastery_key = "political"
+        elif role.get("role_id") == "engineer" and question_type in ["地图纠错", "看图识史"]:
+            role_mastery_key = "engineer"
 
     updated_state = state.copy()
     updated_state["history"] = list(state.get("history", []))

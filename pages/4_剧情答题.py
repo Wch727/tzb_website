@@ -95,6 +95,9 @@ def _render_role_cards(roles: list[dict]) -> None:
             role_title=html.escape(item.get("title", "闯关身份")),
             role_name=html.escape(item.get("name", "侦察兵")),
             role_tagline=html.escape(item.get("tagline", "进入长征主线挑战。")),
+            role_specialty=html.escape(item.get("specialty", "主线判断")),
+            role_loadout=html.escape(item.get("loadout", "任务卡")),
+            role_bonus=html.escape(item.get("bonus_text", "完成对应题型可获得额外奖励。")),
         )
         for item in roles
     )
