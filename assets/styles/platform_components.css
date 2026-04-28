@@ -193,6 +193,13 @@
     min-height: 190px;
 }
 
+.platform-level-card {
+    height: 286px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 .platform-activity-card.active,
 .platform-level-card.active {
     border-color: rgba(123, 23, 54, 0.45);
@@ -214,6 +221,15 @@
 .platform-rank-card p {
     color: #4d403a;
     line-height: 1.75;
+}
+
+.platform-level-card p {
+    display: -webkit-box;
+    min-height: 7rem;
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
 }
 
 .platform-activity-card .platform-card-meta span {
@@ -276,9 +292,12 @@
 }
 
 .platform-level-meta {
-    margin-top: 0.75rem;
+    margin-top: auto;
     color: #7b6147;
     font-weight: 800;
+    line-height: 1.45;
+    min-height: 2.9rem;
+    overflow: hidden;
 }
 
 @media (max-width: 920px) {
