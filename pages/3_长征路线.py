@@ -34,7 +34,10 @@ allowed_node_ids = set(activity.get("node_scope", []) if activity else [])
 chapters = get_route_chapters()
 
 chapter_ids = [item.get("id", "") for item in chapters]
-selected_chapter_id = st.session_state.get("selected_chapter_id", chapter_ids[0] if chapter_ids else "")
+query_chapter_id = st.query_params.get("chapter_id", "")
+if isinstance(query_chapter_id, list):
+    query_chapter_id = query_chapter_id[0] if query_chapter_id else ""
+selected_chapter_id = query_chapter_id or st.session_state.get("selected_chapter_id", chapter_ids[0] if chapter_ids else "")
 if selected_chapter_id not in chapter_ids and chapter_ids:
     selected_chapter_id = chapter_ids[0]
 st.session_state["selected_chapter_id"] = selected_chapter_id
@@ -68,6 +71,7 @@ for index, chapter in enumerate(chapters):
     with chapter_nav_cols[index]:
         if st.button(chapter.get("title", ""), key=f"chapter_nav_{chapter.get('id')}", width="stretch"):
             st.session_state["selected_chapter_id"] = chapter.get("id", "")
+            st.query_params["chapter_id"] = chapter.get("id", "")
             st.rerun()
 
 render_gallery_frame("所在篇章", "围绕本篇章的关键节点、时间与地点展开浏览，再进入具体历史情境。")

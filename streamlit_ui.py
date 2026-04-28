@@ -443,11 +443,22 @@ def inject_custom_css() -> None:
             margin: 0.9rem 0 1.2rem;
         }
         .chapter-card {
+            display: block;
             background: rgba(255, 252, 250, 0.94);
             border: 1px solid rgba(139, 38, 66, 0.16);
             border-radius: 24px;
             padding: 1rem 1.1rem;
             box-shadow: 0 12px 30px rgba(78, 16, 33, 0.08);
+            color: inherit;
+            text-decoration: none !important;
+            min-height: 100%;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            cursor: pointer;
+        }
+        .chapter-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(128, 18, 52, 0.34);
+            box-shadow: 0 20px 42px rgba(78, 16, 33, 0.13);
         }
         .chapter-card.active {
             border-color: rgba(128, 18, 52, 0.42);
@@ -1394,6 +1405,7 @@ def render_chapter_overview_cards(chapters: List[Dict[str, Any]], active_id: str
                     subtitle=html.escape(str(chapter.get("subtitle", ""))),
                     count=html.escape(str(chapter.get("count", len(chapter.get("nodes", []))))),
                     node_titles=html.escape(node_titles),
+                    href=html.escape(f"/长征路线?chapter_id={chapter.get('id', '')}"),
                 )
             )
 
