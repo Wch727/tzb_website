@@ -143,6 +143,15 @@ def render_tactic_preview(options: List[Dict[str, Any]], selected_id: str) -> No
 
 def render_answer_arena(stage: Dict[str, Any], node: Dict[str, Any]) -> None:
     """Render the question prompt in a mission arena shell."""
+    material_points = [
+        str(item).strip()
+        for item in stage.get("material_points", [])
+        if str(item).strip()
+    ]
+    material_points_html = "".join(
+        f"<li>{_text(item)}</li>"
+        for item in material_points[:4]
+    )
     _render_html(
         render_template_block(
             "game_answer_arena.html",
@@ -152,6 +161,7 @@ def render_answer_arena(stage: Dict[str, Any], node: Dict[str, Any]) -> None:
             question=_text(stage.get("question", "暂无题目。")),
             material_title=_text(stage.get("material_title", "本关材料")),
             material_hint=_text(stage.get("mission_prompt", "请结合关卡情境作出判断。")),
+            material_points_html=material_points_html,
         )
     )
 

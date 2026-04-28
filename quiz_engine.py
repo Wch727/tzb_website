@@ -37,19 +37,19 @@ QUESTION_TYPE_OVERRIDES: Dict[str, Dict[str, Any]] = {
     },
     "snow_mountains": {
         "question_type": "听音辨曲",
-        "mission_prompt": "请先播放音频线索，再判断它体现的是哪一类长征精神。",
-        "material_title": "音频线索解读",
-        "material_points": ["先听关键诗句，再把它与雪山环境联系起来。", "注意“乐观主义”与“艰苦奋斗”这两个关键词。"],
+        "mission_prompt": "请先播放音频线索，再结合雪山行军处境判断其精神内涵。",
+        "material_title": "材料研读：诗句、环境与精神力量",
+        "material_points": ["诗句写的是红军面对万水千山时的精神状态。", "判断时要把诗句中的乐观表达与雪山行军的低温、缺氧、缺粮处境联系起来。"],
         "audio_text": "红军不怕远征难，万水千山只等闲。更喜岷山千里雪，三军过后尽开颜。",
-        "custom_question": "请先播放音频线索。这段诗句最能帮助理解长征中的哪一核心精神？",
+        "custom_question": "请先播放音频线索。若把这段诗句与翻越雪山的历史处境结合起来，最合理的理解是？",
         "custom_options": [
-            "A. 艰苦奋斗、革命乐观主义",
-            "B. 城市工业化建设",
-            "C. 海上贸易精神",
-            "D. 外交谈判艺术",
+            "A. 诗句主要说明自然条件决定历史发展，人的主观努力并不重要",
+            "B. 诗句只是在描写山水景色，与长征精神没有关系",
+            "C. 诗句体现了革命理想、组织纪律和乐观主义对极端环境的支撑",
+            "D. 诗句说明红军已经完全没有物质困难",
         ],
-        "custom_answer": "A. 艰苦奋斗、革命乐观主义",
-        "custom_explanation": "诗句集中表现了红军面对雪山等极端环境时的革命乐观主义和艰苦奋斗精神，因此最适合作为“翻越雪山”节点的音频线索。",
+        "custom_answer": "C. 诗句体现了革命理想、组织纪律和乐观主义对极端环境的支撑",
+        "custom_explanation": "这道题不能只把诗句当作文学描写来理解。把它放回翻越雪山的历史处境中，低温、缺氧、缺粮等困难越突出，诗句中的乐观表达和坚定信念越能显示精神力量。C项把文本内容、历史环境和长征精神联系起来，符合材料分析题的思路。",
     },
 }
 
@@ -308,6 +308,8 @@ def _question_payload(node: Dict[str, Any]) -> Dict[str, Any]:
     payload.setdefault("custom_options", quiz.get("options", []))
     payload.setdefault("custom_answer", quiz.get("answer", ""))
     payload.setdefault("custom_explanation", quiz.get("explanation", ""))
+    payload["material_title"] = quiz.get("material_title") or payload.get("material_title", "材料研读")
+    payload["material_points"] = quiz.get("material_points") or payload.get("material_points", [])
     return payload
 
 

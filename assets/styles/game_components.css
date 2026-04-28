@@ -553,6 +553,17 @@
     line-height: 1.75;
 }
 
+.game-answer-material ul {
+    margin: 0.7rem 0 0;
+    padding-left: 1.15rem;
+    color: #4b3f3b;
+    line-height: 1.75;
+}
+
+.game-answer-material li + li {
+    margin-top: 0.32rem;
+}
+
 .game-result-banner {
     margin: 0.85rem 0 1.15rem;
     border-radius: 34px;
