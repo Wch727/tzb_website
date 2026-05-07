@@ -808,6 +808,7 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         role_mastery_key=role_mastery_key,
         tactic_match=tactic_match,
         chapter_completion_id=str(current_chapter.get("id", "")) if chapter_completed else "",
+        collectible_rarity="传说" if node.get("id", "") in BOSS_NODE_IDS else "",
     )
 
     updated_state["current_index"] = next_index

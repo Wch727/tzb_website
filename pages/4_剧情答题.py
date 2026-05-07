@@ -15,8 +15,11 @@ from game_components import (
     render_chapter_mission_grid,
     render_collectible_unlock,
     render_command_center,
+    render_combo_banner,
     render_debrief_panel,
     render_game_hud,
+    render_option_cards,
+    render_quest_board,
     render_report_cards,
     render_reward_track,
     render_result_banner,
@@ -177,6 +180,10 @@ def _render_game_lobby() -> None:
             "unlocked_cards": [],
         },
         title="本次挑战可解锁：红星积分、虚拟粮草、篇章勋章、节点纪念卡",
+    )
+    render_quest_board(
+        st.session_state.get("story_state", {}).get("progress", {}),
+        ROUTE_CHAPTERS,
     )
 
     render_section("选择具体关卡", "选好篇章后，再从本章的小关进入。重点关会以更高难度和更高奖励呈现。")
@@ -670,6 +677,7 @@ if stage.get("boss_stage"):
         )
 
 render_game_hud(progress, team, story_state)
+render_combo_banner(progress)
 render_reward_track(progress, title="当前成长进度：积分、粮草、军衔、勋章与纪念卡")
 
 top_left, top_right = st.columns([1.05, 1.35])
@@ -764,6 +772,7 @@ with material_right:
         st.caption("请根据题干情境和角色任务作出选择。")
 
 render_answer_arena(stage, node)
+render_option_cards(stage)
 answer = st.radio("作答选项", stage.get("options", []), index=None, key=f"story_answer_{node.get('id', '')}")
 
 if st.button("提交答案", width="stretch", type="primary", disabled=not answer):

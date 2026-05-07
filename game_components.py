@@ -211,6 +211,101 @@ def render_collectible_unlock(card: Dict[str, Any]) -> None:
     )
 
 
+def render_quest_board(progress: Dict[str, Any], chapters: List[Dict[str, Any]]) -> None:
+    """Render short-term goals so players know what to chase next."""
+    completed_nodes = progress.get("completed_nodes", []) or []
+    unlocked_cards = progress.get("unlocked_cards", []) or []
+    streak = int(progress.get("streak", 0) or 0)
+    chapter_total = len(chapters) or 4
+    completed_chapters = len(progress.get("completed_chapters", []) or [])
+    quests = [
+        {
+            "label": "主线推进",
+            "title": "完成 3 个节点",
+            "progress": f"{min(len(completed_nodes), 3)}/3",
+            "desc": "达成后可形成第一段连续征程印象。",
+        },
+        {
+            "label": "连胜挑战",
+            "title": "达成 2 连胜",
+            "progress": f"{min(streak, 2)}/2",
+            "desc": "连续判断正确会点亮连胜火焰。",
+        },
+        {
+            "label": "收藏目标",
+            "title": "解锁 3 张纪念卡",
+            "progress": f"{min(len(unlocked_cards), 3)}/3",
+            "desc": "每张卡对应一个长征节点记忆。",
+        },
+        {
+            "label": "篇章突破",
+            "title": "突破全部行动篇章",
+            "progress": f"{min(completed_chapters, chapter_total)}/{chapter_total}",
+            "desc": "完成后获得长征全线贯通荣誉。",
+        },
+    ]
+    items_html = "".join(
+        render_template(
+            "game_quest_item.html",
+            label=_text(item["label"]),
+            title=_text(item["title"]),
+            progress=_text(item["progress"]),
+            desc=_text(item["desc"]),
+        )
+        for item in quests
+    )
+    _render_html(
+        render_template_block(
+            "game_quest_board.html",
+            "game_components.css",
+            items_html=items_html,
+        )
+    )
+
+
+def render_option_cards(stage: Dict[str, Any]) -> None:
+    """Render answer options as visual action cards before the native radio control."""
+    options = [str(item).strip() for item in stage.get("options", []) if str(item).strip()]
+    if not options:
+        return
+    cards = []
+    for index, option in enumerate(options, start=1):
+        letter = chr(64 + index) if 1 <= index <= 26 else str(index)
+        clean_option = option
+        if len(clean_option) > 2 and clean_option[0].upper() == letter and clean_option[1] in [".", "、", "．"]:
+            clean_option = clean_option[2:].strip()
+        cards.append(
+            render_template(
+                "game_option_card.html",
+                letter=_text(letter),
+                text=_text(clean_option),
+            )
+        )
+    _render_html(
+        render_template_block(
+            "game_option_grid.html",
+            "game_components.css",
+            cards_html="".join(cards),
+        )
+    )
+
+
+def render_combo_banner(progress: Dict[str, Any]) -> None:
+    """Render a compact combo banner when the player is on a streak."""
+    streak = int(progress.get("streak", 0) or 0)
+    if streak < 2:
+        return
+    _render_html(
+        render_template_block(
+            "game_combo_banner.html",
+            "game_components.css",
+            streak=_text(streak),
+            title=_text("连续命中，战意升温"),
+            desc=_text("继续保持判断准确度，后续结算会更有成就感。"),
+        )
+    )
+
+
 def render_tactic_preview(options: List[Dict[str, Any]], selected_id: str) -> None:
     """Render tactic cards for the selected role."""
     if not options:

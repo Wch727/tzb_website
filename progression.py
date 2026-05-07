@@ -112,6 +112,7 @@ def record_quiz_result(
     role_mastery_key: str = "",
     tactic_match: bool = False,
     chapter_completion_id: str = "",
+    collectible_rarity: str = "",
 ) -> Dict[str, Any]:
     """记录一次答题结果。"""
     updated = progress.copy()
@@ -149,7 +150,8 @@ def record_quiz_result(
                 {
                     "node_id": node_id,
                     "title": node_title,
-                    "rarity": "史诗" if question_type in ["地图纠错", "听音辨曲"] else "精良",
+                    "rarity": collectible_rarity
+                    or ("史诗" if question_type in ["地图纠错", "听音辨曲"] else "精良"),
                     "desc": f"完成“{node_title}”关卡后解锁的长征记忆卡。",
                 }
             )
