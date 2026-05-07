@@ -849,6 +849,23 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         if chapter_completed
         else {}
     )
+    reward_delta = {
+        "score_delta": int(progress_summary.get("red_star_points", 0))
+        - int(state.get("progress", {}).get("red_star_points", 0)),
+        "grain_delta": int(progress_summary.get("grain", 0))
+        - int(state.get("progress", {}).get("grain", 0)),
+    }
+    unlocked_card = {}
+    if correct:
+        unlocked_cards = progress_summary.get("unlocked_cards", []) or []
+        unlocked_card = next(
+            (
+                item
+                for item in reversed(unlocked_cards)
+                if isinstance(item, dict) and item.get("node_id") == node.get("id", "")
+            ),
+            {},
+        )
     return {
         "state": updated_state,
         "correct": correct,
@@ -873,4 +890,6 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         "chapter_completion": chapter_completion,
         "knowledge_cards": stage.get("knowledge_cards", []),
         "progress": progress_summary,
+        "reward_delta": reward_delta,
+        "unlocked_card": unlocked_card,
     }

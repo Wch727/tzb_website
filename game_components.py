@@ -116,6 +116,94 @@ def render_game_hud(progress: Dict[str, Any], team: Dict[str, Any], story_state:
     )
 
 
+def render_chapter_mission_grid(
+    chapters: List[Dict[str, Any]],
+    nodes_by_id: Dict[str, Dict[str, Any]],
+    current_node_id: str,
+    completed_ids: Iterable[str],
+) -> None:
+    """Render four campaign chapters as the main game mission selector."""
+    completed = set(completed_ids or [])
+    cards: List[str] = []
+    for index, chapter in enumerate(chapters, start=1):
+        node_ids = [node_id for node_id in chapter.get("node_ids", []) if node_id in nodes_by_id]
+        if not node_ids:
+            continue
+        completed_count = len([node_id for node_id in node_ids if node_id in completed])
+        is_active = current_node_id in node_ids or (not current_node_id and index == 1)
+        is_done = bool(node_ids) and completed_count >= len(node_ids)
+        class_name = "game-chapter-mission active" if is_active else "game-chapter-mission"
+        if is_done:
+            class_name += " done"
+        node_names = "、".join(nodes_by_id[node_id].get("title", "") for node_id in node_ids[:3])
+        if len(node_ids) > 3:
+            node_names += "……"
+        cards.append(
+            render_template(
+                "game_chapter_mission_card.html",
+                class_name=class_name,
+                badge=_text(chapter.get("badge", f"第{index}篇章")),
+                title=_text(chapter.get("title", "行动篇章")),
+                subtitle=_text(chapter.get("subtitle", "")),
+                nodes=_text(node_names),
+                progress=_text(f"{completed_count}/{len(node_ids)} 关"),
+                reward=_text("篇章勋章 + 纪念卡" if not is_done else "篇章已突破"),
+            )
+        )
+    if cards:
+        _render_html(
+            render_template_block(
+                "game_chapter_mission_grid.html",
+                "game_components.css",
+                cards_html="".join(cards),
+            )
+        )
+
+
+def render_reward_track(progress: Dict[str, Any], *, title: str = "成长奖励") -> None:
+    """Render score, grain, medals and unlocked cards as a visible reward track."""
+    unlocked_cards = progress.get("unlocked_cards", []) or []
+    items = [
+        {"label": "红星积分", "value": progress.get("red_star_points", 0), "desc": "进入排行榜"},
+        {"label": "虚拟粮草", "value": progress.get("grain", 0), "desc": "连续作战资源"},
+        {"label": "军衔", "value": progress.get("rank_title", "红军新兵"), "desc": "成长等级"},
+        {"label": "勋章", "value": len(progress.get("medals", [])), "desc": "阶段荣誉"},
+        {"label": "纪念卡", "value": len(unlocked_cards), "desc": "节点收藏"},
+    ]
+    items_html = "".join(
+        render_template(
+            "game_reward_item.html",
+            label=_text(item["label"]),
+            value=_text(item["value"]),
+            desc=_text(item["desc"]),
+        )
+        for item in items
+    )
+    _render_html(
+        render_template_block(
+            "game_reward_track.html",
+            "game_components.css",
+            title=_text(title),
+            items_html=items_html,
+        )
+    )
+
+
+def render_collectible_unlock(card: Dict[str, Any]) -> None:
+    """Render the newly unlocked node memory card."""
+    if not card:
+        return
+    _render_html(
+        render_template_block(
+            "game_collectible_card.html",
+            "game_components.css",
+            rarity=_text(card.get("rarity", "精良")),
+            title=_text(card.get("title", "长征记忆卡")),
+            desc=_text(card.get("desc", "完成本关后解锁的长征记忆。")),
+        )
+    )
+
+
 def render_tactic_preview(options: List[Dict[str, Any]], selected_id: str) -> None:
     """Render tactic cards for the selected role."""
     if not options:

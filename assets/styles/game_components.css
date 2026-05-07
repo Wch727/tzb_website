@@ -466,6 +466,208 @@
     font-size: 0.86rem;
 }
 
+.game-chapter-mission-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.95rem;
+    margin: 0.8rem 0 0.45rem;
+}
+
+.game-chapter-mission {
+    position: relative;
+    overflow: hidden;
+    min-height: 245px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 28px;
+    padding: 1.1rem;
+    color: #4b1724;
+    background:
+        radial-gradient(circle at 86% 12%, rgba(255, 206, 103, 0.22), transparent 34%),
+        linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(247, 238, 232, 0.96));
+    border: 1px solid rgba(126, 30, 52, 0.15);
+    box-shadow: 0 18px 44px rgba(82, 18, 38, 0.09);
+}
+
+.game-chapter-mission.active {
+    color: #fff8ed;
+    background:
+        radial-gradient(circle at 82% 10%, rgba(255, 218, 122, 0.25), transparent 34%),
+        linear-gradient(135deg, #551025, #98263b 58%, #c34846);
+    border-color: rgba(255, 222, 165, 0.5);
+    box-shadow: 0 24px 58px rgba(101, 21, 44, 0.23);
+}
+
+.game-chapter-mission.done {
+    background:
+        radial-gradient(circle at 82% 12%, rgba(255, 226, 133, 0.24), transparent 34%),
+        linear-gradient(135deg, #3c4521, #71763a);
+}
+
+.game-chapter-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: center;
+}
+
+.game-chapter-top span,
+.game-chapter-top b {
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    background: rgba(126, 30, 52, 0.08);
+    color: inherit;
+    font-size: 0.8rem;
+    font-weight: 950;
+}
+
+.game-chapter-mission.active .game-chapter-top span,
+.game-chapter-mission.active .game-chapter-top b,
+.game-chapter-mission.done .game-chapter-top span,
+.game-chapter-mission.done .game-chapter-top b {
+    background: rgba(255, 248, 232, 0.16);
+    color: #ffe2a5;
+}
+
+.game-chapter-mission h3 {
+    margin: 0.9rem 0 0.55rem;
+    color: inherit;
+    font-size: clamp(1.35rem, 2vw, 1.85rem);
+}
+
+.game-chapter-mission p,
+.game-chapter-nodes {
+    margin: 0;
+    color: inherit;
+    opacity: 0.82;
+    line-height: 1.75;
+}
+
+.game-chapter-nodes {
+    margin-top: 0.8rem;
+    font-weight: 800;
+}
+
+.game-chapter-reward {
+    margin-top: auto;
+    padding-top: 0.9rem;
+    color: inherit;
+    font-weight: 950;
+}
+
+.game-reward-track {
+    margin: 0.85rem 0 1rem;
+    border-radius: 30px;
+    padding: 1rem;
+    color: #fff7ed;
+    background:
+        radial-gradient(circle at 88% 14%, rgba(255, 218, 122, 0.22), transparent 34%),
+        linear-gradient(135deg, #2d0714, #5e1230 52%, #8f263c);
+    border: 1px solid rgba(255, 238, 216, 0.16);
+    box-shadow: 0 20px 52px rgba(75, 12, 30, 0.18);
+}
+
+.game-reward-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.game-reward-head span {
+    color: #ffdf9f;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+}
+
+.game-reward-head strong {
+    color: #fff7ed;
+    font-size: 1.08rem;
+}
+
+.game-reward-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 0.7rem;
+}
+
+.game-reward-item {
+    min-height: 104px;
+    border-radius: 22px;
+    padding: 0.85rem;
+    background: rgba(255, 248, 232, 0.11);
+    border: 1px solid rgba(255, 238, 216, 0.15);
+}
+
+.game-reward-item span {
+    color: #ffdf9f;
+    font-weight: 900;
+    font-size: 0.82rem;
+}
+
+.game-reward-item strong {
+    display: block;
+    margin: 0.25rem 0;
+    color: #fff7ed;
+    font-size: clamp(1.25rem, 2.3vw, 1.8rem);
+}
+
+.game-reward-item p {
+    margin: 0;
+    color: rgba(255, 246, 232, 0.76);
+    line-height: 1.55;
+}
+
+.game-collectible-unlock {
+    position: relative;
+    overflow: hidden;
+    margin: 0.8rem 0 1rem;
+    border-radius: 30px;
+    padding: 1.15rem 1.2rem;
+    color: #fff8ed;
+    background:
+        radial-gradient(circle at 88% 18%, rgba(255, 226, 116, 0.36), transparent 32%),
+        linear-gradient(135deg, #451027, #87213d 56%, #cf5147);
+    border: 1px solid rgba(255, 229, 169, 0.4);
+    box-shadow: 0 24px 58px rgba(95, 18, 42, 0.24);
+}
+
+.game-card-shine {
+    position: absolute;
+    inset: -50% auto auto 60%;
+    width: 320px;
+    height: 320px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(255, 229, 139, 0.25), transparent 65%);
+}
+
+.game-card-badge {
+    position: relative;
+    display: inline-flex;
+    width: fit-content;
+    border-radius: 999px;
+    padding: 0.32rem 0.72rem;
+    background: rgba(255, 248, 232, 0.16);
+    color: #ffdf9f;
+    font-weight: 950;
+    letter-spacing: 0.1em;
+}
+
+.game-collectible-unlock h3 {
+    position: relative;
+    margin: 0.75rem 0 0.4rem;
+    color: #fff7ed;
+    font-size: clamp(1.4rem, 2.5vw, 2.25rem);
+}
+
+.game-collectible-unlock p {
+    position: relative;
+    margin: 0;
+    color: rgba(255, 246, 232, 0.86);
+    line-height: 1.75;
+}
+
 .game-tactic-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -723,6 +925,16 @@
     }
 
     .game-command-center {
+        grid-template-columns: 1fr;
+    }
+
+    .game-chapter-mission-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .game-chapter-mission-grid {
         grid-template-columns: 1fr;
     }
 }

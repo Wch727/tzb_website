@@ -35,6 +35,7 @@ def default_progress(role_name: str = "侦察兵", starter_grain: int = 5, start
         "best_streak": 0,
         "tactic_success_count": 0,
         "completed_chapters": [],
+        "unlocked_cards": [],
     }
 
 
@@ -88,6 +89,10 @@ def _refresh_medals(progress: Dict[str, Any]) -> None:
         _append_unique(medals, "篇章突破者")
     if len(progress.get("completed_chapters", [])) >= 4:
         _append_unique(medals, "长征全线贯通者")
+    if len(progress.get("unlocked_cards", [])) >= 5:
+        _append_unique(medals, "红色卡牌收藏家")
+    if len(progress.get("unlocked_cards", [])) >= 12:
+        _append_unique(medals, "长征记忆馆守护者")
     progress["medals"] = medals
 
 
@@ -119,6 +124,7 @@ def record_quiz_result(
     updated.setdefault("best_streak", 0)
     updated.setdefault("tactic_success_count", 0)
     updated.setdefault("completed_chapters", [])
+    updated.setdefault("unlocked_cards", [])
     updated["answered_count"] = int(updated.get("answered_count", 0)) + 1
     _append_unique(updated["multimedia_types"], question_type)
 
@@ -137,6 +143,17 @@ def record_quiz_result(
             updated["red_star_points"] = int(updated.get("red_star_points", 0)) + 2
             updated["grain"] = int(updated.get("grain", 0)) + 1
             updated["tactic_success_count"] = int(updated.get("tactic_success_count", 0)) + 1
+        cards = list(updated.get("unlocked_cards", []))
+        if not any(item.get("node_id") == node_id for item in cards if isinstance(item, dict)):
+            cards.append(
+                {
+                    "node_id": node_id,
+                    "title": node_title,
+                    "rarity": "史诗" if question_type in ["地图纠错", "听音辨曲"] else "精良",
+                    "desc": f"完成“{node_title}”关卡后解锁的长征记忆卡。",
+                }
+            )
+        updated["unlocked_cards"] = cards
     else:
         updated["wrong_count"] = int(updated.get("wrong_count", 0)) + 1
         updated["grain"] = max(0, int(updated.get("grain", 0)) - 1)
@@ -180,4 +197,5 @@ def build_progress_summary(progress: Dict[str, Any]) -> Dict[str, Any]:
         "best_streak": int(progress.get("best_streak", 0)),
         "tactic_success_count": int(progress.get("tactic_success_count", 0)),
         "completed_chapters": progress.get("completed_chapters", []),
+        "unlocked_cards": progress.get("unlocked_cards", []),
     }

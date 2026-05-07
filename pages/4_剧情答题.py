@@ -12,13 +12,17 @@ from dashboard_data import record_answer_event, record_participation_event, reco
 from game_components import (
     render_answer_arena,
     render_campaign_map,
+    render_chapter_mission_grid,
+    render_collectible_unlock,
     render_command_center,
     render_debrief_panel,
     render_game_hud,
     render_report_cards,
+    render_reward_track,
     render_result_banner,
     render_tactic_preview,
 )
+from content_store import ROUTE_CHAPTERS
 from knowledge_cards import build_related_knowledge_bundle
 from leaderboard import build_user_share_text, record_leaderboard_entry
 from media import render_audio_player, render_digital_human, render_node_image, render_svg_artwork
@@ -127,9 +131,61 @@ def _render_game_lobby() -> None:
         ),
         unsafe_allow_html=True,
     )
-    render_section("选择关卡", "先选择本次挑战入口，再选择闯关身份。建议第一次体验从第一关开始，也可以直接挑战重点关卡。")
     node_scope = current_activity.get("node_scope", []) or []
-    level_nodes = [get_route_node(node_id) for node_id in node_scope]
+    if not node_scope:
+        node_scope = [node_id for chapter in ROUTE_CHAPTERS for node_id in chapter.get("node_ids", [])]
+    nodes_by_id = {node_id: get_route_node(node_id) for node_id in node_scope}
+    nodes_by_id = {node_id: node for node_id, node in nodes_by_id.items() if node}
+    completed_ids = st.session_state.get("story_state", {}).get("progress", {}).get("completed_nodes", [])
+    active_chapter = next(
+        (chapter for chapter in ROUTE_CHAPTERS if pending_node_id in chapter.get("node_ids", [])),
+        ROUTE_CHAPTERS[0],
+    )
+    st.session_state["selected_game_chapter_id"] = active_chapter.get("id", "")
+
+    render_section("选择行动篇章", "先选择一个大章进入行动地图。每个篇章包含数个小关，完成后可解锁篇章勋章与节点纪念卡。")
+    render_chapter_mission_grid(
+        ROUTE_CHAPTERS,
+        nodes_by_id,
+        pending_node_id,
+        completed_ids,
+    )
+    chapter_cols = st.columns(4)
+    for index, chapter in enumerate(ROUTE_CHAPTERS):
+        chapter_node_ids = [node_id for node_id in chapter.get("node_ids", []) if node_id in nodes_by_id]
+        if not chapter_node_ids:
+            continue
+        selected_chapter = chapter.get("id") == st.session_state.get("selected_game_chapter_id")
+        with chapter_cols[index % len(chapter_cols)]:
+            if st.button(
+                "正在行动" if selected_chapter else "进入本章",
+                key=f"select_game_chapter::{chapter.get('id', index)}",
+                width="stretch",
+                type="primary" if selected_chapter else "secondary",
+            ):
+                st.session_state["selected_game_chapter_id"] = chapter.get("id", "")
+                st.session_state["pending_game_start_node_id"] = chapter_node_ids[0]
+                st.session_state["selected_node_id"] = chapter_node_ids[0]
+                st.rerun()
+
+    render_reward_track(
+        {
+            "red_star_points": 0,
+            "grain": 5,
+            "rank_title": "红军新兵",
+            "medals": [],
+            "unlocked_cards": [],
+        },
+        title="本次挑战可解锁：红星积分、虚拟粮草、篇章勋章、节点纪念卡",
+    )
+
+    render_section("选择具体关卡", "选好篇章后，再从本章的小关进入。重点关会以更高难度和更高奖励呈现。")
+    selected_chapter_id = st.session_state.get("selected_game_chapter_id", active_chapter.get("id", ""))
+    selected_chapter = next(
+        (chapter for chapter in ROUTE_CHAPTERS if chapter.get("id") == selected_chapter_id),
+        active_chapter,
+    )
+    level_nodes = [get_route_node(node_id) for node_id in selected_chapter.get("node_ids", []) if node_id in node_scope]
     level_nodes = [item for item in level_nodes if item]
     if level_nodes:
         level_cols = st.columns(4)
@@ -147,7 +203,7 @@ def _render_game_lobby() -> None:
                     st.session_state["selected_node_id"] = node.get("id", "")
                     st.rerun()
     else:
-        st.info("当前活动暂未配置关卡范围，将从长征主线起点开始。")
+        st.info("当前篇章暂未配置可挑战关卡，将从长征主线起点开始。")
 
     render_section("选择身份", "不同身份对应不同任务提示和加成方向。")
     _render_role_cards(roles)
@@ -295,6 +351,7 @@ def _render_answer_result_at_top(last_result: dict, team: dict) -> None:
     next_node = last_result.get("next_node", {}) or {}
 
     render_result_banner(last_result, team)
+    render_collectible_unlock(last_result.get("unlocked_card", {}))
 
     if last_result.get("boss_stage_outcome"):
         render_boss_stage_outcome(last_result.get("boss_stage_outcome", {}))
@@ -455,6 +512,16 @@ if story_state.get("finished"):
     if progress.get("medals"):
         st.markdown("### 已获得勋章")
         st.write("、".join(progress.get("medals", [])))
+    if progress.get("unlocked_cards"):
+        render_section("长征纪念卡图鉴", "每答对一关都会解锁对应节点纪念卡，形成自己的长征记忆册。")
+        render_report_cards(
+            [
+                f"{item.get('rarity', '精良')} · {item.get('title', '长征节点')}：{item.get('desc', '已解锁节点纪念卡。')}"
+                for item in progress.get("unlocked_cards", [])
+                if isinstance(item, dict)
+            ],
+            label_prefix="纪念卡",
+        )
     if progress.get("wrong_book"):
         st.markdown("### 错题复盘")
         for item in progress.get("wrong_book", []):
@@ -592,6 +659,7 @@ if stage.get("boss_stage"):
         )
 
 render_game_hud(progress, team, story_state)
+render_reward_track(progress, title="当前成长进度：积分、粮草、军衔、勋章与纪念卡")
 
 top_left, top_right = st.columns([1.05, 1.35])
 with top_left:
