@@ -1027,6 +1027,10 @@ def build_static_sources_for_node(node: Dict[str, Any], extra_items: Optional[Li
 
 def build_node_story_script(node: Dict[str, Any]) -> str:
     """为节点生成可直接展示的正式讲解稿。"""
+    lecture_script = str(node.get("lecture_script", "") or "").strip()
+    if lecture_script:
+        return lecture_script
+
     title = str(node.get("title", "") or "长征节点")
     audience = "各位参观者"
     summary = str(node.get("summary", "") or "").strip()

@@ -104,6 +104,10 @@ def fallback_guide_script(
 ) -> str:
     """无 LLM 时输出完整讲解稿。"""
     node = node_data or {}
+    lecture_script = str(node.get("lecture_script", "") or "").strip()
+    if lecture_script:
+        return _fit_text_range(lecture_script, min_chars=650, max_chars=1100)
+
     title = node.get("title", topic or "长征史专题")
     background = node.get("background", "")
     process = node.get("process", "")
@@ -121,7 +125,7 @@ def fallback_guide_script(
         f"六、讲解提示\n可重点提醒听众关注以下要点：{points or '结合时间、地点、人物和意义进行理解。'}\n\n"
         "七、结语\n从这一节点可以看到，长征并不是单纯的远距离行军，而是在极端艰难条件下进行的一次伟大战略转移，也是中国共产党和红军在实践中不断校正方向、锻炼意志、凝聚精神的重要历程。"
     )
-    return _fit_text_range(script, min_chars=480, max_chars=880)
+    return _fit_text_range(script, min_chars=650, max_chars=1100)
 
 
 def fallback_video_script(
@@ -199,7 +203,7 @@ def generate_guide_script(
         or result.get("fallback_used", False)
         or result.get("provider") == "mock"
     )
-    script = _prefer_complete_script("" if use_static else script, fallback_script, min_chars=480, max_chars=880)
+    script = _prefer_complete_script("" if use_static else script, fallback_script, min_chars=650, max_chars=1100)
     sources = _source_cards(hits)
     if node_data:
         sources = build_static_sources_for_node(node_data)[:1] + sources
