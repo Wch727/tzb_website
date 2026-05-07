@@ -67,7 +67,7 @@ pages/
 
 ## 前端模板维护方式
 
-首页和关键互动组件的 HTML 已拆分到 `templates/`，样式拆分到 `assets/styles/`：
+首页和关键互动组件的 HTML 已拆分到 `templates/`，样式拆分到 `assets/styles/`，轻量 JavaScript 拆分到 `assets/scripts/`：
 
 - `templates/home_*.html`：首页主视觉、展项卡、专题卡、统计条、路线卡等模板
 - `assets/styles/home_exhibit.css`：首页展陈式视觉样式
@@ -77,8 +77,10 @@ pages/
 - `templates/role_*.html`、`templates/mission_*.html`、`templates/digital_human_*.html`：角色卡、任务简报和数字讲解员模板
 - `templates/masthead.html`、`templates/hero_banner.html`、`templates/script_sheet.html`：全站页眉、通用主视觉和讲解稿版式模板
 - `templates/platform_*.html`、`assets/styles/platform_components.css`：活动中心、排行榜、内容运营等平台页面的统一视觉组件
+- `assets/scripts/scroll_tools.js`：页面重渲染后的回顶逻辑
+- `assets/scripts/site_interactions.js`：全站轻量动效与卡片增强入口
 
-后续改首页视觉时，优先修改 `templates/home_*.html` 与 `assets/styles/home_exhibit.css`；改闯关视觉时，优先修改 `templates/game_*.html` 与 `assets/styles/game_components.css`；改入口逻辑时再修改对应页面 Python 文件。
+后续改首页视觉时，优先修改 `templates/home_*.html` 与 `assets/styles/home_exhibit.css`；改闯关视觉时，优先修改 `templates/game_*.html`、`assets/styles/game_components.css` 与 `assets/scripts/`；改入口逻辑或答题状态时再修改对应页面 Python 文件。当前 JS 只负责展示增强，不承载积分、答题和 RAG 等核心业务逻辑。
 
 ## 管理员 / 用户权限说明
 
@@ -554,6 +556,7 @@ project/
   assets/
     images/
     styles/
+    scripts/
     avatar/
     audio/
   templates/

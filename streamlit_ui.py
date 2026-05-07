@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import html
+import json
 import mimetypes
 import re
 from pathlib import Path
@@ -14,7 +15,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from activity_manager import get_activity
-from template_renderer import render_template
+from template_renderer import render_script_block, render_template
 from utils import (
     BASE_DIR,
     get_default_provider_name,
@@ -921,70 +922,36 @@ def inject_custom_css() -> None:
             font-size: 1rem;
             line-height: 1.9;
         }
+        .tzb-js-ready [data-js-enhanced="true"] {
+            transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+        }
+        .tzb-js-ready [data-js-enhanced="true"]:hover {
+            transform: translateY(-2px);
+            filter: saturate(1.03);
+        }
+        .tzb-js-ready button[data-primary-action="true"] {
+            box-shadow: 0 10px 26px rgba(126, 30, 52, 0.16);
+        }
         </style>
         """
     st.markdown(css, unsafe_allow_html=True)
 
 
+def inject_interaction_scripts() -> None:
+    """加载拆分到 assets/scripts 的轻量前端增强脚本。"""
+    components.html(
+        render_script_block("site_interactions.js"),
+        height=1,
+    )
+
+
 def scroll_page_to_top(anchor_id: str = "codex-scroll-top") -> None:
     """在页面重渲染后把视角拉回顶部。"""
-    script = """
-        <script>
-        const parentWindow = window.parent;
-        const anchorId = "__ANCHOR_ID__";
-        const resetScroll = () => {
-          try {
-            parentWindow.scrollTo({ top: 0, left: 0, behavior: "auto" });
-            parentWindow.document.documentElement.scrollTop = 0;
-            parentWindow.document.body.scrollTop = 0;
-
-            const anchor = parentWindow.document.getElementById(anchorId);
-            if (anchor) {
-              anchor.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
-            }
-
-            const selectors = [
-              "[data-testid='stAppViewContainer']",
-              "[data-testid='stMain']",
-              "[data-testid='stMainBlockContainer']",
-              "section.main",
-              "div[data-testid='stAppViewBlockContainer']",
-              "main",
-              ".main"
-            ];
-
-            selectors.forEach((selector) => {
-              const target = parentWindow.document.querySelector(selector);
-              if (target) {
-                target.scrollTo({ top: 0, left: 0, behavior: "auto" });
-                target.scrollTop = 0;
-              }
-            });
-          } catch (error) {
-            try {
-              parentWindow.scrollTo(0, 0);
-            } catch (_) {}
-          }
-        };
-
-        resetScroll();
-        requestAnimationFrame(resetScroll);
-        setTimeout(resetScroll, 60);
-        setTimeout(resetScroll, 180);
-        setTimeout(resetScroll, 360);
-        setTimeout(resetScroll, 720);
-        let attempts = 0;
-        const timer = setInterval(() => {
-          resetScroll();
-          attempts += 1;
-          if (attempts >= 12) {
-            clearInterval(timer);
-          }
-        }, 160);
-        </script>
-        """.replace("__ANCHOR_ID__", anchor_id)
     components.html(
-        script,
+        render_script_block(
+            "scroll_tools.js",
+            anchor_id_json=json.dumps(anchor_id, ensure_ascii=False),
+        ),
         height=1,
     )
 
@@ -1067,6 +1034,7 @@ def setup_page(page_title: str, icon: str = "🏔️") -> None:
         initial_sidebar_state="collapsed",
     )
     inject_custom_css()
+    inject_interaction_scripts()
     init_session_state()
     bootstrap_repository_content()
     sync_activity_from_query()

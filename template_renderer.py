@@ -23,6 +23,12 @@ def _read_style(relative_path: str) -> str:
     return (BASE_DIR / "assets" / "styles" / relative_path).read_text(encoding="utf-8")
 
 
+@lru_cache(maxsize=32)
+def _read_script(relative_path: str) -> str:
+    """Read a JavaScript file from the repository script directory."""
+    return (BASE_DIR / "assets" / "scripts" / relative_path).read_text(encoding="utf-8")
+
+
 def render_template(template_name: str, **context: Any) -> str:
     """Render a local HTML template with pre-escaped context values."""
     values = {key: "" if value is None else str(value) for key, value in context.items()}
@@ -37,3 +43,14 @@ def render_template_block(template_name: str, style_name: str = "", **context: A
         style_block = f"<style>\n{_read_style(style_name)}\n</style>\n"
     markup = dedent(style_block + render_template(template_name, **context)).strip()
     return re.sub(r"(?m)^[ \t]+(?=<)", "", markup)
+
+
+def render_script(script_name: str, **context: Any) -> str:
+    """Render a local JavaScript file with simple placeholders."""
+    values = {key: "" if value is None else str(value) for key, value in context.items()}
+    return dedent(Template(_read_script(script_name)).safe_substitute(values)).strip()
+
+
+def render_script_block(script_name: str, **context: Any) -> str:
+    """Wrap a repository JavaScript file in a script tag for Streamlit components."""
+    return f"<script>\n{render_script(script_name, **context)}\n</script>"
