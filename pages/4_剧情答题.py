@@ -530,6 +530,17 @@ if story_state.get("finished"):
                 st.write(f"所选答案：{item.get('selected_answer', '')}")
                 st.write(f"正确答案：{item.get('expected_answer', '')}")
                 st.write(f"解析：{item.get('explanation', '')}")
+                if st.button(
+                    f"重挑战：{item.get('title', '错题关卡')}",
+                    key=f"retry_wrong::{item.get('node_id', '')}",
+                    width="stretch",
+                ):
+                    st.session_state["pending_game_start_node_id"] = item.get("node_id", "")
+                    st.session_state["selected_node_id"] = item.get("node_id", "")
+                    st.session_state["story_state"] = {}
+                    st.session_state["game_active"] = False
+                    st.session_state["_scroll_to_top_once"] = True
+                    st.rerun()
 
     record_key = f"leaderboard_recorded::{story_state.get('activity_id', 'global')}"
     if not st.session_state.get(record_key):

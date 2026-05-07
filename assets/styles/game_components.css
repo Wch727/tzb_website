@@ -162,7 +162,9 @@
 .platform-level-card {
     position: relative;
     overflow: hidden;
-    min-height: 190px;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
     border-radius: 28px;
     padding: 1rem 1.05rem;
     background:
@@ -181,15 +183,41 @@
     box-shadow: 0 22px 48px rgba(78, 16, 33, 0.18);
 }
 
-.platform-level-card span {
+.platform-level-card.boss {
+    background:
+        radial-gradient(circle at 86% 12%, rgba(255, 225, 126, 0.28), transparent 34%),
+        linear-gradient(145deg, rgba(72, 9, 24, 0.98), rgba(147, 35, 58, 0.95));
+    color: #fff8ed;
+    border-color: rgba(255, 221, 165, 0.5);
+}
+
+.platform-level-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.platform-level-card span,
+.platform-level-top b {
     color: #a6404e;
     font-weight: 950;
     letter-spacing: 0.12em;
     font-size: 0.82rem;
 }
 
-.platform-level-card.active span {
+.platform-level-top b {
+    border-radius: 999px;
+    padding: 0.2rem 0.58rem;
+    background: rgba(126, 30, 52, 0.08);
+}
+
+.platform-level-card.active span,
+.platform-level-card.active .platform-level-top b,
+.platform-level-card.boss span,
+.platform-level-card.boss .platform-level-top b {
     color: #ffdf9f;
+    background: rgba(255, 248, 232, 0.15);
 }
 
 .platform-level-card h3 {
@@ -202,6 +230,25 @@
     color: inherit;
     opacity: 0.84;
     line-height: 1.75;
+}
+
+.platform-level-difficulty {
+    margin-top: auto;
+    color: #b33b47;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+}
+
+.platform-level-card.active .platform-level-difficulty,
+.platform-level-card.boss .platform-level-difficulty {
+    color: #ffdf9f;
+}
+
+.platform-level-reward {
+    margin-top: 0.28rem;
+    color: inherit;
+    opacity: 0.86;
+    font-weight: 900;
 }
 
 .platform-level-meta {
@@ -247,6 +294,23 @@
 .game-hud-head strong {
     font-size: 1.05rem;
     color: #fff7ea;
+}
+
+.game-streak-flame {
+    margin-left: auto;
+    font-style: normal;
+    border-radius: 999px;
+    padding: 0.28rem 0.72rem;
+    color: #ffe0a3;
+    background: rgba(255, 248, 232, 0.12);
+    border: 1px solid rgba(255, 238, 216, 0.2);
+    font-weight: 950;
+}
+
+.game-streak-flame.hot {
+    color: #43101b;
+    background: linear-gradient(135deg, #ffe08a, #ff7a45);
+    box-shadow: 0 0 22px rgba(255, 178, 71, 0.34);
 }
 
 .game-campaign-track {

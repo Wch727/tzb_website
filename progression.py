@@ -162,15 +162,16 @@ def record_quiz_result(
             item for item in updated["wrong_book"] if item.get("node_id") != node_id
         ]
         updated["wrong_book"].append(
-            {
-                "node_id": node_id,
-                "title": node_title,
-                "question": question,
-                "selected_answer": selected_answer,
-                "expected_answer": expected_answer,
-                "explanation": explanation,
-            }
-        )
+        {
+            "node_id": node_id,
+            "title": node_title,
+            "question": question,
+            "selected_answer": selected_answer,
+            "expected_answer": expected_answer,
+            "explanation": explanation,
+            "question_type": question_type,
+        }
+    )
 
     if chapter_completion_id:
         _append_unique(updated["completed_chapters"], chapter_completion_id)

@@ -112,10 +112,24 @@ def rank_podium_html(rows: List[Dict[str, Any]], score_key: str = "score") -> st
 def level_card_html(node: Dict[str, Any], index: int, selected: bool = False) -> str:
     """Return a game level selection card."""
     meta = " · ".join(part for part in [node.get("date", ""), node.get("place", "")] if part)
+    boss_ids = {
+        "xiangjiang_battle",
+        "zunyi_meeting",
+        "sidu_chishui",
+        "luding_bridge",
+        "huining_meeting",
+    }
+    is_boss = node.get("id", "") in boss_ids
+    class_name = "platform-level-card active" if selected else "platform-level-card"
+    if is_boss:
+        class_name += " boss"
     return render_template(
         "platform_level_card.html",
-        class_name="platform-level-card active" if selected else "platform-level-card",
+        class_name=class_name,
         index=f"{index:02d}",
+        badge=_text("攻坚关" if is_boss else "主线关"),
+        difficulty=_text("★★★★★" if is_boss else "★★★"),
+        reward=_text("高额积分 + 稀有纪念卡" if is_boss else "积分 + 节点纪念卡"),
         title=_text(node.get("title", "长征关卡")),
         summary=_text(node.get("summary", "")),
         meta=_text(meta),

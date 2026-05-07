@@ -89,13 +89,18 @@ def render_command_center(stage: Dict[str, Any], node: Dict[str, Any], story_sta
 
 def render_game_hud(progress: Dict[str, Any], team: Dict[str, Any], story_state: Dict[str, Any]) -> None:
     """Render a compact visual HUD instead of plain metric blocks."""
+    streak = int(progress.get("streak", 0) or 0)
     items = [
         {"label": "红星积分", "value": progress.get("red_star_points", 0), "desc": "历史判断与关卡推进"},
         {"label": "虚拟粮草", "value": progress.get("grain", 0), "desc": "连续作战补给"},
         {"label": "当前军衔", "value": progress.get("rank_title", "红军新兵"), "desc": "成长等级"},
         {"label": "已获勋章", "value": len(progress.get("medals", [])), "desc": "阶段荣誉"},
         {"label": "红军小队", "value": team.get("team_name", "未加入"), "desc": "协作归属"},
-        {"label": "连续命中", "value": progress.get("streak", 0), "desc": "当前连胜"},
+        {
+            "label": "连续命中",
+            "value": f"{streak} 连胜",
+            "desc": "连胜越高，结算越有压迫感",
+        },
     ]
     cards_html = "".join(
         render_template(
@@ -111,6 +116,8 @@ def render_game_hud(progress: Dict[str, Any], team: Dict[str, Any], story_state:
             "game_hud.html",
             "game_components.css",
             activity_name=_text(story_state.get("activity_name", "长征主线闯关")),
+            streak_class=_text("hot" if streak >= 2 else ""),
+            streak_text=_text(f"连胜火焰 x{streak}" if streak else "点燃首胜"),
             cards_html=cards_html,
         )
     )
