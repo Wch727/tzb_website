@@ -211,6 +211,85 @@ def render_collectible_unlock(card: Dict[str, Any]) -> None:
     )
 
 
+def _rarity_class(rarity: str) -> str:
+    normalized = str(rarity or "").strip()
+    if normalized == "传说":
+        return "legend"
+    if normalized == "史诗":
+        return "epic"
+    return "rare"
+
+
+def render_collectible_wall(cards: Iterable[Dict[str, Any]]) -> None:
+    """Render unlocked cards as a collectible wall instead of plain text."""
+    card_items = [item for item in cards or [] if isinstance(item, dict)]
+    if not card_items:
+        return
+    cards_html = "".join(
+        render_template(
+            "game_collectible_wall_card.html",
+            class_name=_text(f"game-collectible-wall-card {_rarity_class(item.get('rarity', '精良'))}"),
+            rarity=_text(item.get("rarity", "精良")),
+            title=_text(item.get("title", "长征纪念卡")),
+            desc=_text(item.get("desc", "完成节点后解锁的长征记忆。")),
+        )
+        for item in card_items
+    )
+    _render_html(
+        render_template_block(
+            "game_collectible_wall.html",
+            "game_components.css",
+            count=_text(len(card_items)),
+            cards_html=cards_html,
+        )
+    )
+
+
+def render_chapter_prologue(chapter: Dict[str, Any], nodes: List[Dict[str, Any]]) -> None:
+    """Render the selected chapter as a game prologue before choosing levels."""
+    if not chapter:
+        return
+    node_names = "、".join(item.get("title", "") for item in nodes[:5] if item.get("title"))
+    boss_nodes = [
+        item.get("title", "")
+        for item in nodes
+        if item.get("id", "") in {"xiangjiang_battle", "zunyi_meeting", "sidu_chishui", "luding_bridge", "huining_meeting"}
+    ]
+    _render_html(
+        render_template_block(
+            "game_chapter_prologue.html",
+            "game_components.css",
+            badge=_text(chapter.get("badge", "行动篇章")),
+            title=_text(chapter.get("title", "长征主线")),
+            subtitle=_text(chapter.get("subtitle", "进入本章行动地图。")),
+            nodes=_text(node_names or "沿长征主线推进"),
+            boss_hint=_text("攻坚关：" + "、".join(boss_nodes) if boss_nodes else "本章以连续推进和基础判断为主。"),
+        )
+    )
+
+
+def render_hint_panel(stage: Dict[str, Any], role: Dict[str, Any]) -> None:
+    """Render a concise hint after players spend grain or receive a role clue."""
+    material_points = [str(item).strip() for item in stage.get("material_points", []) if str(item).strip()]
+    clues = []
+    if material_points:
+        clues.append(material_points[0])
+    if stage.get("recommended_tactic_reason"):
+        clues.append(f"本关更适合从“{stage.get('recommended_tactic_title', '行动策略')}”切入：{stage.get('recommended_tactic_reason')}")
+    if role.get("special_hint"):
+        clues.append(role.get("special_hint"))
+    body = " ".join(clues[:3]) or "先找出题干中的地点、时间和行动目的，再判断哪一项最符合长征主线。"
+    _render_html(
+        render_template_block(
+            "game_hint_panel.html",
+            "game_components.css",
+            role=_text(role.get("name", "侦察兵")),
+            title=_text("本关线索已解锁"),
+            body=_text(body),
+        )
+    )
+
+
 def render_quest_board(progress: Dict[str, Any], chapters: List[Dict[str, Any]]) -> None:
     """Render short-term goals so players know what to chase next."""
     completed_nodes = progress.get("completed_nodes", []) or []
@@ -362,6 +441,8 @@ def render_result_banner(last_result: Dict[str, Any], team: Dict[str, Any]) -> N
     answered_node = last_result.get("answered_node", {}) or {}
     next_node = last_result.get("next_node", {}) or {}
     reward_delta = last_result.get("reward_delta", {}) or {}
+    stage_rating = max(0, min(3, int(last_result.get("stage_rating", 0) or 0)))
+    star_text = "★" * stage_rating + "☆" * (3 - stage_rating)
     correct = bool(last_result.get("correct"))
     class_name = "game-result-banner victory" if correct else "game-result-banner review"
     stats = [
@@ -379,6 +460,11 @@ def render_result_banner(last_result: Dict[str, Any], team: Dict[str, Any]) -> N
             "label": "奖励变化",
             "value": f"{int(reward_delta.get('score_delta', 0)):+d} 星 / {int(reward_delta.get('grain_delta', 0)):+d} 粮",
             "desc": "红星积分与虚拟粮草",
+        },
+        {
+            "label": "本关星级",
+            "value": star_text,
+            "desc": "完成 / 正确 / 策略契合",
         },
         {
             "label": "下一站",

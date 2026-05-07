@@ -36,6 +36,7 @@ def default_progress(role_name: str = "侦察兵", starter_grain: int = 5, start
         "tactic_success_count": 0,
         "completed_chapters": [],
         "unlocked_cards": [],
+        "level_stars": {},
     }
 
 
@@ -93,6 +94,17 @@ def _refresh_medals(progress: Dict[str, Any]) -> None:
         _append_unique(medals, "红色卡牌收藏家")
     if len(progress.get("unlocked_cards", [])) >= 12:
         _append_unique(medals, "长征记忆馆守护者")
+    three_star_count = len(
+        [
+            value
+            for value in (progress.get("level_stars", {}) or {}).values()
+            if int(value or 0) >= 3
+        ]
+    )
+    if three_star_count >= 3:
+        _append_unique(medals, "三星突击手")
+    if three_star_count >= 8:
+        _append_unique(medals, "全线三星挑战者")
     progress["medals"] = medals
 
 
@@ -126,8 +138,18 @@ def record_quiz_result(
     updated.setdefault("tactic_success_count", 0)
     updated.setdefault("completed_chapters", [])
     updated.setdefault("unlocked_cards", [])
+    updated.setdefault("level_stars", {})
     updated["answered_count"] = int(updated.get("answered_count", 0)) + 1
     _append_unique(updated["multimedia_types"], question_type)
+
+    earned_stars = 1
+    if correct:
+        earned_stars = 2
+    if correct and tactic_match:
+        earned_stars = 3
+    level_stars = dict(updated.get("level_stars", {}) or {})
+    level_stars[node_id] = max(int(level_stars.get(node_id, 0) or 0), earned_stars)
+    updated["level_stars"] = level_stars
 
     if correct:
         updated["correct_count"] = int(updated.get("correct_count", 0)) + 1
@@ -164,16 +186,16 @@ def record_quiz_result(
             item for item in updated["wrong_book"] if item.get("node_id") != node_id
         ]
         updated["wrong_book"].append(
-        {
-            "node_id": node_id,
-            "title": node_title,
-            "question": question,
-            "selected_answer": selected_answer,
-            "expected_answer": expected_answer,
-            "explanation": explanation,
-            "question_type": question_type,
-        }
-    )
+            {
+                "node_id": node_id,
+                "title": node_title,
+                "question": question,
+                "selected_answer": selected_answer,
+                "expected_answer": expected_answer,
+                "explanation": explanation,
+                "question_type": question_type,
+            }
+        )
 
     if chapter_completion_id:
         _append_unique(updated["completed_chapters"], chapter_completion_id)
@@ -201,4 +223,5 @@ def build_progress_summary(progress: Dict[str, Any]) -> Dict[str, Any]:
         "tactic_success_count": int(progress.get("tactic_success_count", 0)),
         "completed_chapters": progress.get("completed_chapters", []),
         "unlocked_cards": progress.get("unlocked_cards", []),
+        "level_stars": progress.get("level_stars", {}),
     }

@@ -26,7 +26,8 @@ def _read_style(relative_path: str) -> str:
 def render_template(template_name: str, **context: Any) -> str:
     """Render a local HTML template with pre-escaped context values."""
     values = {key: "" if value is None else str(value) for key, value in context.items()}
-    return Template(_read_template(template_name)).safe_substitute(values)
+    markup = Template(_read_template(template_name)).safe_substitute(values)
+    return re.sub(r"(?m)^[ \t]+(?=<)", "", dedent(markup).strip())
 
 
 def render_template_block(template_name: str, style_name: str = "", **context: Any) -> str:

@@ -12,12 +12,15 @@ from dashboard_data import record_answer_event, record_participation_event, reco
 from game_components import (
     render_answer_arena,
     render_campaign_map,
+    render_chapter_prologue,
     render_chapter_mission_grid,
+    render_collectible_wall,
     render_collectible_unlock,
     render_command_center,
     render_combo_banner,
     render_debrief_panel,
     render_game_hud,
+    render_hint_panel,
     render_option_cards,
     render_quest_board,
     render_report_cards,
@@ -108,7 +111,14 @@ def _render_role_cards(roles: list[dict]) -> None:
         )
         for item in roles
     )
-    st.markdown(render_template("role_loadout_grid.html", cards_html=cards_html), unsafe_allow_html=True)
+    st.markdown(
+        render_template_block(
+            "role_loadout_grid.html",
+            "game_components.css",
+            cards_html=cards_html,
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def _render_game_lobby() -> None:
@@ -194,7 +204,21 @@ def _render_game_lobby() -> None:
     )
     level_nodes = [get_route_node(node_id) for node_id in selected_chapter.get("node_ids", []) if node_id in node_scope]
     level_nodes = [item for item in level_nodes if item]
+    render_chapter_prologue(selected_chapter, level_nodes)
     if level_nodes:
+        selected_level_index = next(
+            (
+                index
+                for index, item in enumerate(level_nodes)
+                if item.get("id") == pending_node_id
+            ),
+            0,
+        )
+        render_campaign_map(
+            level_nodes,
+            selected_level_index,
+            completed_ids,
+        )
         level_cols = st.columns(4)
         for index, node in enumerate(level_nodes):
             selected = node.get("id") == pending_node_id
@@ -521,14 +545,7 @@ if story_state.get("finished"):
         st.write("、".join(progress.get("medals", [])))
     if progress.get("unlocked_cards"):
         render_section("长征纪念卡图鉴", "每答对一关都会解锁对应节点纪念卡，形成自己的长征记忆册。")
-        render_report_cards(
-            [
-                f"{item.get('rarity', '精良')} · {item.get('title', '长征节点')}：{item.get('desc', '已解锁节点纪念卡。')}"
-                for item in progress.get("unlocked_cards", [])
-                if isinstance(item, dict)
-            ],
-            label_prefix="纪念卡",
-        )
+        render_collectible_wall(progress.get("unlocked_cards", []))
     if progress.get("wrong_book"):
         st.markdown("### 错题复盘")
         for item in progress.get("wrong_book", []):
@@ -754,6 +771,25 @@ if tactic_options:
         horizontal=True,
     )
     render_tactic_preview(tactic_options, selected_tactic_id)
+
+hint_key = f"game_hint_unlocked::{node.get('id', '')}"
+hint_cols = st.columns([1.1, 2])
+with hint_cols[0]:
+    hint_disabled = bool(st.session_state.get(hint_key)) or int(progress.get("grain", 0) or 0) <= 0
+    if st.button(
+        "消耗 1 粮草查看线索" if not st.session_state.get(hint_key) else "线索已解锁",
+        key=f"unlock_hint::{node.get('id', '')}",
+        width="stretch",
+        disabled=hint_disabled,
+    ):
+        story_state["progress"]["grain"] = max(0, int(progress.get("grain", 0) or 0) - 1)
+        st.session_state["story_state"] = story_state
+        st.session_state[hint_key] = True
+        st.rerun()
+with hint_cols[1]:
+    st.caption("线索只提示判断方向，不直接给答案；粮草不足时无法查看。")
+if st.session_state.get(hint_key):
+    render_hint_panel(stage, stage.get("role", {}) or {})
 
 render_section("多媒体材料", "请依据当前材料与此前展览学习作答；本关答案解析将在提交后显示。")
 material_left, material_right = st.columns([1.1, 1])

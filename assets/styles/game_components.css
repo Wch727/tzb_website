@@ -887,6 +887,169 @@
     line-height: 1.65;
 }
 
+.game-chapter-prologue {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 1rem;
+    margin: 0.9rem 0 1.15rem;
+    padding: clamp(1.1rem, 2.4vw, 1.7rem);
+    border-radius: 30px;
+    color: #fff8ed;
+    background:
+        radial-gradient(circle at 86% 14%, rgba(255, 219, 124, 0.28), transparent 30%),
+        linear-gradient(135deg, #3a0717 0%, #731632 48%, #b63545 100%);
+    border: 1px solid rgba(255, 235, 208, 0.22);
+    box-shadow: 0 22px 56px rgba(75, 12, 30, 0.2);
+}
+
+.game-chapter-prologue span,
+.game-collectible-wall-head span,
+.game-hint-panel span {
+    color: #ffd89b;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    font-size: 0.84rem;
+}
+
+.game-chapter-prologue h2 {
+    margin: 0.42rem 0 0.55rem;
+    color: #fff8ed;
+    font-size: clamp(1.8rem, 3.4vw, 3rem);
+}
+
+.game-chapter-prologue p,
+.game-chapter-prologue em {
+    margin: 0;
+    color: rgba(255, 248, 237, 0.9);
+    line-height: 1.8;
+    font-style: normal;
+}
+
+.game-chapter-prologue-side {
+    border-radius: 24px;
+    padding: 1rem;
+    background: rgba(255, 248, 232, 0.13);
+    border: 1px solid rgba(255, 238, 216, 0.2);
+}
+
+.game-chapter-prologue-side b {
+    display: block;
+    color: #fff8ed;
+    margin-bottom: 0.45rem;
+    font-size: 1.08rem;
+}
+
+.game-collectible-wall {
+    margin: 1rem 0 1.25rem;
+    border-radius: 32px;
+    padding: 1rem;
+    background:
+        radial-gradient(circle at 92% 8%, rgba(255, 222, 131, 0.2), transparent 30%),
+        linear-gradient(180deg, rgba(255, 252, 248, 0.97), rgba(248, 238, 234, 0.93));
+    border: 1px solid rgba(126, 30, 52, 0.16);
+    box-shadow: 0 18px 44px rgba(79, 16, 33, 0.09);
+}
+
+.game-collectible-wall-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.25rem 0.25rem 0.9rem;
+}
+
+.game-collectible-wall-head strong {
+    color: #561526;
+    font-size: 1.22rem;
+}
+
+.game-collectible-wall-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.85rem;
+}
+
+.game-collectible-wall-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 190px;
+    padding: 1rem;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 85% 10%, rgba(255, 225, 142, 0.26), transparent 32%),
+        linear-gradient(145deg, rgba(255, 250, 238, 0.98), rgba(247, 232, 220, 0.92));
+    border: 1px solid rgba(126, 30, 52, 0.15);
+}
+
+.game-collectible-wall-card.legend {
+    color: #fff8ed;
+    background:
+        radial-gradient(circle at 84% 10%, rgba(255, 221, 112, 0.32), transparent 34%),
+        linear-gradient(145deg, #40101e, #961f39 58%, #c65642);
+    border-color: rgba(255, 224, 151, 0.5);
+}
+
+.game-collectible-wall-card.epic {
+    color: #fff8ed;
+    background:
+        radial-gradient(circle at 82% 10%, rgba(255, 224, 160, 0.26), transparent 34%),
+        linear-gradient(145deg, #45172b, #824057);
+    border-color: rgba(255, 224, 151, 0.34);
+}
+
+.game-collectible-wall-card span {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    color: #9c3347;
+    background: rgba(126, 30, 52, 0.08);
+    font-weight: 950;
+    letter-spacing: 0.1em;
+    font-size: 0.78rem;
+}
+
+.game-collectible-wall-card.legend span,
+.game-collectible-wall-card.epic span {
+    color: #ffe6ae;
+    background: rgba(255, 248, 232, 0.14);
+}
+
+.game-collectible-wall-card h3 {
+    margin: 0.7rem 0 0.5rem;
+    color: inherit;
+    font-size: 1.22rem;
+}
+
+.game-collectible-wall-card p {
+    color: inherit;
+    opacity: 0.82;
+    line-height: 1.72;
+}
+
+.game-hint-panel {
+    margin: 0.8rem 0 1rem;
+    border-radius: 24px;
+    padding: 1rem 1.1rem;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(255, 215, 120, 0.24), transparent 32%),
+        linear-gradient(135deg, rgba(255, 249, 235, 0.98), rgba(255, 235, 203, 0.82));
+    border: 1px solid rgba(171, 70, 56, 0.2);
+    box-shadow: 0 14px 34px rgba(79, 16, 33, 0.08);
+}
+
+.game-hint-panel h3 {
+    margin: 0.35rem 0 0.45rem;
+    color: #571625;
+}
+
+.game-hint-panel p {
+    margin: 0;
+    color: #4b3832;
+    line-height: 1.78;
+}
+
 .game-tactic-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -1144,6 +1307,10 @@
     }
 
     .game-command-center {
+        grid-template-columns: 1fr;
+    }
+
+    .game-chapter-prologue {
         grid-template-columns: 1fr;
     }
 

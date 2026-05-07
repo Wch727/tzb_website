@@ -823,6 +823,9 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         tactic_match=tactic_match,
     )
     progress_summary = build_progress_summary(updated_state.get("progress", {}))
+    stage_rating = int(
+        (progress_summary.get("level_stars", {}) or {}).get(node.get("id", ""), 0) or 0
+    )
     review_manual = [
         {
             "title": "你的判断",
@@ -893,4 +896,5 @@ def submit_stage_answer(state: Dict[str, Any], answer: str, tactic_id: str = "")
         "progress": progress_summary,
         "reward_delta": reward_delta,
         "unlocked_card": unlocked_card,
+        "stage_rating": stage_rating,
     }
