@@ -12,7 +12,6 @@ from textwrap import dedent
 from typing import Any, Dict, List
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 from activity_manager import get_activity
 from template_renderer import render_script_block, render_template
@@ -81,20 +80,20 @@ def inject_custom_css() -> None:
 
 def inject_interaction_scripts() -> None:
     """加载拆分到 assets/scripts 的轻量前端增强脚本。"""
-    components.html(
+    st.html(
         render_script_block("site_interactions.js"),
-        height=1,
+        unsafe_allow_javascript=True,
     )
 
 
 def scroll_page_to_top(anchor_id: str = "codex-scroll-top") -> None:
     """在页面重渲染后把视角拉回顶部。"""
-    components.html(
+    st.html(
         render_script_block(
             "scroll_tools.js",
             anchor_id_json=json.dumps(anchor_id, ensure_ascii=False),
         ),
-        height=1,
+        unsafe_allow_javascript=True,
     )
 
 
