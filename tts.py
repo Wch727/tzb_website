@@ -20,9 +20,44 @@ except Exception:  # pragma: no cover - optional dependency
 
 
 DEFAULT_VOICE = "zh-CN-XiaoxiaoNeural"
+VOICE_PRESETS: Dict[str, Dict[str, str]] = {
+    "female": {
+        "label": "女声讲解员",
+        "voice": "zh-CN-XiaoxiaoNeural",
+        "desc": "清晰、亲和，适合展厅导览和人物专题。",
+    },
+    "male": {
+        "label": "男声讲解员",
+        "voice": "zh-CN-YunyangNeural",
+        "desc": "沉稳、正式，适合节点故事和长篇讲解。",
+    },
+    "youth": {
+        "label": "青年讲解员",
+        "voice": "zh-CN-YunxiNeural",
+        "desc": "语气更轻快，适合互动闯关与中小学生体验。",
+    },
+}
 PREBUILT_AUDIO_DIR = AUDIO_DIR / "prebuilt"
 GENERATED_AUDIO_DIR = AUDIO_DIR / "cache"
 SUPPORTED_AUDIO_SUFFIXES = (".mp3", ".wav", ".m4a", ".ogg")
+
+
+def get_voice_presets() -> Dict[str, Dict[str, str]]:
+    """Return available narration voice presets."""
+    return VOICE_PRESETS.copy()
+
+
+def resolve_voice(voice: str = "", gender: str = "") -> str:
+    """Resolve a concrete TTS voice from explicit voice or preset key."""
+    explicit = str(voice or "").strip()
+    if explicit:
+        if explicit in VOICE_PRESETS:
+            return VOICE_PRESETS[explicit]["voice"]
+        return explicit
+    preset = str(gender or "").strip().lower()
+    if preset in VOICE_PRESETS:
+        return VOICE_PRESETS[preset]["voice"]
+    return DEFAULT_VOICE
 
 
 def _clean_text(text: str) -> str:
@@ -138,8 +173,9 @@ def get_tts_settings() -> Dict[str, str]:
     """Read TTS defaults from settings while keeping local fallbacks."""
     settings = get_settings()
     provider = str(settings.get("tts_provider", "auto") or "auto")
-    voice = str(settings.get("tts_voice", DEFAULT_VOICE) or DEFAULT_VOICE)
-    return {"provider": provider, "voice": voice}
+    preset = str(settings.get("tts_voice_preset", "") or "")
+    voice = resolve_voice(str(settings.get("tts_voice", "") or ""), preset)
+    return {"provider": provider, "voice": voice, "voice_preset": preset or "female"}
 
 
 def synthesize_text_to_audio(
@@ -154,7 +190,7 @@ def synthesize_text_to_audio(
         cleaned = "欢迎进入长征主题展项，请沿着主线继续浏览。"
 
     settings = get_tts_settings()
-    resolved_voice = voice or settings["voice"]
+    resolved_voice = resolve_voice(voice or settings["voice"])
     provider_order = _provider_order(provider or settings["provider"])
 
     existing = resolve_existing_audio(cleaned, cache_key, voice=resolved_voice)

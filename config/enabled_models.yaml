@@ -3,59 +3,576 @@ providers:
     provider_name: mock
     display_name: 本地知识导览
     provider: mock
+    provider_group: mock
+    category: fallback
+    region: local
     base_url: ''
     api_key: ''
     api_key_secret_name: ''
+    auth_header: ''
     model: mock-longmarch-v1
     enabled: true
     visible_to_users: true
     allow_user_key: false
-    description: 无 API Key 时自动启用的本地知识导览模式。
-  moonshot:
-    provider_name: moonshot
-    display_name: Kimi / Moonshot
+    description: 无 API Key 时自动启用的本地知识导览模式，保证网站可直接展示。
+
+  moonshot_kimi_k25:
+    provider_name: moonshot_kimi_k25
+    display_name: Kimi K2.5 / Moonshot
     provider: moonshot
+    provider_group: moonshot
+    category: chat-vision
+    region: global
     base_url: https://api.moonshot.cn/v1
     api_key: ''
     api_key_secret_name: MOONSHOT_API_KEY
+    auth_header: bearer
     model: kimi-k2.5
     enabled: true
     visible_to_users: true
     allow_user_key: false
-    description: 优先读取 Streamlit Secrets 或环境变量中的 Moonshot / Kimi 密钥，未配置时自动回退本地知识导览模式。
-  qwen:
-    provider_name: qwen
-    display_name: Qwen / DashScope
+    description: 默认演示模型。普通用户可使用站点配置的 Kimi 接入，其余外部模型需用户自行输入个人 API Key。
+
+  openai_gpt55_responses:
+    provider_name: openai_gpt55_responses
+    display_name: GPT-5.5 / Responses
+    provider: openai_responses
+    provider_group: openai
+    category: reasoning-agent
+    region: global
+    base_url: https://api.openai.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gpt-5.5
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: OpenAI 最新 GPT-5.5 官方推荐走 Responses API，适合复杂材料分析、长文本组织、工具调用和高质量讲解生成。
+
+  openai_gpt55_chat:
+    provider_name: openai_gpt55_chat
+    display_name: GPT-5.5 / Chat Completions
+    provider: openai
+    provider_group: openai
+    category: chat
+    region: global
+    base_url: https://api.openai.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gpt-5.5
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: OpenAI GPT-5.5 的 Chat Completions 兼容入口，适合普通问答、讲解生成和轻量内容润色；如账号仅开放 Responses，可切换到 Responses 入口。
+
+  openai_gpt55_low_latency:
+    provider_name: openai_gpt55_low_latency
+    display_name: GPT-5.5 / 低延迟讲解
+    provider: openai_responses
+    provider_group: openai
+    category: low-latency
+    region: global
+    base_url: https://api.openai.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gpt-5.5
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 使用同一 GPT-5.5 模型入口，适合现场快速问答；可在提示词层控制更短输出或更低 reasoning effort。
+
+  openai_gpt55_coding_plan:
+    provider_name: openai_gpt55_coding_plan
+    display_name: GPT-5.5 / 规划与编码
+    provider: openai_responses
+    provider_group: openai
+    category: coding-plan
+    region: global
+    base_url: https://api.openai.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gpt-5.5
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: OpenAI 官方 GPT-5.5 入口，适合规划、材料梳理和复杂任务；如账号提供专门 Codex 模型，可在页面覆盖模型名。
+
+  gemini_31_pro:
+    provider_name: gemini_31_pro
+    display_name: Gemini 3.1 Pro
+    provider: gemini
+    provider_group: gemini
+    category: reasoning-vision
+    region: global
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gemini-3.1-pro
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Gemini 3.1 Pro 入口，适合复杂多模态材料分析和高质量讲解生成；如账号返回模型名变动，可在配置页覆盖模型名。
+
+  gemini_31_flash:
+    provider_name: gemini_31_flash
+    display_name: Gemini 3.1 Flash
+    provider: gemini
+    provider_group: gemini
+    category: fast-reasoning-vision
+    region: global
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gemini-3.1-flash
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Gemini 3.1 Flash 入口，适合更快的问答、图文理解和现场演示；如账号返回模型名变动，可在配置页覆盖模型名。
+
+  gemini_3_pro_preview:
+    provider_name: gemini_3_pro_preview
+    display_name: Gemini 3 Pro Preview / 兼容备用
+    provider: gemini
+    provider_group: gemini
+    category: reasoning-vision
+    region: global
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gemini-3-pro-preview
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Google Gemini 3 Pro Preview 兼容备用入口，适合当前账号尚未开放 Gemini 3.1 时继续试用。
+
+  gemini_25_flash:
+    provider_name: gemini_25_flash
+    display_name: Gemini 2.5 Flash / 兼容备用
+    provider: gemini
+    provider_group: gemini
+    category: chat-vision
+    region: global
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gemini-2.5-flash
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Gemini 2.5 Flash 兼容备用入口，适合成本更低、响应更快的展陈问答。
+
+  gemini_25_pro:
+    provider_name: gemini_25_pro
+    display_name: Gemini 2.5 Pro / 兼容备用
+    provider: gemini
+    provider_group: gemini
+    category: reasoning-vision
+    region: global
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: gemini-2.5-pro
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Gemini 2.5 Pro 兼容备用入口，适合无法使用 Gemini 3 预览模型时继续完成讲解生成。
+
+  qwen36_plus_cn:
+    provider_name: qwen36_plus_cn
+    display_name: Qwen3.6 Plus / 国内
     provider: qwen
+    provider_group: qwen
+    category: chat-vision
+    region: cn
     base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
     api_key: ''
-    api_key_secret_name: DASHSCOPE_API_KEY
-    model: qwen-plus
-    enabled: false
-    visible_to_users: false
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-plus
+    enabled: true
+    visible_to_users: true
     allow_user_key: true
-    description: 使用阿里云 DashScope 兼容接口，建议在 Secrets 中配置 DASHSCOPE_API_KEY。
-  minimax:
-    provider_name: minimax
-    display_name: MiniMax
-    provider: minimax
-    base_url: https://api.minimax.chat/v1
+    description: 阿里百炼国内 OpenAI-compatible 入口，适合中文问答、图文理解和长上下文 RAG。
+
+  qwen36_plus_intl:
+    provider_name: qwen36_plus_intl
+    display_name: Qwen3.6 Plus / 国际
+    provider: qwen
+    provider_group: qwen
+    category: chat-vision
+    region: intl
+    base_url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
     api_key: ''
-    api_key_secret_name: MINIMAX_API_KEY
-    model: MiniMax-Text-01
-    enabled: false
-    visible_to_users: false
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-plus
+    enabled: true
+    visible_to_users: true
     allow_user_key: true
-    description: 使用 MiniMax 兼容接口，建议在 Secrets 中配置 MINIMAX_API_KEY。
-  deepseek:
-    provider_name: deepseek
-    display_name: DeepSeek
+    description: Qwen Cloud 国际 OpenAI-compatible 入口，适合海外账号或国际网络环境。
+
+  qwen36_flash_intl:
+    provider_name: qwen36_flash_intl
+    display_name: Qwen3.6 Flash / 国际
+    provider: qwen
+    provider_group: qwen
+    category: fast-chat
+    region: intl
+    base_url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-flash
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Qwen3.6 快速入口，适合低成本、低延迟试用。
+
+  qwen36_max_intl:
+    provider_name: qwen36_max_intl
+    display_name: Qwen3.6 Max Preview / 国际
+    provider: qwen
+    provider_group: qwen
+    category: reasoning-coding
+    region: intl
+    base_url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-max-preview
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Qwen3.6 Max Preview，适合复杂推理、材料分析和代码任务。
+
+  qwen36_responses_intl:
+    provider_name: qwen36_responses_intl
+    display_name: Qwen3.6 / Responses 国际
+    provider: openai_responses
+    provider_group: qwen
+    category: reasoning-plan
+    region: intl
+    base_url: https://dashscope-intl.aliyuncs.com/api/v2/apps/protocols/compatible-mode/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-plus
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Qwen Cloud Responses API 入口，适合复杂规划与多步材料整理。
+
+  qwen_coding_plan_openai:
+    provider_name: qwen_coding_plan_openai
+    display_name: Qwen Coding Plan / OpenAI 协议
+    provider: qwen
+    provider_group: qwen
+    category: coding-plan
+    region: intl-plan
+    base_url: https://coding-intl.dashscope.aliyuncs.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-plus
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Qwen Cloud Coding Plan 专用 OpenAI-compatible 入口，只能使用 sk-sp 开头的 Coding Plan Key。
+
+  qwen_coding_plan_anthropic:
+    provider_name: qwen_coding_plan_anthropic
+    display_name: Qwen Coding Plan / Anthropic 协议
+    provider: claude
+    provider_group: qwen
+    category: coding-plan-anthropic
+    region: intl-plan
+    base_url: https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: qwen3.6-plus
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Qwen Coding Plan Anthropic-compatible 入口，适合 Claude Code / OpenCode 等工具协议。
+
+  deepseek_v4_flash_openai:
+    provider_name: deepseek_v4_flash_openai
+    display_name: DeepSeek V4 Flash / OpenAI 协议
     provider: deepseek
-    base_url: https://api.deepseek.com/v1
+    provider_group: deepseek
+    category: chat-reasoning
+    region: global
+    base_url: https://api.deepseek.com
     api_key: ''
-    api_key_secret_name: DEEPSEEK_API_KEY
-    model: deepseek-chat
-    enabled: false
-    visible_to_users: false
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: deepseek-v4-flash
+    enabled: true
+    visible_to_users: true
     allow_user_key: true
-    description: 使用 DeepSeek 兼容接口，建议在 Secrets 中配置 DEEPSEEK_API_KEY。
+    description: DeepSeek V4 Flash OpenAI-compatible 入口，替代即将弃用的 deepseek-chat/reasoner。
+
+  deepseek_v4_pro_openai:
+    provider_name: deepseek_v4_pro_openai
+    display_name: DeepSeek V4 Pro / OpenAI 协议
+    provider: deepseek
+    provider_group: deepseek
+    category: strong-reasoning
+    region: global
+    base_url: https://api.deepseek.com
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: deepseek-v4-pro
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: DeepSeek V4 Pro OpenAI-compatible 入口，适合复杂推理、长材料和高质量生成。
+
+  deepseek_v4_pro_anthropic:
+    provider_name: deepseek_v4_pro_anthropic
+    display_name: DeepSeek V4 Pro / Anthropic 协议
+    provider: claude
+    provider_group: deepseek
+    category: anthropic-compatible
+    region: global
+    base_url: https://api.deepseek.com/anthropic
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: x-api-key
+    model: deepseek-v4-pro
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: DeepSeek Anthropic-compatible 入口，适合使用 Anthropic 协议的工具链。
+
+  minimax_m27_cn:
+    provider_name: minimax_m27_cn
+    display_name: MiniMax M2.7 / 国内
+    provider: minimax
+    provider_group: minimax
+    category: agent-coding
+    region: cn
+    base_url: https://api.minimaxi.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: MiniMax-M2.7
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: MiniMax 国内 OpenAI-compatible 入口，适合中文内容生成、代码和复杂办公任务。
+
+  minimax_m27_intl:
+    provider_name: minimax_m27_intl
+    display_name: MiniMax M2.7 / 国际
+    provider: minimax
+    provider_group: minimax
+    category: agent-coding
+    region: intl
+    base_url: https://api.minimax.io/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: MiniMax-M2.7
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: MiniMax 国际 OpenAI-compatible 入口，适合海外账号或国际网络环境。
+
+  minimax_m27_highspeed_cn:
+    provider_name: minimax_m27_highspeed_cn
+    display_name: MiniMax M2.7 Highspeed / 国内
+    provider: minimax
+    provider_group: minimax
+    category: fast-agent
+    region: cn
+    base_url: https://api.minimaxi.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: MiniMax-M2.7-highspeed
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: MiniMax M2.7 高速版，适合现场演示和需要更快响应的讲解生成。
+
+  claude_opus47:
+    provider_name: claude_opus47
+    display_name: Claude Opus 4.7
+    provider: claude
+    provider_group: claude
+    category: strong-reasoning
+    region: global
+    base_url: https://api.anthropic.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: x-api-key
+    model: claude-opus-4-7
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Anthropic 最新 Opus 4.7，适合复杂推理、代理式编码和高质量长文本。
+
+  claude_sonnet46:
+    provider_name: claude_sonnet46
+    display_name: Claude Sonnet 4.6
+    provider: claude
+    provider_group: claude
+    category: balanced-reasoning
+    region: global
+    base_url: https://api.anthropic.com/v1
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: x-api-key
+    model: claude-sonnet-4-6
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: Claude Sonnet 4.6，兼顾速度和智能，适合长文本讲解和材料分析。
+
+  doubao_seed18_general:
+    provider_name: doubao_seed18_general
+    display_name: 豆包 Seed 1.8 / 通用
+    provider: doubao
+    provider_group: doubao
+    category: general-vision
+    region: cn
+    base_url: https://ark.cn-beijing.volces.com/api/v3
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: doubao-seed-1-8-251228
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 火山方舟通用入口，适合文本、图像和普通展陈内容生成。
+
+  doubao_seed20_pro:
+    provider_name: doubao_seed20_pro
+    display_name: 豆包 Seed 2.0 Pro
+    provider: doubao
+    provider_group: doubao
+    category: strong-chat
+    region: cn
+    base_url: https://ark.cn-beijing.volces.com/api/v3
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: doubao-seed-2-0-pro-260215
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 豆包 Seed 2.0 Pro 入口，如账号未开通可在配置页改回火山方舟可用模型。
+
+  doubao_code_plan:
+    provider_name: doubao_code_plan
+    display_name: 豆包 Coding Plan
+    provider: doubao
+    provider_group: doubao
+    category: coding-plan
+    region: cn-plan
+    base_url: https://ark.cn-beijing.volces.com/api/coding/v3
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: ark-code-latest
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 火山方舟编码计划入口，适合 coding/agent 工具场景。
+
+  mimo_custom:
+    provider_name: mimo_custom
+    display_name: 小米 MiMo / 自定义兼容入口
+    provider: mimo
+    provider_group: mimo
+    category: custom-openai-compatible
+    region: custom
+    base_url: ''
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: XiaomiMiMo/MiMo-V2-Flash
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 预留小米 MiMo 或第三方 OpenAI-compatible 网关入口；官方公开 API 地址不稳定时，请在连接参数里填写实际 Base URL。
+
+  custom_openai_compatible_global:
+    provider_name: custom_openai_compatible_global
+    display_name: 自定义 OpenAI 兼容入口 / 国际
+    provider: openai_compatible
+    provider_group: custom
+    category: custom-chat
+    region: global
+    base_url: ''
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: ''
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 适配 OpenRouter、xAI/Grok、Groq、Together 等 OpenAI-compatible 平台。用户需填写 Base URL、模型名和个人 API Key。
+
+  custom_openai_compatible_cn:
+    provider_name: custom_openai_compatible_cn
+    display_name: 自定义 OpenAI 兼容入口 / 国内
+    provider: openai_compatible
+    provider_group: custom
+    category: custom-cn
+    region: cn
+    base_url: ''
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: ''
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 适配智谱 GLM、百度千帆、讯飞星火、硅基流动及其他国内 OpenAI-compatible 平台。用户需填写实际 Base URL、模型名和个人 API Key。
+
+  custom_anthropic_compatible:
+    provider_name: custom_anthropic_compatible
+    display_name: 自定义 Anthropic 兼容入口
+    provider: claude
+    provider_group: custom
+    category: custom-anthropic
+    region: global
+    base_url: ''
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: x-api-key
+    model: ''
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 适配 Claude、DeepSeek Anthropic-compatible、Qwen Coding Plan Anthropic-compatible 及其他 Messages API 兼容平台。
+
+  custom_coding_plan:
+    provider_name: custom_coding_plan
+    display_name: 自定义 Coding / Plan 入口
+    provider: openai_compatible
+    provider_group: custom
+    category: coding-plan
+    region: custom-plan
+    base_url: ''
+    api_key: ''
+    api_key_secret_name: ''
+    auth_header: bearer
+    model: ''
+    enabled: true
+    visible_to_users: true
+    allow_user_key: true
+    description: 适配需要单独 Base URL 或专用 Key 的 Coding Plan / Agent Plan 服务。用户需填写该平台给出的 Base URL、模型名和个人 API Key。

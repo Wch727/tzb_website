@@ -1025,30 +1025,96 @@ def build_static_sources_for_node(node: Dict[str, Any], extra_items: Optional[Li
     return sources
 
 
+def _node_scene_lead(node: Dict[str, Any]) -> str:
+    """根据节点类型生成更像展厅口播的开场视角。"""
+    title = str(node.get("title", "") or "这一展项")
+    place = str(node.get("place", "") or "长征路线现场")
+    if "会议" in title:
+        return f"各位观众，请先把脚步放慢，走进{place}的会议现场。这里不是普通的地点标注，而是党和红军在危急关头讨论方向、统一认识、调整行动的重要空间。"
+    if any(word in title for word in ["渡", "河", "桥", "金沙江", "大渡河"]):
+        return f"各位观众，请先看这处地理位置：{place}。江河、桥梁、渡口和两岸地形共同构成了这一展项的紧张感，红军必须在有限时间里把天险变成通道。"
+    if any(word in title for word in ["战役", "战斗", "封锁"]):
+        return f"各位观众，请先看作战示意图和路线标识。{place}一带的山地、道路、村镇和敌军部署交织在一起，使“{title}”成为长征途中必须正面面对的严峻考验。"
+    if any(word in title for word in ["雪山", "草地"]):
+        return f"各位观众，请把视线从战场转向自然环境。{place}的寒冷、缺氧、泥沼、饥饿和漫长行军，把长征的艰苦具体落到每一名红军战士身上。"
+    if "会师" in title:
+        return f"各位观众，请把目光放到{place}。经历漫长转战之后，部队在这里相逢，军旗、队伍和群众支援共同构成了长征胜利汇合的历史画面。"
+    return f"各位观众，现在我们来到“{title}”展项。请先从{place}这个地名进入，把它放回中央红军战略转移的完整路线中观看。"
+
+
+def _node_watch_hint(node: Dict[str, Any]) -> str:
+    """生成展项观看提示，避免每个节点讲解都像同一套模板。"""
+    title = str(node.get("title", "") or "这一节点")
+    if "会议" in title:
+        return "观看这一展项时，可以重点留意会议前的危局、会议中的讨论对象，以及会议后行动方式发生的变化。这样看，会议就不再只是一张照片或一段文字，而是一条历史转折链上的关键环节。"
+    if any(word in title for word in ["渡", "河", "桥", "金沙江", "大渡河"]):
+        return "观看这一展项时，可以把地形当成第一条线索：水流、渡口、桥梁、山地和敌军封锁共同决定行动难度。红军的组织能力和突击精神，正是在这些具体条件中显现出来。"
+    if any(word in title for word in ["战役", "战斗", "封锁"]):
+        return "观看这一展项时，不要只看胜负结论，还要看敌我态势、部队处境和行动选择。长征中的每一次突破，都伴随着判断、组织、牺牲和继续前进的决心。"
+    if any(word in title for word in ["雪山", "草地"]):
+        return "观看这一展项时，可以把一双草鞋、一段行军路线、一处宿营地想象成真实场景。长征精神不是抽象词语，而是在饥寒、疲惫和生死考验中一步一步走出来的。"
+    if "会师" in title:
+        return "观看这一展项时，可以关注“汇合”背后的艰难：多支队伍能够重新聚拢，意味着革命力量在极端困难中得到保存，也意味着新的战略局面即将展开。"
+    return "观看这一展项时，可以把时间、地点、人物和行动连起来看。只有把单个节点放回整条征程，才能真正理解它在长征主线中的位置。"
+
+
+def _node_story_addendum(node: Dict[str, Any]) -> str:
+    """为较短的专属讲解词补足现场细节和展线关系。"""
+    title = str(node.get("title", "") or "这一节点")
+    date = str(node.get("date", "") or "长征途中")
+    place = str(node.get("place", "") or "长征路线现场")
+    process = str(node.get("process", "") or "").strip()
+    significance = str(node.get("significance", "") or "").strip()
+    figures = "、".join(node.get("figures", [])[:4]) if node.get("figures") else "红军指战员"
+    key_points = "；".join(str(item) for item in (node.get("key_points", []) or [])[:3])
+    return (
+        f"\n\n继续看这一展项，可以把时间定格在{date}，把地点落到{place}。"
+        f"{process or f'红军在“{title}”相关行动中，需要同时面对敌情、地形、行军速度和组织协同等多重压力。'}"
+        f"从人物线索看，{figures}等人物和广大红军指战员共同构成了这一历史现场的行动主体。"
+        f"{significance or '它的价值不只在于完成一次行动，更在于推动长征主线继续向前。'}"
+        f"{_node_watch_hint(node)}"
+        + (f" 本展项可重点把握：{key_points}。" if key_points else "")
+    )
+
+
+def _ensure_node_story_depth(node: Dict[str, Any], script: str, min_chars: int = 820) -> str:
+    """确保每个节点故事都有足够的展项厚度。"""
+    cleaned = str(script or "").strip()
+    if len(cleaned) >= min_chars:
+        return cleaned
+    enriched = f"{cleaned}{_node_story_addendum(node)}"
+    if len(enriched) >= min_chars:
+        return enriched
+    return f"{enriched}\n\n{_node_watch_hint(node)}"
+
+
 def build_node_story_script(node: Dict[str, Any]) -> str:
-    """为节点生成可直接展示的正式讲解稿。"""
+    """为节点生成可直接展示的正式讲解词。"""
     lecture_script = str(node.get("lecture_script", "") or "").strip()
     if lecture_script:
         return lecture_script
 
     title = str(node.get("title", "") or "长征节点")
-    audience = "各位参观者"
     summary = str(node.get("summary", "") or "").strip()
     background = str(node.get("background", "") or "").strip()
     process = str(node.get("process", "") or "").strip()
     significance = str(node.get("significance", "") or "").strip()
     figures = "、".join(node.get("figures", [])[:4]) if node.get("figures") else "红军指战员与党的重要领导人"
     key_points = "；".join(node.get("key_points", [])[:4]) if node.get("key_points") else "结合时间、地点、人物与历史意义整体理解这一节点。"
-    return (
-        f"《{title}》展项讲解稿\n\n"
-        f"{audience}，下面我们围绕“{title}”展开讲解。"
+
+    script = (
+        f"《{title}》展项讲解词\n\n"
+        f"{_node_scene_lead(node)}"
         f"{summary or '这一节点处在长征主线的重要位置，是理解战略转移、路线调整与革命精神的重要入口。'}\n\n"
-        f"首先看历史背景。{background or '在敌强我弱、形势严峻的条件下，红军必须在保存革命力量与打开新局面之间作出关键抉择。'}\n\n"
+        f"请继续看历史背景。{background or '在敌强我弱、形势严峻的条件下，红军必须在保存革命力量与打开新局面之间作出关键抉择。'}\n\n"
         f"再看事件经过。{process or '红军在这一阶段完成了关键行动，并通过严密组织与顽强斗争推动主线继续向前发展。'}\n\n"
-        f"从人物线索看，本节点涉及{figures}等重要人物，他们在组织、判断、执行和统一思想等方面发挥了关键作用。\n\n"
-        f"最后看历史意义。{significance or '这一节点不仅影响了长征的进程，也深化了党对革命道路、战略方向和群众力量的认识。'}\n\n"
+        f"从人物线索看，这一展项涉及{figures}等人物，也离不开广大红军指战员和沿途群众的共同努力。"
+        f"人物不是附属信息，而是理解决策、组织、执行和牺牲精神的重要入口。\n\n"
+        f"最后看历史意义。{significance or '这一节点不仅影响了长征的进程，也深化了党对革命道路、战略方向和群众力量的认识。'}"
+        f"{_node_watch_hint(node)}\n\n"
         f"如果把它放回整条长征主线中理解，最值得把握的要点包括：{key_points}"
     )
+    return _ensure_node_story_depth(node, script)
 
 
 def build_long_march_story_script() -> str:

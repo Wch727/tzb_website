@@ -124,9 +124,14 @@ pages/
 支持的 provider：
 
 - `moonshot / kimi`
+- `openai / gpt`
+- `gemini`
 - `qwen / dashscope`
-- `minimax`
 - `deepseek`
+- `minimax`
+- `doubao / volcengine ark`
+- `claude / anthropic`
+- `mimo / xiaomi`
 - `mock`
 
 统一配置结构示例：
@@ -146,13 +151,37 @@ providers:
     allow_user_key: false
 ```
 
-读取优先级：
+用户侧密钥策略：
 
-1. 普通用户当前 session 临时输入的 key
-2. `st.secrets`
-3. 环境变量
-4. 本地 `config/enabled_models.yaml`
-5. `mock` 回退
+1. Kimi / Moonshot 可使用站点在 `st.secrets` 中配置的 `MOONSHOT_API_KEY`，用于默认演示。
+2. GPT、Gemini、Qwen、DeepSeek、MiniMax、豆包、Claude、小米 MiMo 等外部模型只使用普通用户在配置页输入的个人 API Key。
+3. 普通用户输入的 Key 只保存在当前浏览器会话中，不写入仓库、不落盘、不进入管理员配置文件。
+4. 如果未输入个人 Key，系统自动回退到本地知识导览模式，不影响展陈内容浏览。
+
+当前默认配置已区分多类入口：
+
+- OpenAI：`gpt-5.5`，优先走 Responses API，也保留 Chat Completions 兼容入口。
+- Gemini：`gemini-3.1-pro`、`gemini-3.1-flash`，并保留 Gemini 3 Pro Preview / 2.5 兼容备用入口。
+- Qwen：区分国内 `dashscope.aliyuncs.com`、国际 `dashscope-intl.aliyuncs.com`、Coding Plan 专用入口和 Anthropic-compatible 入口。
+- DeepSeek：区分 OpenAI-compatible 入口与 Anthropic-compatible 入口，默认配置 V4 系列。
+- Claude：保留 Claude Opus 4.7、Claude Sonnet 4.6 的 Anthropic Messages API 接入项。
+- 豆包、MiniMax、小米 MiMo：以 OpenAI-compatible 方式接入，其中 MiMo 默认要求用户在配置页填写实际 Base URL。
+
+不同平台会因账号区域、套餐权限、模型灰度而返回不同可用模型名。配置页支持用户在本次会话内覆盖 `Base URL` 和 `model`，用于处理“同一平台不同账号模型名不同”的情况。
+
+语音讲解策略：
+
+- 默认使用 `edge-tts` 生成本地缓存音频，支持女声、男声、青年声三种讲解员预设。
+- 页面会自动生成并播放节点讲解音频，不需要单独准备音频文件。
+- 如果运行环境无法访问 TTS 服务，系统会回退到本地占位音频，保证页面不报错。
+- 数字讲解员采用“讲解员形象 + 语音 + 字幕 + 轻量讲话动效”的方案，适合 Streamlit Community Cloud 部署，不依赖重型实时数字人服务。
+
+管理员侧配置读取优先级：
+
+1. `st.secrets`
+2. 环境变量
+3. 本地 `config/enabled_models.yaml`
+4. `mock` 回退
 
 如果某个 provider 没有可用 key，系统仍可运行，并会自动回退到本地演示模型。
 
@@ -323,12 +352,11 @@ Community Cloud 部署时，建议在高级设置中选择 **Python 3.12**。
 ```toml
 ADMIN_PASSWORD = "你的管理员密码"
 MOONSHOT_API_KEY = "你的 Kimi / Moonshot Key"
-DASHSCOPE_API_KEY = ""
-MINIMAX_API_KEY = ""
-DEEPSEEK_API_KEY = ""
 ```
 
-项目代码会按以下优先级读取：
+线上展示版建议只配置 `ADMIN_PASSWORD` 和 `MOONSHOT_API_KEY`。除 Kimi 外，普通用户如果要体验 GPT、Gemini、Qwen、DeepSeek、MiniMax、豆包、Claude、小米 MiMo 等模型，需要在“使用设置”页输入自己的个人 API Key。
+
+管理员侧代码会按以下优先级读取：
 
 1. `st.secrets`
 2. 环境变量
@@ -416,9 +444,12 @@ app.py
 模型密钥优先读取：
 
 - `MOONSHOT_API_KEY`
-- `DASHSCOPE_API_KEY`
-- `MINIMAX_API_KEY`
-- `DEEPSEEK_API_KEY`
+
+普通用户侧的外部模型密钥策略：
+
+- Kimi / Moonshot 使用 `MOONSHOT_API_KEY` 作为站点默认演示能力。
+- GPT、Gemini、Qwen、DeepSeek、MiniMax、豆包、Claude、小米 MiMo 等只读取用户在配置页输入的本次会话 Key。
+- 普通用户输入的个人 Key 不会写入 `config/`，也不会进入 GitHub 仓库。
 
 ## 常见部署报错与排查
 

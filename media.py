@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import base64
 import html
+import mimetypes
 import re
 from pathlib import Path
 from typing import Any, Dict, List
@@ -11,10 +13,17 @@ import streamlit as st
 
 from content_store import load_image_map
 from template_renderer import render_template
-from tts import resolve_existing_audio, synthesize_text_to_audio
+from tts import get_voice_presets, resolve_existing_audio, resolve_voice, synthesize_text_to_audio
 from utils import AVATAR_DIR, BASE_DIR, IMAGE_DIR, get_settings
 
 DEFAULT_GUIDE_AVATAR = "assets/avatar/guide_digital_host.png"
+
+
+def get_selected_voice() -> str:
+    """Resolve the current session narration voice without making TTS a Streamlit dependency."""
+    preset = st.session_state.get("tts_voice_preset", "") or st.session_state.get("tts_voice_gender", "")
+    explicit_voice = st.session_state.get("tts_voice", "")
+    return resolve_voice(explicit_voice, preset)
 
 
 def _resolve_asset_path(path_like: str) -> Path:
@@ -23,6 +32,15 @@ def _resolve_asset_path(path_like: str) -> Path:
     if path.is_absolute():
         return path
     return (BASE_DIR / path).resolve()
+
+
+def _asset_to_data_uri(path: Path) -> str:
+    """Encode a local media asset for HTML templates."""
+    if not path.exists() or not path.is_file():
+        return ""
+    mime_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime_type};base64,{encoded}"
 
 
 def _fallback_image_by_type(item_type: str) -> str:
@@ -230,14 +248,15 @@ def render_audio_player(
     text: str,
     cache_key: str,
     button_label: str = "播放语音讲解",
-    voice: str = "zh-CN-XiaoxiaoNeural",
+    voice: str = "",
 ) -> str:
-    """Render a narration audio control with synthesis + cache reuse."""
+    """Render a narration audio control with automatic synthesis + cache reuse."""
+    resolved_voice = resolve_voice(voice or get_selected_voice())
     state_key, meta_key = _audio_state_keys(cache_key)
-    audio_path = _ensure_existing_audio(text=text, cache_key=cache_key, voice=voice)
+    audio_path = _ensure_existing_audio(text=text, cache_key=cache_key, voice=resolved_voice)
 
-    if st.button(button_label, key=f"btn::{cache_key}", width="stretch"):
-        result = synthesize_text_to_audio(text=text, cache_key=cache_key, voice=voice)
+    if not audio_path:
+        result = synthesize_text_to_audio(text=text, cache_key=cache_key, voice=resolved_voice)
         st.session_state[state_key] = result["audio_path"]
         st.session_state[meta_key] = result
         audio_path = result["audio_path"]
@@ -270,9 +289,20 @@ def _render_avatar_panel(avatar_path: str, caption: str) -> None:
         elif resolved.suffix.lower() == ".svg":
             render_svg_artwork(resolved.read_text(encoding="utf-8"), caption)
         else:
-            st.image(str(resolved), width="stretch")
-            if caption:
-                st.caption(caption)
+            voice = get_selected_voice()
+            presets = get_voice_presets()
+            voice_label = next(
+                (item["label"] for item in presets.values() if item.get("voice") == voice),
+                "数字讲解员",
+            )
+            st.html(
+                render_template(
+                    "digital_human_stage.html",
+                    avatar_uri=_asset_to_data_uri(resolved),
+                    caption=html.escape(caption or "数字讲解员"),
+                    voice_label=html.escape(voice_label),
+                )
+            )
     else:
         render_svg_artwork(generate_placeholder_svg("数字讲解员", caption or "长征主题讲解"), caption or "数字讲解员")
 
@@ -285,9 +315,10 @@ def render_digital_human(
     title: str = "数字讲解员",
     subtitle: str = "",
     cache_key: str = "",
-    voice: str = "zh-CN-XiaoxiaoNeural",
+    voice: str = "",
 ) -> None:
     """Render a lightweight digital-human block with audio + segmented transcript."""
+    resolved_voice = resolve_voice(voice or get_selected_voice())
     blocks = _split_narration_sections(section_text)
     if not section_text.strip():
         st.info("当前暂无可展示的讲解内容。")
@@ -298,7 +329,7 @@ def render_digital_human(
         resolved_audio_path = resolved_audio_path or _ensure_existing_audio(
             text=section_text,
             cache_key=cache_key,
-            voice=voice,
+            voice=resolved_voice,
         )
 
     st.html(
@@ -313,15 +344,14 @@ def render_digital_human(
     with left_col:
         _render_avatar_panel(avatar_path, "讲解员形象")
         st.html(render_template("digital_human_avatar_card.html"))
+        if cache_key and not resolved_audio_path:
+            result = synthesize_text_to_audio(text=section_text, cache_key=cache_key, voice=resolved_voice)
+            resolved_audio_path = result["audio_path"]
+            state_key, meta_key = _audio_state_keys(cache_key)
+            st.session_state[state_key] = resolved_audio_path
+            st.session_state[meta_key] = result
         status_label = "讲解音频已就绪" if resolved_audio_path and Path(resolved_audio_path).exists() else "讲解词已就绪"
         st.html(render_template("digital_human_status_card.html", status_label=html.escape(status_label)))
-        if cache_key and not resolved_audio_path:
-            if st.button("准备讲解音频", key=f"digital_prepare::{cache_key}", width="stretch"):
-                result = synthesize_text_to_audio(text=section_text, cache_key=cache_key, voice=voice)
-                resolved_audio_path = result["audio_path"]
-                state_key, meta_key = _audio_state_keys(cache_key)
-                st.session_state[state_key] = resolved_audio_path
-                st.session_state[meta_key] = result
         if resolved_audio_path and Path(resolved_audio_path).exists():
             st.audio(resolved_audio_path)
 

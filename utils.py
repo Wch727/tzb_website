@@ -45,9 +45,13 @@ PROVIDER_KEYS = [
     "provider_name",
     "display_name",
     "provider",
+    "provider_group",
+    "category",
+    "region",
     "base_url",
     "api_key",
     "api_key_secret_name",
+    "auth_header",
     "model",
     "enabled",
     "visible_to_users",
@@ -57,9 +61,31 @@ PROVIDER_KEYS = [
 
 PROVIDER_SECRET_NAME_MAP = {
     "moonshot": "MOONSHOT_API_KEY",
+    "kimi": "MOONSHOT_API_KEY",
     "qwen": "DASHSCOPE_API_KEY",
     "minimax": "MINIMAX_API_KEY",
     "deepseek": "DEEPSEEK_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "gpt": "OPENAI_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+    "doubao": "DOUBAO_API_KEY",
+    "volcengine": "DOUBAO_API_KEY",
+    "claude": "ANTHROPIC_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "mimo": "MIMO_API_KEY",
+    "xiaomi": "MIMO_API_KEY",
+    "xai": "XAI_API_KEY",
+    "grok": "XAI_API_KEY",
+    "zhipu": "ZHIPU_API_KEY",
+    "glm": "ZHIPU_API_KEY",
+    "baidu": "QIANFAN_API_KEY",
+    "qianfan": "QIANFAN_API_KEY",
+    "spark": "SPARK_API_KEY",
+    "iflytek": "SPARK_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "siliconflow": "SILICONFLOW_API_KEY",
+    "together": "TOGETHER_API_KEY",
+    "groq": "GROQ_API_KEY",
 }
 
 
@@ -335,18 +361,23 @@ def normalize_provider_config(config: Optional[Dict[str, Any]]) -> Dict[str, Any
     provider_name = str(config.get("provider_name") or config.get("provider") or "").strip() or "mock"
     provider = str(config.get("provider") or provider_name).strip() or provider_name
     display_name = str(config.get("display_name") or provider_name).strip() or provider_name
-    api_key_secret_name = str(
-        config.get("api_key_secret_name") or default_secret_name_for_provider(provider_name)
-    ).strip()
+    if "api_key_secret_name" in config:
+        api_key_secret_name = str(config.get("api_key_secret_name") or "").strip()
+    else:
+        api_key_secret_name = default_secret_name_for_provider(provider_name)
     visible_to_users = bool(config.get("visible_to_users", config.get("visible_to_user", True)))
     allow_user_key = bool(config.get("allow_user_key", provider_name == "mock"))
     normalized = {
         "provider_name": provider_name,
         "display_name": display_name,
         "provider": provider,
+        "provider_group": str(config.get("provider_group") or provider).strip(),
+        "category": str(config.get("category", "") or "").strip(),
+        "region": str(config.get("region", "") or "").strip(),
         "base_url": str(config.get("base_url", "") or "").strip(),
         "api_key": str(config.get("api_key", "") or "").strip(),
         "api_key_secret_name": api_key_secret_name,
+        "auth_header": str(config.get("auth_header", "") or "").strip(),
         "model": str(config.get("model", "") or "").strip(),
         "enabled": bool(config.get("enabled", False)),
         "visible_to_users": visible_to_users,
@@ -430,6 +461,10 @@ def get_visible_user_models() -> List[Dict[str, Any]]:
                 "provider_name": config.get("provider_name", ""),
                 "display_name": config.get("display_name", config.get("provider_name", "")),
                 "provider": config.get("provider", config.get("provider_name", "")),
+                "provider_group": config.get("provider_group", config.get("provider", "")),
+                "category": config.get("category", ""),
+                "region": config.get("region", ""),
+                "base_url": config.get("base_url", ""),
                 "model": config.get("model", ""),
                 "enabled": bool(config.get("enabled", False)),
                 "visible_to_users": bool(config.get("visible_to_users", True)),
@@ -447,6 +482,10 @@ def get_visible_user_models() -> List[Dict[str, Any]]:
                     "provider_name": mock_config.get("provider_name", "mock"),
             "display_name": mock_config.get("display_name", "本地知识导览"),
                     "provider": mock_config.get("provider", "mock"),
+                    "provider_group": mock_config.get("provider_group", "mock"),
+                    "category": mock_config.get("category", ""),
+                    "region": mock_config.get("region", ""),
+                    "base_url": mock_config.get("base_url", ""),
                     "model": mock_config.get("model", "mock-longmarch-v1"),
                     "enabled": bool(mock_config.get("enabled", True)),
                     "visible_to_users": bool(mock_config.get("visible_to_users", True)),
@@ -541,7 +580,11 @@ def set_default_provider(provider_name: str) -> Dict[str, Any]:
     return normalize_provider_config(config)
 
 
-def get_provider_runtime_status(provider_name: str, runtime_api_key: str = "") -> Dict[str, Any]:
+def get_provider_runtime_status(
+    provider_name: str,
+    runtime_api_key: str = "",
+    allow_platform_key: bool = True,
+) -> Dict[str, Any]:
     """分析 provider 实际运行时使用的密钥来源。"""
     config = normalize_provider_config(get_provider_config(provider_name))
     if runtime_api_key:
@@ -553,8 +596,8 @@ def get_provider_runtime_status(provider_name: str, runtime_api_key: str = "") -
             "api_key_secret_name": config.get("api_key_secret_name", ""),
         }
 
-    secret_name = config.get("api_key_secret_name", "") or default_secret_name_for_provider(provider_name)
-    if secret_name:
+    secret_name = config.get("api_key_secret_name", "")
+    if allow_platform_key and secret_name:
         secret_status = resolve_secret_value_with_source(secret_name)
         if secret_status["value"]:
             return {
@@ -565,7 +608,7 @@ def get_provider_runtime_status(provider_name: str, runtime_api_key: str = "") -
                 "api_key_secret_name": secret_name,
             }
 
-    if config.get("api_key"):
+    if allow_platform_key and config.get("api_key"):
         return {
             "provider_name": provider_name,
             "api_key": config.get("api_key", ""),
@@ -588,6 +631,7 @@ def resolve_provider_config(
     runtime_api_key: str = "",
     runtime_model: str = "",
     runtime_base_url: str = "",
+    allow_platform_key: bool = True,
 ) -> Dict[str, Any]:
     """合并管理员配置与用户会话输入。"""
     config = get_provider_config(provider_name) or {
@@ -603,7 +647,11 @@ def resolve_provider_config(
             "description": "依据内置长征史知识库完成基础导览。",
     }
     merged = normalize_provider_config(config)
-    runtime_status = get_provider_runtime_status(provider_name=merged.get("provider_name", provider_name), runtime_api_key=runtime_api_key)
+    runtime_status = get_provider_runtime_status(
+        provider_name=merged.get("provider_name", provider_name),
+        runtime_api_key=runtime_api_key,
+        allow_platform_key=allow_platform_key,
+    )
     merged["api_key"] = runtime_status.get("api_key", "")
     merged["api_key_source"] = runtime_status.get("api_key_source", "missing")
     merged["api_key_source_text"] = runtime_status.get("api_key_source_text", "未配置")

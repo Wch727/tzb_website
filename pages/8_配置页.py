@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+from tts import get_voice_presets
+
 from streamlit_ui import (
     admin_is_logged_in,
     content_mode_key_from_label,
@@ -17,8 +19,10 @@ from streamlit_ui import (
     render_section,
     render_top_nav,
     set_runtime_api_key,
+    set_runtime_provider_override,
     set_selected_provider,
     setup_page,
+    user_provider_allows_platform_key,
 )
 from utils import (
     get_default_provider_name,
@@ -112,18 +116,57 @@ with user_tab:
         )
         st.session_state["content_mode_preference"] = content_mode_key_from_label(mode_label)
 
+        voice_presets = get_voice_presets()
+        preset_keys = list(voice_presets.keys())
+        current_voice_preset = st.session_state.get("tts_voice_preset", "female")
+        if current_voice_preset not in preset_keys:
+            current_voice_preset = "female"
+        selected_voice_preset = st.selectbox(
+            "语音讲解声音",
+            preset_keys,
+            index=preset_keys.index(current_voice_preset),
+            format_func=lambda key: f"{voice_presets[key]['label']}：{voice_presets[key]['desc']}",
+        )
+        st.session_state["tts_voice_preset"] = selected_voice_preset
+        st.session_state["tts_voice_gender"] = selected_voice_preset
+
         if current_model.get("allow_user_key"):
+            st.info("除 Kimi 外，外部模型仅使用你本次输入的个人 API Key；站点不会把平台密钥提供给普通访问者。")
+            current_override = st.session_state.get("session_provider_overrides", {}).get(selected, {})
             api_key = st.text_input(
                 "个人 API Key（仅本次会话生效）",
                 type="password",
                 value=st.session_state.get("session_api_keys", {}).get(selected, ""),
-                placeholder="如已开放个人接入，可在此填写个人 API Key",
+                placeholder="填写该模型平台提供的个人 API Key",
             )
-            if st.button("保存当前会话 Key", width="stretch"):
+            with st.expander("连接参数", expanded=not current_model.get("base_url")):
+                runtime_base_url = st.text_input(
+                    "Base URL（可选）",
+                    value=current_override.get("base_url") or current_model.get("base_url", ""),
+                    help="OpenAI-compatible 接口可直接填写兼容地址；Claude 等专用接口可保留默认地址。",
+                )
+                runtime_model = st.text_input(
+                    "模型名称（可选）",
+                    value=current_override.get("model") or current_model.get("model", ""),
+                    help="如果你的账号使用了自定义模型名称，可以在这里覆盖默认值。",
+                )
+            if st.button("保存本次访问的模型连接", width="stretch"):
                 set_runtime_api_key(selected, api_key.strip())
-                st.success("个人密钥已保存到本次会话。")
+                if current_model.get("provider_group"):
+                    set_runtime_api_key(current_model.get("provider_group", ""), api_key.strip())
+                if current_model.get("provider"):
+                    set_runtime_api_key(current_model.get("provider", ""), api_key.strip())
+                set_runtime_provider_override(
+                    selected,
+                    model=runtime_model.strip() if runtime_model.strip() != current_model.get("model", "") else "",
+                    base_url=runtime_base_url.strip() if runtime_base_url.strip() != current_model.get("base_url", "") else "",
+                )
+                st.success("个人模型连接已保存到本次会话。")
         else:
-            st.info("个人 API Key 输入未开放。")
+            if user_provider_allows_platform_key(selected) and selected != "mock":
+                st.info("该模型由站点统一接入，用于现场演示和默认讲解。")
+            else:
+                st.info("该模型暂未开放个人 API Key 输入。")
 
         preferred_topic = st.selectbox(
             "主题偏好",
@@ -236,7 +279,31 @@ with admin_tab:
     with st.form("create_provider"):
         provider_name = st.text_input("provider_name", placeholder="例如：moonshot-new")
         display_name = st.text_input("display_name", placeholder="例如：Kimi 备用模型")
-        provider_type = st.selectbox("provider 类型", ["moonshot", "qwen", "minimax", "deepseek", "mock"])
+        provider_type = st.selectbox(
+            "provider 类型",
+            [
+                "moonshot",
+                "openai",
+                "openai_responses",
+                "gemini",
+                "qwen",
+                "deepseek",
+                "minimax",
+                "doubao",
+                "claude",
+                "mimo",
+                "xai",
+                "zhipu",
+                "baidu",
+                "spark",
+                "openrouter",
+                "siliconflow",
+                "together",
+                "groq",
+                "openai_compatible",
+                "mock",
+            ],
+        )
         base_url = st.text_input("base_url", placeholder="兼容 OpenAI 的接口地址")
         model = st.text_input("model", placeholder="模型名称")
         api_key_secret_name = st.text_input("api_key_secret_name", placeholder="例如：MOONSHOT_API_KEY")
